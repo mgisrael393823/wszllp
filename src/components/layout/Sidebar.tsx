@@ -1,7 +1,8 @@
 import React from 'react';
 import { 
   Briefcase, FileClock, FileText, Truck, CreditCard, 
-  Calendar, Users, Video, Activity, ChevronDown, Upload
+  Calendar, Users, Video, Activity, ChevronDown, Upload,
+  Settings
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -33,6 +34,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     { label: 'Payment Plans', value: 'payment-plans', icon: <FileClock size={20} /> },
     { label: 'Contacts', value: 'contacts', icon: <Users size={20} /> },
     { label: 'Zoom Links', value: 'zoom-links', icon: <Video size={20} /> },
+    { label: 'Admin', value: 'admin', icon: <Settings size={20} /> },
   ];
 
   const [openPanel, setOpenPanel] = React.useState('cases');
@@ -43,6 +45,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     documents: ['documents', 'efile', 'service-logs'],
     billing: ['invoices', 'payment-plans'],
     contacts: ['contacts', 'zoom-links'],
+    system: ['admin'],
   };
 
   const togglePanel = (panel: string) => {
@@ -180,6 +183,43 @@ const Sidebar: React.FC<SidebarProps> = ({
               <div className="pl-6 mt-1 space-y-1">
                 {navItems
                   .filter(item => navGroups.contacts.includes(item.value))
+                  .map(item => (
+                    <button
+                      key={item.value}
+                      onClick={() => onSectionChange(item.value)}
+                      className={`
+                        flex items-center w-full px-3 py-2 text-sm font-medium rounded-md transition-colors
+                        ${activeSection === item.value 
+                          ? 'bg-primary-50 text-primary-600' 
+                          : 'text-gray-700 hover:bg-gray-100'}
+                      `}
+                    >
+                      <span className="mr-3 text-gray-500">{item.icon}</span>
+                      {item.label}
+                    </button>
+                  ))
+                }
+              </div>
+            )}
+          </div>
+
+          {/* System Admin Group */}
+          <div className="mb-4">
+            <button
+              onClick={() => togglePanel('system')}
+              className="flex items-center justify-between w-full px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100"
+            >
+              <span className="font-semibold">System</span>
+              <ChevronDown 
+                size={16}
+                className={`transform transition-transform ${openPanel === 'system' ? 'rotate-180' : ''}`} 
+              />
+            </button>
+            
+            {openPanel === 'system' && (
+              <div className="pl-6 mt-1 space-y-1">
+                {navItems
+                  .filter(item => navGroups.system.includes(item.value))
                   .map(item => (
                     <button
                       key={item.value}

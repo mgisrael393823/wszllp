@@ -12,6 +12,7 @@ import InvoiceList from './components/invoices/InvoiceList';
 import InvoiceDetail from './components/invoices/InvoiceDetail';
 import ServiceLogsList from './components/service-logs/ServiceLogsList';
 import EFilePage from './components/efile/EFilePage';
+import AdminPage from './components/admin/AdminPage';
 
 // Component to handle navigation logic
 const AppContent = () => {
@@ -47,6 +48,7 @@ const AppContent = () => {
         <Route path="/invoices/:id" element={<InvoiceDetail />} />
         <Route path="/service-logs" element={<ServiceLogsList />} />
         <Route path="/efile" element={<EFilePage />} />
+        <Route path="/admin" element={<AdminPage />} />
       </Routes>
     </MainLayout>
   );
