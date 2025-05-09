@@ -6,7 +6,11 @@ import Table from '../ui/Table';
 import Pagination from '../ui/Pagination';
 import Input from '../ui/Input';
 
-const DocumentList: React.FC = () => {
+interface DocumentListProps {
+  limit?: number;
+}
+
+const DocumentList: React.FC<DocumentListProps> = ({ limit }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [typeFilter, setTypeFilter] = useState<string>('');
@@ -103,11 +107,14 @@ const DocumentList: React.FC = () => {
     return matchesSearch && matchesType && matchesStatus;
   });
 
-  // Paginate
-  const paginatedDocuments = filteredDocuments.slice(
+  // Limit documents if specified
+  const limitedDocuments = limit ? filteredDocuments.slice(0, limit) : filteredDocuments;
+  
+  // Paginate if not limiting
+  const paginatedDocuments = !limit ? limitedDocuments.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
-  );
+  ) : limitedDocuments;
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -177,6 +184,22 @@ const DocumentList: React.FC = () => {
     },
   ];
 
+  // Simplified view for when a limit is provided
+  if (limit) {
+    return (
+      <div>
+        <Table 
+          data={paginatedDocuments}
+          columns={columns}
+          keyField="docId"
+          onRowClick={(item) => console.log('Clicked document:', item.docId)}
+          emptyMessage="No documents found. Add a new document to get started."
+        />
+      </div>
+    );
+  }
+  
+  // Full view with filters and pagination
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
