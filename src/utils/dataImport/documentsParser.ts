@@ -46,6 +46,8 @@ function parseDocumentsFromSource(
   caseMapping: Map<string, string>
 ): Document[] {
   const documents: Document[] = [];
+  // Track unique file IDs to avoid duplicate documents
+  const processedFileIds = new Set<string>();
   
   // Skip header rows
   let dataStartIndex = -1;
@@ -61,6 +63,8 @@ function parseDocumentsFromSource(
     dataStartIndex = 0; // If no clear header, start from beginning
   }
   
+  console.log(`Parsing ${documentType} documents, starting at row ${dataStartIndex}, total rows: ${data.length}`);
+  
   // Process document rows
   for (let i = dataStartIndex; i < data.length; i++) {
     const row = data[i];
@@ -72,6 +76,22 @@ function parseDocumentsFromSource(
     }
     
     try {
+      // Skip instruction rows or summary rows that might have accidentally matched
+      if (fileId.includes('INSTRUCTION') || fileId.includes('TOTAL') || 
+          fileId.toLowerCase().includes('file') || fileId.toLowerCase().includes('note')) {
+        continue;
+      }
+      
+      // Create a unique document identifier by combining file ID and document type
+      // This prevents creating multiple documents for the same case when there are
+      // multiple defendants or variations listed in the spreadsheet
+      const uniqueDocumentId = `${fileId}-${documentType}`;
+      
+      // Skip if we've already processed this document
+      if (processedFileIds.has(uniqueDocumentId)) {
+        continue;
+      }
+      
       // Find associated case ID
       let caseId = fileId;
       if (caseMapping.has(fileId)) {
@@ -116,11 +136,16 @@ function parseDocumentsFromSource(
         updatedAt: new Date().toISOString(),
       };
       
+      // Mark this document as processed
+      processedFileIds.add(uniqueDocumentId);
+      
       documents.push(document);
     } catch (error) {
       console.error(`Error parsing document row ${i}:`, error);
     }
   }
+  
+  console.log(`Parsed ${documents.length} unique ${documentType} documents`);
   
   return documents;
 }

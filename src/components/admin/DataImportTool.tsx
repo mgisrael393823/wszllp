@@ -1,34 +1,67 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { importFromExcel } from '../../utils/dataImport/excelImporter';
+import { importFromCSV } from '../../utils/dataImport/csvImporter';
 import { useData } from '../../context/DataContext';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
-import { Upload, CheckCircle, AlertCircle, FileText, Database } from 'lucide-react';
+import Select from '../ui/Select';
+import ImportFormatGuide from './ImportFormatGuide';
+import { Upload, CheckCircle, AlertCircle, FileText, Database, FileSpreadsheet, HelpCircle } from 'lucide-react';
 
 const DataImportTool: React.FC = () => {
   const { dispatch } = useData();
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isImporting, setIsImporting] = useState(false);
   const [importResult, setImportResult] = useState<any | null>(null);
   const [step, setStep] = useState<'upload' | 'preview' | 'importing' | 'complete'>('upload');
   const [error, setError] = useState<string | null>(null);
+  const [importType, setImportType] = useState<'excel' | 'csv'>('excel');
+  const [showFormatHelp, setShowFormatHelp] = useState(false);
+  const [showFormatGuide, setShowFormatGuide] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      setSelectedFile(e.target.files[0]);
+      if (importType === 'excel') {
+        // For Excel, we only accept one file
+        setSelectedFiles([e.target.files[0]]);
+      } else {
+        // For CSV, we accept multiple files
+        setSelectedFiles(Array.from(e.target.files));
+      }
       setError(null);
+    }
+  };
+  
+  const handleImportTypeChange = (type: 'excel' | 'csv') => {
+    setImportType(type);
+    setSelectedFiles([]);
+    setError(null);
+    
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
   const handleUpload = async () => {
-    if (!selectedFile) {
-      setError('Please select a file to import');
+    if (selectedFiles.length === 0) {
+      setError('Please select file(s) to import');
       return;
     }
 
-    if (!selectedFile.name.endsWith('.xlsx')) {
-      setError('Please upload an Excel file (.xlsx)');
-      return;
+    // Validate file types
+    if (importType === 'excel') {
+      if (!selectedFiles[0].name.endsWith('.xlsx')) {
+        setError('Please upload an Excel file (.xlsx)');
+        return;
+      }
+    } else {
+      const invalidFiles = selectedFiles.filter(file => !file.name.endsWith('.csv'));
+      if (invalidFiles.length > 0) {
+        setError(`Please upload only CSV files. Invalid files: ${invalidFiles.map(f => f.name).join(', ')}`);
+        return;
+      }
     }
 
     setError(null);
@@ -36,7 +69,13 @@ const DataImportTool: React.FC = () => {
     setIsImporting(true);
 
     try {
-      const result = await importFromExcel(selectedFile);
+      let result;
+      if (importType === 'excel') {
+        result = await importFromExcel(selectedFiles[0]);
+      } else {
+        result = await importFromCSV(selectedFiles);
+      }
+      
       setImportResult(result);
       setIsImporting(false);
 
@@ -63,6 +102,21 @@ const DataImportTool: React.FC = () => {
       // Import data into the application
       const { entities } = importResult;
 
+      console.log('Importing data:', {
+        cases: entities.cases.length, 
+        hearings: entities.hearings.length,
+        documents: entities.documents.length,
+        serviceLogs: entities.serviceLogs.length,
+        invoices: entities.invoices.length,
+        paymentPlans: entities.paymentPlans.length,
+        contacts: entities.contacts.length
+      });
+
+      // Check if we have any data to display
+      if (entities.cases.length === 0) {
+        console.log('No cases found in import');
+      }
+
       // Load all the data in a single dispatch
       dispatch({
         type: 'LOAD_DATA',
@@ -75,9 +129,29 @@ const DataImportTool: React.FC = () => {
           paymentPlans: entities.paymentPlans,
           contacts: entities.contacts,
           zoomLinks: [], // Not directly imported
+          workflows: [], // Not directly imported
+          workflowTasks: [], // Not directly imported
+          documentTemplates: [], // Not directly imported
+          documentGenerations: [], // Not directly imported
+          calendarEvents: [], // Not directly imported
+          calendarIntegrations: [], // Not directly imported
+          notifications: [], // Not directly imported
+          notificationSettings: {
+            hearingReminders: true,
+            deadlineReminders: true,
+            documentUpdates: true,
+            workflowUpdates: true,
+            systemAnnouncements: true,
+            emailNotifications: false,
+            advanceHearingReminder: 24,
+            advanceDeadlineReminder: 48,
+          },
           auditLogs: [] // New audit logs will be generated during import
         }
       });
+      
+      // Log success message
+      console.log('Data import completed successfully!');
 
       setStep('complete');
     } catch (err) {
@@ -89,10 +163,15 @@ const DataImportTool: React.FC = () => {
   };
 
   const handleReset = () => {
-    setSelectedFile(null);
+    setSelectedFiles([]);
     setImportResult(null);
     setStep('upload');
     setError(null);
+    
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   return (
@@ -100,12 +179,42 @@ const DataImportTool: React.FC = () => {
       <Card className="p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold">Data Import Tool</h2>
-          {step !== 'upload' && (
-            <Button variant="outline" onClick={handleReset} size="sm">
-              Start Over
+          <div className="flex space-x-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowFormatGuide(true)}
+            >
+              <HelpCircle className="w-4 h-4 mr-1" />
+              Format Guide
             </Button>
-          )}
+            {step !== 'upload' && (
+              <Button variant="outline" onClick={handleReset} size="sm">
+                Start Over
+              </Button>
+            )}
+          </div>
         </div>
+        
+        {showFormatHelp && (
+          <div className="mb-6 p-4 bg-blue-50 text-blue-700 rounded-md border border-blue-200">
+            <h3 className="font-medium mb-2">CSV Import Format Requirements</h3>
+            <ul className="list-disc ml-4 space-y-1 text-sm">
+              <li>Files must be named to indicate their content (e.g., "complaints.csv")</li>
+              <li>First row must contain column headers</li>
+              <li>Data must be comma-separated (CSV)</li>
+              <li>Required file categories:
+                <ul className="list-disc ml-4 mt-1">
+                  <li>Cases: "complaints.csv" or "all-evictions.csv"</li>
+                  <li>Hearings: "court-25.csv" and/or "court-24.csv"</li>
+                  <li>Optional: "zoom.csv" for Zoom links</li>
+                  <li>Optional: "pm-info.csv" or "clients.csv" for contact information</li>
+                </ul>
+              </li>
+              <li>Each file type requires specific columns. See documentation for details.</li>
+            </ul>
+          </div>
+        )}
 
         {error && (
           <div className="mb-6 p-4 bg-error-50 text-error-700 rounded-md border border-error-200 flex items-start">
@@ -116,6 +225,32 @@ const DataImportTool: React.FC = () => {
 
         {step === 'upload' && (
           <div className="space-y-6">
+            <div className="flex space-x-4 mb-6">
+              <button
+                className={`flex items-center px-4 py-2 rounded-md ${
+                  importType === 'excel' 
+                    ? 'bg-primary-50 text-primary-600 border border-primary-200'
+                    : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'
+                }`}
+                onClick={() => handleImportTypeChange('excel')}
+              >
+                <FileSpreadsheet className="w-5 h-5 mr-2" />
+                Excel Import
+              </button>
+              
+              <button
+                className={`flex items-center px-4 py-2 rounded-md ${
+                  importType === 'csv' 
+                    ? 'bg-primary-50 text-primary-600 border border-primary-200'
+                    : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'
+                }`}
+                onClick={() => handleImportTypeChange('csv')}
+              >
+                <FileText className="w-5 h-5 mr-2" />
+                CSV Import
+              </button>
+            </div>
+            
             <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center">
               <Upload className="mx-auto h-12 w-12 text-gray-400" />
               <div className="mt-4 flex text-sm justify-center">
@@ -123,31 +258,51 @@ const DataImportTool: React.FC = () => {
                   htmlFor="file-upload"
                   className="relative cursor-pointer rounded-md font-medium text-primary-600 hover:text-primary-500"
                 >
-                  <span>Upload Excel file</span>
+                  <span>Upload {importType === 'excel' ? 'Excel file' : 'CSV files'}</span>
                   <input
                     id="file-upload"
                     name="file-upload"
                     type="file"
                     className="sr-only"
-                    accept=".xlsx"
+                    accept={importType === 'excel' ? '.xlsx' : '.csv'}
                     onChange={handleFileChange}
+                    multiple={importType === 'csv'}
+                    ref={fileInputRef}
                   />
                 </label>
                 <p className="pl-1 text-gray-500">or drag and drop</p>
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                Excel file (.xlsx) containing case data
+                {importType === 'excel' 
+                  ? 'Excel file (.xlsx) containing case data' 
+                  : 'CSV files (.csv) for each data category (cases, hearings, etc.)'}
               </p>
+              {importType === 'csv' && (
+                <div className="mt-2 text-xs text-gray-500">
+                  <p>Name each CSV file according to its content:</p>
+                  <ul className="list-disc ml-4 mt-1 text-left">
+                    <li>cases: "complaints.csv" or "all-evictions.csv"</li>
+                    <li>hearings: "court-25.csv", "court-24.csv", "zoom.csv"</li>
+                    <li>contacts: "pm-info.csv" or "clients.csv"</li>
+                    <li>Make sure files use comma (,) separators</li>
+                  </ul>
+                </div>
+              )}
             </div>
 
-            {selectedFile && (
+            {selectedFiles.length > 0 && (
               <div className="bg-gray-50 rounded-md p-4">
-                <div className="flex items-center">
-                  <FileText className="w-5 h-5 text-gray-500 mr-2" />
-                  <span className="font-medium">{selectedFile.name}</span>
-                  <span className="ml-2 text-gray-500 text-sm">
-                    ({Math.round(selectedFile.size / 1024)} KB)
-                  </span>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Selected Files</h4>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {selectedFiles.map((file, index) => (
+                    <div key={index} className="flex items-center">
+                      <FileText className="w-5 h-5 text-gray-500 mr-2" />
+                      <span className="font-medium">{file.name}</span>
+                      <span className="ml-2 text-gray-500 text-sm">
+                        ({Math.round(file.size / 1024)} KB)
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -156,7 +311,7 @@ const DataImportTool: React.FC = () => {
               <Button 
                 variant="primary" 
                 onClick={handleUpload} 
-                disabled={!selectedFile || isImporting}
+                disabled={selectedFiles.length === 0 || isImporting}
               >
                 {isImporting ? 'Analyzing...' : 'Next'}
               </Button>
@@ -263,6 +418,12 @@ const DataImportTool: React.FC = () => {
             </div>
           </div>
         )}
+        
+        <ImportFormatGuide 
+          isOpen={showFormatGuide} 
+          onClose={() => setShowFormatGuide(false)}
+          importType={importType}
+        />
       </Card>
     </div>
   );

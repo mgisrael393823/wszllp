@@ -11,24 +11,100 @@ import {
  */
 export function parseClients(pmData: any[]): Contact[] {
   const contacts: Contact[] = [];
+  const uniqueCompanies = new Set<string>(); // Track unique company names
   
-  // Skip header row if it exists
-  const startRow = Array.isArray(pmData) && pmData.length > 0 && 
-    typeof pmData[0]['Company'] === 'string' && 
-    pmData[0]['Company'].toLowerCase().includes('company') ? 1 : 0;
+  console.log(`Parsing clients from PM INFO sheet with ${pmData.length} rows`);
   
-  for (let i = startRow; i < pmData.length; i++) {
+  // Normalize column names - the Excel/CSV might have different column naming
+  function normalizeRow(row: any): any {
+    const normalizedRow: any = {};
+    
+    for (const key in row) {
+      // Skip undefined or null keys
+      if (!key) continue;
+      
+      const lowerKey = key.toLowerCase();
+      
+      if (lowerKey.includes('company') || lowerKey.includes('business name')) {
+        normalizedRow['Company'] = row[key];
+      }
+      else if (lowerKey.includes('phone') || lowerKey.includes('telephone')) {
+        normalizedRow['Company Main Phone'] = row[key];
+      }
+      else if (lowerKey.includes('email') || lowerKey.includes('e-mail')) {
+        normalizedRow['E-mail Address'] = row[key];
+      }
+      else {
+        // Keep the original key as well
+        normalizedRow[key] = row[key];
+      }
+    }
+    
+    return normalizedRow;
+  }
+  
+  // Skip instructions or title rows
+  let startRow = 0;
+  for (let i = 0; i < Math.min(10, pmData.length); i++) {
     const row = pmData[i];
     
+    if (!row) continue;
+    
+    // Try to find the header row
+    const keys = Object.keys(row);
+    for (const key of keys) {
+      if (key && typeof row[key] === 'string') {
+        const value = row[key].toLowerCase();
+        if (value.includes('company') || 
+            value.includes('business name') || 
+            value.includes('client name')) {
+          startRow = i + 1; // Start after this header row
+          console.log(`Found header row at ${i}, starting at row ${startRow}`);
+          break;
+        }
+      }
+    }
+    
+    if (startRow > 0) break;
+  }
+  
+  // If we didn't find a clear header row, assume it's the first row
+  if (startRow === 0 && pmData.length > 0) {
+    startRow = 1;
+  }
+  
+  // Process data rows
+  for (let i = startRow; i < pmData.length; i++) {
+    const originalRow = pmData[i];
+    if (!originalRow) continue;
+    
+    // Normalize column names
+    const row = normalizeRow(originalRow);
+    
     // Check if row has company name
-    if (!row || !row['Company']) {
+    if (!row['Company']) {
       continue;
     }
     
     try {
       // Format company name
-      const companyName = formatStringValue(row['Company']);
+      let companyName = formatStringValue(row['Company']);
       if (!companyName) continue;
+      
+      // Skip header rows that might have been missed
+      if (companyName.toLowerCase().includes('company') || 
+          companyName.toLowerCase().includes('business') ||
+          companyName.toLowerCase().includes('name')) {
+        continue;
+      }
+      
+      // Only process each company once
+      const normalizedCompanyName = companyName.toLowerCase().trim();
+      if (uniqueCompanies.has(normalizedCompanyName)) {
+        continue;
+      }
+      
+      uniqueCompanies.add(normalizedCompanyName);
       
       // Determine role based on data
       let role: 'Attorney' | 'Paralegal' | 'PM' = 'PM'; // Default to Property Manager
@@ -62,6 +138,8 @@ export function parseClients(pmData: any[]): Contact[] {
       console.error(`Error parsing client row ${i}:`, error);
     }
   }
+  
+  console.log(`Parsed ${contacts.length} unique contacts`);
   
   return contacts;
 }
