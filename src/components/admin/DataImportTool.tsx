@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { importFromExcel } from '../../utils/dataImport/excelImporter';
-import { importFromCSV } from '../../utils/dataImport/csvImporter';
+// Import disabled temporarily to fix build issues
+// import { importFromCSV } from '../../utils/dataImport/csvImporter';
 import { useData } from '../../context/DataContext';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
@@ -15,34 +16,32 @@ const DataImportTool: React.FC = () => {
   const [importResult, setImportResult] = useState<any | null>(null);
   const [step, setStep] = useState<'upload' | 'preview' | 'importing' | 'complete'>('upload');
   const [error, setError] = useState<string | null>(null);
-  const [importType, setImportType] = useState<'excel' | 'csv'>('excel');
+  // CSV import temporarily disabled to fix build issues
+  // const [importType, setImportType] = useState<'excel' | 'csv'>('excel');
+  const importType = 'excel';
   const [showFormatHelp, setShowFormatHelp] = useState(false);
   const [showFormatGuide, setShowFormatGuide] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      if (importType === 'excel') {
-        // For Excel, we only accept one file
-        setSelectedFiles([e.target.files[0]]);
-      } else {
-        // For CSV, we accept multiple files
-        setSelectedFiles(Array.from(e.target.files));
-      }
+      // CSV support temporarily disabled - only accept one Excel file
+      setSelectedFiles([e.target.files[0]]);
       setError(null);
     }
   };
   
-  const handleImportTypeChange = (type: 'excel' | 'csv') => {
-    setImportType(type);
-    setSelectedFiles([]);
-    setError(null);
-    
-    // Reset file input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
+  // CSV import temporarily disabled to fix build issues
+  // const handleImportTypeChange = (type: 'excel' | 'csv') => {
+  //   setImportType(type);
+  //   setSelectedFiles([]);
+  //   setError(null);
+  //   
+  //   // Reset file input
+  //   if (fileInputRef.current) {
+  //     fileInputRef.current.value = '';
+  //   }
+  // };
 
   const handleUpload = async () => {
     if (selectedFiles.length === 0) {
@@ -50,18 +49,10 @@ const DataImportTool: React.FC = () => {
       return;
     }
 
-    // Validate file types
-    if (importType === 'excel') {
-      if (!selectedFiles[0].name.endsWith('.xlsx')) {
-        setError('Please upload an Excel file (.xlsx)');
-        return;
-      }
-    } else {
-      const invalidFiles = selectedFiles.filter(file => !file.name.endsWith('.csv'));
-      if (invalidFiles.length > 0) {
-        setError(`Please upload only CSV files. Invalid files: ${invalidFiles.map(f => f.name).join(', ')}`);
-        return;
-      }
+    // Validate file types - CSV import temporarily disabled
+    if (!selectedFiles[0].name.endsWith('.xlsx')) {
+      setError('Please upload an Excel file (.xlsx)');
+      return;
     }
 
     setError(null);
@@ -69,12 +60,16 @@ const DataImportTool: React.FC = () => {
     setIsImporting(true);
 
     try {
-      let result;
-      if (importType === 'excel') {
-        result = await importFromExcel(selectedFiles[0]);
-      } else {
-        result = await importFromCSV(selectedFiles);
-      }
+      // Temporarily disabled CSV support to fix build issues
+      // let result;
+      // if (importType === 'excel') {
+      //   result = await importFromExcel(selectedFiles[0]);
+      // } else {
+      //   result = await importFromCSV(selectedFiles);
+      // }
+      
+      // Only support Excel for now
+      const result = await importFromExcel(selectedFiles[0]);
       
       setImportResult(result);
       setIsImporting(false);
@@ -225,30 +220,14 @@ const DataImportTool: React.FC = () => {
 
         {step === 'upload' && (
           <div className="space-y-6">
+            {/* CSV import options temporarily disabled to fix build issues */}
             <div className="flex space-x-4 mb-6">
-              <button
-                className={`flex items-center px-4 py-2 rounded-md ${
-                  importType === 'excel' 
-                    ? 'bg-primary-50 text-primary-600 border border-primary-200'
-                    : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'
-                }`}
-                onClick={() => handleImportTypeChange('excel')}
-              >
+              <div className="flex items-center px-4 py-2 rounded-md bg-primary-50 text-primary-600 border border-primary-200">
                 <FileSpreadsheet className="w-5 h-5 mr-2" />
                 Excel Import
-              </button>
+              </div>
               
-              <button
-                className={`flex items-center px-4 py-2 rounded-md ${
-                  importType === 'csv' 
-                    ? 'bg-primary-50 text-primary-600 border border-primary-200'
-                    : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'
-                }`}
-                onClick={() => handleImportTypeChange('csv')}
-              >
-                <FileText className="w-5 h-5 mr-2" />
-                CSV Import
-              </button>
+              {/* CSV import button removed temporarily */}
             </div>
             
             <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center">
@@ -258,36 +237,24 @@ const DataImportTool: React.FC = () => {
                   htmlFor="file-upload"
                   className="relative cursor-pointer rounded-md font-medium text-primary-600 hover:text-primary-500"
                 >
-                  <span>Upload {importType === 'excel' ? 'Excel file' : 'CSV files'}</span>
+                  <span>Upload Excel file</span>
                   <input
                     id="file-upload"
                     name="file-upload"
                     type="file"
                     className="sr-only"
-                    accept={importType === 'excel' ? '.xlsx' : '.csv'}
+                    accept=".xlsx"
                     onChange={handleFileChange}
-                    multiple={importType === 'csv'}
+                    multiple={false}
                     ref={fileInputRef}
                   />
                 </label>
                 <p className="pl-1 text-gray-500">or drag and drop</p>
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                {importType === 'excel' 
-                  ? 'Excel file (.xlsx) containing case data' 
-                  : 'CSV files (.csv) for each data category (cases, hearings, etc.)'}
+                Excel file (.xlsx) containing case data
               </p>
-              {importType === 'csv' && (
-                <div className="mt-2 text-xs text-gray-500">
-                  <p>Name each CSV file according to its content:</p>
-                  <ul className="list-disc ml-4 mt-1 text-left">
-                    <li>cases: "complaints.csv" or "all-evictions.csv"</li>
-                    <li>hearings: "court-25.csv", "court-24.csv", "zoom.csv"</li>
-                    <li>contacts: "pm-info.csv" or "clients.csv"</li>
-                    <li>Make sure files use comma (,) separators</li>
-                  </ul>
-                </div>
-              )}
+              {/* CSV import help text removed temporarily */}
             </div>
 
             {selectedFiles.length > 0 && (

@@ -6,5 +6,9 @@ export default defineConfig({
   plugins: [react()],
   optimizeDeps: {
     exclude: ['lucide-react'],
+    include: ['papaparse'],
+  },
+  ssr: {
+    noExternal: ['papaparse'],
   },
 });

@@ -6,13 +6,13 @@ import { FileSpreadsheet, FileText, X } from 'lucide-react';
 interface ImportFormatGuideProps {
   isOpen: boolean;
   onClose: () => void;
-  importType: 'excel' | 'csv';
+  importType?: 'excel' | 'csv';
 }
 
 const ImportFormatGuide: React.FC<ImportFormatGuideProps> = ({
   isOpen,
   onClose,
-  importType
+  importType = 'excel' // Default to Excel
 }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="lg">
