@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import Card from '../ui/Card';
 import DataImportTool from './DataImportTool';
-import { Database, Settings, Shield, Users } from 'lucide-react';
+import SimpleImportTool from './SimpleImportTool';
+import { Database, Settings, Shield, Users, Upload, RefreshCw } from 'lucide-react';
 
 const AdminPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'import' | 'settings' | 'users' | 'security'>('import');
+  const [activeTab, setActiveTab] = useState<'import' | 'enhanced-import' | 'settings' | 'users' | 'security'>('enhanced-import');
 
   const tabs = [
-    { id: 'import', label: 'Data Import', icon: <Database className="w-5 h-5" /> },
+    { id: 'import', label: 'Legacy Import', icon: <Database className="w-5 h-5" /> },
+    { id: 'enhanced-import', label: 'Enhanced Import', icon: <Upload className="w-5 h-5" /> },
     { id: 'settings', label: 'Settings', icon: <Settings className="w-5 h-5" /> },
     { id: 'users', label: 'Users', icon: <Users className="w-5 h-5" /> },
     { id: 'security', label: 'Security', icon: <Shield className="w-5 h-5" /> },
@@ -61,6 +63,8 @@ const AdminPage: React.FC = () => {
 
         <div className="p-6">
           {activeTab === 'import' && <DataImportTool />}
+          
+          {activeTab === 'enhanced-import' && <SimpleImportTool />}
           
           {activeTab === 'settings' && (
             <Card className="p-6">

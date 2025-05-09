@@ -8,11 +8,21 @@ import CaseDetail from './components/cases/CaseDetail';
 import CasesPage from './components/cases/CasesPage';
 import HearingList from './components/hearings/HearingList';
 import DocumentList from './components/documents/DocumentList';
+import DocumentManagement from './components/documents/DocumentManagement';
 import InvoiceList from './components/invoices/InvoiceList';
 import InvoiceDetail from './components/invoices/InvoiceDetail';
 import ServiceLogsList from './components/service-logs/ServiceLogsList';
 import EFilePage from './components/efile/EFilePage';
 import AdminPage from './components/admin/AdminPage';
+import WorkflowDashboard from './components/workflows/WorkflowDashboard';
+import WorkflowDetail from './components/workflows/WorkflowDetail';
+import TemplateList from './components/document-templates/TemplateList';
+import TemplateDetail from './components/document-templates/TemplateDetail';
+import DocumentGenerator from './components/document-templates/DocumentGenerator';
+import CalendarPage from './components/calendar/CalendarPage';
+import NotificationsPage from './components/notifications/NotificationsPage';
+import NotificationScheduler from './components/notifications/NotificationScheduler';
+import ContactsPage from './components/contacts/ContactsPage';
 
 // Component to handle navigation logic
 const AppContent = () => {
@@ -36,6 +46,7 @@ const AppContent = () => {
       activeSection={activeSection}
       onSectionChange={handleSectionChange}
     >
+      <NotificationScheduler />
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<DashboardHome />} />
@@ -43,12 +54,21 @@ const AppContent = () => {
         <Route path="/cases/list" element={<CaseList />} />
         <Route path="/cases/:id" element={<CaseDetail />} />
         <Route path="/hearings" element={<HearingList />} />
-        <Route path="/documents" element={<DocumentList />} />
+        <Route path="/calendar" element={<CalendarPage />} />
+        <Route path="/documents" element={<DocumentManagement />} />
+        <Route path="/documents/list" element={<DocumentList />} />
         <Route path="/invoices" element={<InvoiceList />} />
         <Route path="/invoices/:id" element={<InvoiceDetail />} />
         <Route path="/service-logs" element={<ServiceLogsList />} />
         <Route path="/efile" element={<EFilePage />} />
+        <Route path="/workflows" element={<WorkflowDashboard />} />
+        <Route path="/workflows/:id" element={<WorkflowDetail />} />
+        <Route path="/templates" element={<TemplateList />} />
+        <Route path="/templates/:id" element={<TemplateDetail />} />
+        <Route path="/document-generator" element={<DocumentGenerator />} />
         <Route path="/admin" element={<AdminPage />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/contacts/*" element={<ContactsPage />} />
       </Routes>
     </MainLayout>
   );
