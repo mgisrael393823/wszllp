@@ -1,198 +1,195 @@
 import React from 'react';
-import { useData } from '../../context/DataContext';
-import { format } from 'date-fns';
-import { Briefcase, Calendar, FileText, CreditCard } from 'lucide-react';
 import Card from '../ui/Card';
+import { Briefcase, Calendar, FileText, CreditCard, TrendingUp } from 'lucide-react';
 
 const DashboardHome: React.FC = () => {
-  const { state } = useData();
-
-  // Calculate statistics
-
-  // Calculate case statistics
-  const totalCases = state.cases.length;
-  const activeCases = state.cases.filter(c => c.status === 'Active').length;
-  const intakeCases = state.cases.filter(c => c.status === 'Intake').length;
-  const closedCases = state.cases.filter(c => c.status === 'Closed').length;
-
-  // Get upcoming hearings (next 7 days)
-  const today = new Date();
-  const nextWeek = new Date();
-  nextWeek.setDate(today.getDate() + 7);
-
-  const upcomingHearings = state.hearings
-    .filter(hearing => {
-      const hearingDate = new Date(hearing.hearingDate);
-      return hearingDate >= today && hearingDate <= nextWeek;
-    })
-    .sort((a, b) => new Date(a.hearingDate).getTime() - new Date(b.hearingDate).getTime());
-
-  // Recent documents
-  const recentDocuments = [...state.documents]
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 5);
-
-  // Unpaid invoices
-  const unpaidInvoices = state.invoices.filter(invoice => !invoice.paid);
-  const totalUnpaid = unpaidInvoices.reduce((sum, invoice) => sum + invoice.amount, 0);
+  // Placeholder data
+  const stats = {
+    totalCases: 124,
+    openCases: 87,
+    closedCases: 37,
+    upcomingHearings: 12,
+    pendingDocuments: 43,
+    recentDocuments: 156,
+    unpaidInvoices: 28,
+    totalUnpaid: 32650.75
+  };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Overview of case management statistics and activities
-          </p>
-        </div>
+    <div className="max-w-7xl mx-auto p-6 space-y-8">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">Dashboard</h1>
+        <p className="text-gray-600">Overview of your eviction practice</p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-primary-50 to-primary-100 border-none">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card>
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-primary-600 text-sm font-medium">Total Cases</p>
-              <p className="text-3xl font-bold text-primary-900 mt-1">{totalCases}</p>
+              <p className="text-gray-600 text-sm font-medium">Total Cases</p>
+              <p className="text-2xl font-semibold mt-1">{stats.totalCases}</p>
             </div>
-            <div className="rounded-full bg-primary-200 p-3">
+            <div className="rounded-full bg-primary-100 p-3">
               <Briefcase size={20} className="text-primary-700" />
             </div>
           </div>
-          <div className="mt-4 flex items-center text-xs text-primary-700">
-            <span className="font-medium">{activeCases} Active</span>
+          <div className="mt-4 flex items-center text-xs text-gray-500">
+            <span className="font-medium text-green-600">{stats.openCases} Open</span>
             <span className="mx-1">•</span>
-            <span>{intakeCases} Intake</span>
-            <span className="mx-1">•</span>
-            <span>{closedCases} Closed</span>
+            <span className="text-gray-600">{stats.closedCases} Closed</span>
           </div>
         </Card>
 
-        <Card className="bg-gradient-to-br from-secondary-50 to-secondary-100 border-none">
+        <Card>
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-secondary-600 text-sm font-medium">Upcoming Hearings</p>
-              <p className="text-3xl font-bold text-secondary-900 mt-1">{upcomingHearings.length}</p>
+              <p className="text-gray-600 text-sm font-medium">Upcoming Hearings</p>
+              <p className="text-2xl font-semibold mt-1">{stats.upcomingHearings}</p>
             </div>
-            <div className="rounded-full bg-secondary-200 p-3">
+            <div className="rounded-full bg-secondary-100 p-3">
               <Calendar size={20} className="text-secondary-700" />
             </div>
           </div>
-          <div className="mt-4 text-xs text-secondary-700">
+          <div className="mt-4 text-xs text-gray-500">
             <span className="font-medium">Next 7 days</span>
           </div>
         </Card>
 
-        <Card className="bg-gradient-to-br from-accent-50 to-accent-100 border-none">
+        <Card>
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-accent-600 text-sm font-medium">Documents</p>
-              <p className="text-3xl font-bold text-accent-900 mt-1">{state.documents.length}</p>
+              <p className="text-gray-600 text-sm font-medium">Documents</p>
+              <p className="text-2xl font-semibold mt-1">{stats.recentDocuments}</p>
             </div>
-            <div className="rounded-full bg-accent-200 p-3">
+            <div className="rounded-full bg-accent-100 p-3">
               <FileText size={20} className="text-accent-700" />
             </div>
           </div>
-          <div className="mt-4 flex items-center text-xs text-accent-700">
-            <span className="font-medium">
-              {state.documents.filter(d => d.status === 'Pending').length} Pending
-            </span>
-            <span className="mx-1">•</span>
-            <span>
-              {state.documents.filter(d => d.status === 'Served').length} Served
+          <div className="mt-4 flex items-center text-xs text-gray-500">
+            <span className="font-medium text-yellow-600">
+              {stats.pendingDocuments} Pending
             </span>
           </div>
         </Card>
 
-        <Card className="bg-gradient-to-br from-error-50 to-error-100 border-none">
+        <Card>
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-error-600 text-sm font-medium">Unpaid Invoices</p>
-              <p className="text-3xl font-bold text-error-900 mt-1">${totalUnpaid.toFixed(2)}</p>
+              <p className="text-gray-600 text-sm font-medium">Unpaid Invoices</p>
+              <p className="text-2xl font-semibold mt-1">${stats.totalUnpaid.toLocaleString()}</p>
             </div>
-            <div className="rounded-full bg-error-200 p-3">
+            <div className="rounded-full bg-error-100 p-3">
               <CreditCard size={20} className="text-error-700" />
             </div>
           </div>
-          <div className="mt-4 text-xs text-error-700">
-            <span className="font-medium">{unpaidInvoices.length} outstanding invoices</span>
+          <div className="mt-4 text-xs text-gray-500">
+            <span className="font-medium">{stats.unpaidInvoices} outstanding invoices</span>
           </div>
         </Card>
       </div>
 
+      {/* Case Trend Chart */}
+      <Card className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">Case Trend (Last 30 days)</h2>
+          <div className="flex items-center text-green-600 text-sm font-medium">
+            <TrendingUp size={16} className="mr-1" />
+            <span>+12% from last month</span>
+          </div>
+        </div>
+        <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+          <p className="text-gray-500">Case trend chart will appear here</p>
+        </div>
+      </Card>
+
+      {/* Upcoming Hearings & Recent Documents Tables */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Upcoming Hearings */}
         <Card title="Upcoming Hearings">
-          {upcomingHearings.length > 0 ? (
-            <div className="divide-y divide-gray-200">
-              {upcomingHearings.slice(0, 5).map(hearing => {
-                const associatedCase = state.cases.find(c => c.caseId === hearing.caseId);
-                return (
-                  <div key={hearing.hearingId} className="py-3 animate-fade-in">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-medium text-gray-800">
-                          {associatedCase ? `${associatedCase.plaintiff} v. ${associatedCase.defendant}` : 'Unknown Case'}
-                        </p>
-                        <p className="text-sm text-gray-500 mt-1">{hearing.courtName}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-medium text-primary-600">
-                          {format(new Date(hearing.hearingDate), 'MMM d, yyyy')}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {format(new Date(hearing.hearingDate), 'h:mm a')}
-                        </p>
-                      </div>
-                    </div>
+          <div className="divide-y divide-gray-200">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="py-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="font-medium text-gray-800">
+                      Smith Property v. Tenant {i + 1}
+                    </p>
+                    <p className="text-sm text-gray-500 mt-1">Cook County Circuit Court</p>
                   </div>
-                );
-              })}
-            </div>
-          ) : (
-            <p className="text-gray-500 py-4 text-center">No upcoming hearings</p>
-          )}
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-primary-600">
+                      May {10 + i}, 2023
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      9:00 AM
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="pt-4 border-t border-gray-200 mt-4">
+            <a href="#" className="text-primary-600 text-sm font-medium hover:text-primary-800">
+              View all hearings →
+            </a>
+          </div>
         </Card>
 
-        {/* Recent Documents */}
         <Card title="Recent Documents">
-          {recentDocuments.length > 0 ? (
-            <div className="divide-y divide-gray-200">
-              {recentDocuments.map(doc => {
-                const associatedCase = state.cases.find(c => c.caseId === doc.caseId);
-                return (
-                  <div key={doc.docId} className="py-3 animate-fade-in">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-medium text-gray-800">
-                          {doc.type}
-                        </p>
-                        <p className="text-sm text-gray-500 mt-1">
-                          {associatedCase ? `${associatedCase.plaintiff} v. ${associatedCase.defendant}` : 'Unknown Case'}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium
-                          ${doc.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 
-                            doc.status === 'Served' ? 'bg-green-100 text-green-800' : 
-                              'bg-red-100 text-red-800'}`
-                        }>
-                          {doc.status}
-                        </span>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {format(new Date(doc.createdAt), 'MMM d, yyyy')}
-                        </p>
-                      </div>
-                    </div>
+          <div className="divide-y divide-gray-200">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="py-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="font-medium text-gray-800">
+                      {['Complaint', 'Summons', 'Affidavit', 'Motion', 'Order'][i]}
+                    </p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Case #{1000 + i} - Jones Property
+                    </p>
                   </div>
-                );
-              })}
-            </div>
-          ) : (
-            <p className="text-gray-500 py-4 text-center">No documents added yet</p>
-          )}
+                  <div className="text-right">
+                    <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium
+                      ${i % 3 === 0 ? 'bg-yellow-100 text-yellow-800' : 
+                        i % 3 === 1 ? 'bg-green-100 text-green-800' : 
+                          'bg-gray-100 text-gray-800'}`
+                    }>
+                      {i % 3 === 0 ? 'Pending' : i % 3 === 1 ? 'Served' : 'Filed'}
+                    </span>
+                    <p className="text-xs text-gray-500 mt-1">
+                      May {5 + i}, 2023
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="pt-4 border-t border-gray-200 mt-4">
+            <a href="#" className="text-primary-600 text-sm font-medium hover:text-primary-800">
+              View all documents →
+            </a>
+          </div>
         </Card>
       </div>
+
+      {/* Performance Metrics */}
+      <Card className="p-6">
+        <h2 className="text-xl font-semibold mb-4">Eviction Success Metrics</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="bg-gray-50 p-4 rounded-lg text-center">
+            <p className="text-gray-600 text-sm mb-1">Average Time to Eviction</p>
+            <p className="text-2xl font-bold text-primary-700">42 days</p>
+          </div>
+          <div className="bg-gray-50 p-4 rounded-lg text-center">
+            <p className="text-gray-600 text-sm mb-1">Settlement Rate</p>
+            <p className="text-2xl font-bold text-primary-700">38%</p>
+          </div>
+          <div className="bg-gray-50 p-4 rounded-lg text-center">
+            <p className="text-gray-600 text-sm mb-1">Judgment Success Rate</p>
+            <p className="text-2xl font-bold text-primary-700">92%</p>
+          </div>
+        </div>
+      </Card>
     </div>
   );
 };

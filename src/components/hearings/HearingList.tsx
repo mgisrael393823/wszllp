@@ -1,110 +1,118 @@
 import React, { useState } from 'react';
-import { useData } from '../../context/DataContext';
-import { format } from 'date-fns';
 import { Plus, Filter, Calendar } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Table from '../ui/Table';
 import Pagination from '../ui/Pagination';
 import Input from '../ui/Input';
-import HearingForm from './HearingForm';
 
 const HearingList: React.FC = () => {
-  const { state } = useData();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedHearing, setSelectedHearing] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [dateFilter, setDateFilter] = useState<string>('');
   
   const itemsPerPage = 10;
 
+  // Mock hearings data
+  const hearings = [
+    {
+      hearingId: '1',
+      caseTitle: 'Smith Property v. John Doe',
+      courtName: 'Cook County Circuit Court',
+      hearingDate: '2023-05-15T09:00:00',
+      outcome: 'Pending'
+    },
+    {
+      hearingId: '2',
+      caseTitle: 'Oak Apartments v. Jane Smith',
+      courtName: 'Cook County Circuit Court',
+      hearingDate: '2023-05-16T10:30:00',
+      outcome: 'Pending'
+    },
+    {
+      hearingId: '3',
+      caseTitle: 'Riverside Properties v. Michael Johnson',
+      courtName: 'DuPage County Court',
+      hearingDate: '2023-05-17T14:00:00',
+      outcome: 'Pending'
+    },
+    {
+      hearingId: '4',
+      caseTitle: 'Lakeside Rentals v. Robert Williams',
+      courtName: 'Lake County Circuit Court',
+      hearingDate: '2023-05-18T09:30:00',
+      outcome: 'Pending'
+    },
+    {
+      hearingId: '5',
+      caseTitle: 'Green Valley v. Lisa Brown',
+      courtName: 'Will County Circuit Court',
+      hearingDate: '2023-05-19T11:00:00',
+      outcome: 'Pending'
+    },
+    {
+      hearingId: '6',
+      caseTitle: 'City View Apts v. David Miller',
+      courtName: 'Cook County Circuit Court',
+      hearingDate: '2023-05-22T10:00:00',
+      outcome: 'Pending'
+    },
+    {
+      hearingId: '7',
+      caseTitle: 'Parkview Homes v. Sarah Davis',
+      courtName: 'Kane County Circuit Court',
+      hearingDate: '2023-05-23T13:30:00',
+      outcome: 'Pending'
+    },
+    {
+      hearingId: '8',
+      caseTitle: 'Highland Residences v. Thomas Wilson',
+      courtName: 'DuPage County Court',
+      hearingDate: '2023-05-24T09:00:00',
+      outcome: 'Pending'
+    }
+  ];
+
   // Filter hearings
-  const filteredHearings = state.hearings.filter(h => {
-    // Get associated case for search by plaintiff/defendant
-    const associatedCase = state.cases.find(c => c.caseId === h.caseId);
-    
+  const filteredHearings = hearings.filter(h => {
     const matchesSearch = 
-      h.courtName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (associatedCase && (
-        associatedCase.plaintiff.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        associatedCase.defendant.toLowerCase().includes(searchTerm.toLowerCase())
-      ));
+      h.caseTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      h.courtName.toLowerCase().includes(searchTerm.toLowerCase());
     
-    // Date filter - by month/year
+    // Date filter - simplified for mock data
     const matchesDate = dateFilter 
-      ? h.hearingDate.startsWith(dateFilter)
+      ? new Date(h.hearingDate).toISOString().startsWith(dateFilter)
       : true;
     
     return matchesSearch && matchesDate;
   });
 
-  // Sort by newest hearing date first
-  const sortedHearings = [...filteredHearings].sort(
-    (a, b) => new Date(b.hearingDate).getTime() - new Date(a.hearingDate).getTime()
-  );
-
   // Paginate
-  const paginatedHearings = sortedHearings.slice(
+  const paginatedHearings = filteredHearings.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-
-  const openAddModal = () => {
-    setSelectedHearing(null);
-    setIsModalOpen(true);
-  };
-
-  const openEditModal = (hearingId: string) => {
-    setSelectedHearing(hearingId);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedHearing(null);
-  };
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
 
-  // Generate month/year options for filter
+  // Mock date filter options
   const getDateFilterOptions = () => {
-    const options: {value: string, label: string}[] = [
-      { value: '', label: 'All Dates' }
+    return [
+      { value: '', label: 'All Dates' },
+      { value: '2023-05', label: 'May 2023' },
+      { value: '2023-06', label: 'June 2023' },
+      { value: '2023-07', label: 'July 2023' }
     ];
-    
-    const dates = new Set<string>();
-    
-    state.hearings.forEach(h => {
-      const date = new Date(h.hearingDate);
-      const yearMonth = format(date, 'yyyy-MM');
-      dates.add(yearMonth);
-    });
-    
-    Array.from(dates).sort().reverse().forEach(date => {
-      const [year, month] = date.split('-');
-      options.push({
-        value: date,
-        label: `${new Date(parseInt(year), parseInt(month) - 1).toLocaleString('default', { month: 'long' })} ${year}`
-      });
-    });
-    
-    return options;
   };
 
   // Table columns definition
   const columns = [
     {
       header: 'Case',
-      accessor: (item: typeof state.hearings[0]) => {
-        const associatedCase = state.cases.find(c => c.caseId === item.caseId);
-        return associatedCase 
-          ? `${associatedCase.plaintiff} v. ${associatedCase.defendant}` 
-          : 'Unknown Case';
-      },
-      sortable: false,
+      accessor: 'caseTitle',
+      sortable: true,
     },
     {
       header: 'Court',
@@ -113,26 +121,25 @@ const HearingList: React.FC = () => {
     },
     {
       header: 'Date',
-      accessor: (item: typeof state.hearings[0]) => 
-        format(new Date(item.hearingDate), 'MMM d, yyyy'),
+      accessor: (item: typeof hearings[0]) => 
+        new Date(item.hearingDate).toLocaleDateString(),
       sortable: false,
     },
     {
       header: 'Time',
-      accessor: (item: typeof state.hearings[0]) => 
-        format(new Date(item.hearingDate), 'h:mm a'),
+      accessor: (item: typeof hearings[0]) => 
+        new Date(item.hearingDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       sortable: false,
     },
     {
       header: 'Outcome',
-      accessor: (item: typeof state.hearings[0]) => 
-        item.outcome || 'Pending',
+      accessor: 'outcome',
       sortable: false,
     },
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Hearings</h1>
@@ -140,7 +147,7 @@ const HearingList: React.FC = () => {
             Schedule and manage court hearings
           </p>
         </div>
-        <Button onClick={openAddModal} icon={<Plus size={16} />}>
+        <Button variant="primary" icon={<Plus size={16} />}>
           Add Hearing
         </Button>
       </div>
@@ -177,7 +184,7 @@ const HearingList: React.FC = () => {
           data={paginatedHearings}
           columns={columns}
           keyField="hearingId"
-          onRowClick={(item) => openEditModal(item.hearingId)}
+          onRowClick={(item) => console.log('Clicked hearing:', item.hearingId)}
           emptyMessage="No hearings found. Add a new hearing to get started."
         />
         
@@ -188,14 +195,6 @@ const HearingList: React.FC = () => {
           onPageChange={handlePageChange}
         />
       </Card>
-
-      {isModalOpen && (
-        <HearingForm 
-          isOpen={isModalOpen}
-          onClose={closeModal}
-          hearingId={selectedHearing}
-        />
-      )}
     </div>
   );
 };

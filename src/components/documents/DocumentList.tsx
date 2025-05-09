@@ -1,18 +1,12 @@
 import React, { useState } from 'react';
-import { useData } from '../../context/DataContext';
-import { format } from 'date-fns';
 import { Plus, Filter, FileText } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Table from '../ui/Table';
 import Pagination from '../ui/Pagination';
 import Input from '../ui/Input';
-import DocumentForm from './DocumentForm';
 
 const DocumentList: React.FC = () => {
-  const { state } = useData();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedDocument, setSelectedDocument] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [typeFilter, setTypeFilter] = useState<string>('');
@@ -20,18 +14,88 @@ const DocumentList: React.FC = () => {
   
   const itemsPerPage = 10;
 
+  // Mock documents data
+  const documents = [
+    {
+      docId: '1',
+      type: 'Complaint',
+      caseTitle: 'Smith Property v. John Doe',
+      fileURL: 'smith_vs_doe_complaint.pdf',
+      status: 'Served',
+      serviceDate: '2023-05-05',
+      createdAt: '2023-05-01'
+    },
+    {
+      docId: '2',
+      type: 'Summons',
+      caseTitle: 'Smith Property v. John Doe',
+      fileURL: 'smith_vs_doe_summons.pdf',
+      status: 'Served',
+      serviceDate: '2023-05-05',
+      createdAt: '2023-05-01'
+    },
+    {
+      docId: '3',
+      type: 'Complaint',
+      caseTitle: 'Oak Apartments v. Jane Smith',
+      fileURL: 'oak_vs_smith_complaint.pdf',
+      status: 'Served',
+      serviceDate: '2023-05-06',
+      createdAt: '2023-05-02'
+    },
+    {
+      docId: '4',
+      type: 'Summons',
+      caseTitle: 'Oak Apartments v. Jane Smith',
+      fileURL: 'oak_vs_smith_summons.pdf',
+      status: 'Served',
+      serviceDate: '2023-05-06',
+      createdAt: '2023-05-02'
+    },
+    {
+      docId: '5',
+      type: 'Complaint',
+      caseTitle: 'Riverside Properties v. Michael Johnson',
+      fileURL: 'riverside_vs_johnson_complaint.pdf',
+      status: 'Pending',
+      serviceDate: null,
+      createdAt: '2023-05-10'
+    },
+    {
+      docId: '6',
+      type: 'Affidavit',
+      caseTitle: 'Smith Property v. John Doe',
+      fileURL: 'smith_vs_doe_affidavit.pdf',
+      status: 'Pending',
+      serviceDate: null,
+      createdAt: '2023-05-12'
+    },
+    {
+      docId: '7',
+      type: 'Motion',
+      caseTitle: 'Smith Property v. John Doe',
+      fileURL: 'smith_vs_doe_motion_for_default.pdf',
+      status: 'Pending',
+      serviceDate: null,
+      createdAt: '2023-05-15'
+    },
+    {
+      docId: '8',
+      type: 'Order',
+      caseTitle: 'Oak Apartments v. Jane Smith',
+      fileURL: 'oak_vs_smith_eviction_order.pdf',
+      status: 'Failed',
+      serviceDate: null,
+      createdAt: '2023-05-18'
+    }
+  ];
+
   // Filter documents
-  const filteredDocuments = state.documents.filter(doc => {
-    // Get associated case for search
-    const associatedCase = state.cases.find(c => c.caseId === doc.caseId);
-    
+  const filteredDocuments = documents.filter(doc => {
     const matchesSearch = 
       doc.fileURL.toLowerCase().includes(searchTerm.toLowerCase()) ||
       doc.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (associatedCase && (
-        associatedCase.plaintiff.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        associatedCase.defendant.toLowerCase().includes(searchTerm.toLowerCase())
-      ));
+      doc.caseTitle.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesType = typeFilter ? doc.type === typeFilter : true;
     const matchesStatus = statusFilter ? doc.status === statusFilter : true;
@@ -39,31 +103,11 @@ const DocumentList: React.FC = () => {
     return matchesSearch && matchesType && matchesStatus;
   });
 
-  // Sort by newest first
-  const sortedDocuments = [...filteredDocuments].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
-
   // Paginate
-  const paginatedDocuments = sortedDocuments.slice(
+  const paginatedDocuments = filteredDocuments.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-
-  const openAddModal = () => {
-    setSelectedDocument(null);
-    setIsModalOpen(true);
-  };
-
-  const openEditModal = (docId: string) => {
-    setSelectedDocument(docId);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedDocument(null);
-  };
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -92,13 +136,13 @@ const DocumentList: React.FC = () => {
   const columns = [
     {
       header: 'Document',
-      accessor: (item: typeof state.documents[0]) => (
+      accessor: (item: typeof documents[0]) => (
         <div className="flex items-center">
           <FileText size={18} className="text-gray-400 mr-2" />
           <div>
             <div className="font-medium text-gray-700">{item.type}</div>
             <div className="text-gray-500 text-sm truncate max-w-xs">
-              {item.fileURL.split('/').pop()}
+              {item.fileURL}
             </div>
           </div>
         </div>
@@ -107,17 +151,12 @@ const DocumentList: React.FC = () => {
     },
     {
       header: 'Case',
-      accessor: (item: typeof state.documents[0]) => {
-        const associatedCase = state.cases.find(c => c.caseId === item.caseId);
-        return associatedCase 
-          ? `${associatedCase.plaintiff} v. ${associatedCase.defendant}` 
-          : 'Unknown Case';
-      },
-      sortable: false,
+      accessor: 'caseTitle',
+      sortable: true,
     },
     {
       header: 'Status',
-      accessor: (item: typeof state.documents[0]) => (
+      accessor: (item: typeof documents[0]) => (
         <span 
           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
             ${item.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 
@@ -132,14 +171,14 @@ const DocumentList: React.FC = () => {
     },
     {
       header: 'Service Date',
-      accessor: (item: typeof state.documents[0]) => 
-        item.serviceDate ? format(new Date(item.serviceDate), 'MMM d, yyyy') : 'Not served',
+      accessor: (item: typeof documents[0]) => 
+        item.serviceDate ? new Date(item.serviceDate).toLocaleDateString() : 'Not served',
       sortable: false,
     },
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Documents</h1>
@@ -147,7 +186,7 @@ const DocumentList: React.FC = () => {
             Manage legal documents and track their service status
           </p>
         </div>
-        <Button onClick={openAddModal} icon={<Plus size={16} />}>
+        <Button variant="primary" icon={<Plus size={16} />}>
           Add Document
         </Button>
       </div>
@@ -196,7 +235,7 @@ const DocumentList: React.FC = () => {
           data={paginatedDocuments}
           columns={columns}
           keyField="docId"
-          onRowClick={(item) => openEditModal(item.docId)}
+          onRowClick={(item) => console.log('Clicked document:', item.docId)}
           emptyMessage="No documents found. Add a new document to get started."
         />
         
@@ -207,14 +246,6 @@ const DocumentList: React.FC = () => {
           onPageChange={handlePageChange}
         />
       </Card>
-
-      {isModalOpen && (
-        <DocumentForm 
-          isOpen={isModalOpen}
-          onClose={closeModal}
-          docId={selectedDocument}
-        />
-      )}
     </div>
   );
 };

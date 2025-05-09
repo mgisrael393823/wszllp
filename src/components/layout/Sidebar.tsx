@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
   Briefcase, FileClock, FileText, Truck, CreditCard, 
-  Calendar, Users, Video, Activity, ChevronDown
+  Calendar, Users, Video, Activity, ChevronDown, Upload
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -27,6 +27,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     { label: 'Cases', value: 'cases', icon: <Briefcase size={20} /> },
     { label: 'Hearings', value: 'hearings', icon: <Calendar size={20} /> },
     { label: 'Documents', value: 'documents', icon: <FileText size={20} /> },
+    { label: 'eFiling', value: 'efile', icon: <Upload size={20} /> },
     { label: 'Service Logs', value: 'service-logs', icon: <Truck size={20} /> },
     { label: 'Invoices', value: 'invoices', icon: <CreditCard size={20} /> },
     { label: 'Payment Plans', value: 'payment-plans', icon: <FileClock size={20} /> },
@@ -39,7 +40,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   // Group the navigation items
   const navGroups = {
     main: ['dashboard', 'cases', 'hearings'],
-    documents: ['documents', 'service-logs'],
+    documents: ['documents', 'efile', 'service-logs'],
     billing: ['invoices', 'payment-plans'],
     contacts: ['contacts', 'zoom-links'],
   };
