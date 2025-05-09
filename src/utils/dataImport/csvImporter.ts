@@ -1,4 +1,4 @@
-import { parse } from 'papaparse';
+import Papa from 'papaparse';
 import { Case, Hearing, Document, Invoice, PaymentPlan, Contact, ServiceLog } from '../../types/schema';
 import casesParser from './casesParser';
 import hearingsParser from './hearingsParser';
@@ -107,7 +107,7 @@ export async function importFromCSV(files: File[]): Promise<ImportResult> {
         // Log what delimiter we're using
         console.log(`Using delimiter: "${delimiter === '\t' ? 'TAB' : delimiter}" for file ${fileName}`);
         
-        const parsedData = parse(csvContent, {
+        const parsedData = Papa.parse(csvContent, {
           header: true,
           skipEmptyLines: true,
           dynamicTyping: true,
