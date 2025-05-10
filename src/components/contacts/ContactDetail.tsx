@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useOne } from '@refinedev/core';
+import { useOne, useDelete } from '@refinedev/core';
 import { 
   Edit, 
   Trash2, 
@@ -29,12 +29,24 @@ const ContactDetail: React.FC = () => {
   
   const contact = data?.data;
   
+  // Set up delete hook
+  const { mutate: deleteContact } = useDelete();
+  
   // Handle delete contact
   const handleDelete = () => {
     // Confirm before deleting
     if (window.confirm('Are you sure you want to delete this contact?')) {
-      // Delete logic will be added later
-      navigate('/contacts');
+      deleteContact(
+        {
+          resource: 'contacts',
+          id: id || '',
+        },
+        {
+          onSuccess: () => {
+            navigate('/contacts');
+          },
+        }
+      );
     }
   };
   

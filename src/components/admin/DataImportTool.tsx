@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { importFromExcel } from '../../utils/dataImport/excelImporter';
-// Import disabled temporarily to fix build issues
-// import { importFromCSV } from '../../utils/dataImport/csvImporter';
+import { importFromCSV } from '../../utils/dataImport/csvImporter';
+import CSVDataInspector from './CSVDataInspector';
 import { useData } from '../../context/DataContext';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
@@ -14,34 +14,31 @@ const DataImportTool: React.FC = () => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isImporting, setIsImporting] = useState(false);
   const [importResult, setImportResult] = useState<any | null>(null);
-  const [step, setStep] = useState<'upload' | 'preview' | 'importing' | 'complete'>('upload');
+  const [step, setStep] = useState<'upload' | 'preview' | 'importing' | 'complete' | 'csvInspector'>('upload');
   const [error, setError] = useState<string | null>(null);
-  // CSV import temporarily disabled to fix build issues
-  // const [importType, setImportType] = useState<'excel' | 'csv'>('excel');
-  const importType = 'excel';
+  const [importType, setImportType] = useState<'excel' | 'csv'>('excel');
+  const [selectedCsvFile, setSelectedCsvFile] = useState<File | null>(null);
   const [showFormatHelp, setShowFormatHelp] = useState(false);
   const [showFormatGuide, setShowFormatGuide] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      // CSV support temporarily disabled - only accept one Excel file
       setSelectedFiles([e.target.files[0]]);
       setError(null);
     }
   };
   
-  // CSV import temporarily disabled to fix build issues
-  // const handleImportTypeChange = (type: 'excel' | 'csv') => {
-  //   setImportType(type);
-  //   setSelectedFiles([]);
-  //   setError(null);
-  //   
-  //   // Reset file input
-  //   if (fileInputRef.current) {
-  //     fileInputRef.current.value = '';
-  //   }
-  // };
+  const handleImportTypeChange = (type: 'excel' | 'csv') => {
+    setImportType(type);
+    setSelectedFiles([]);
+    setError(null);
+    
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   const handleUpload = async () => {
     if (selectedFiles.length === 0) {
@@ -49,41 +46,59 @@ const DataImportTool: React.FC = () => {
       return;
     }
 
-    // Validate file types - CSV import temporarily disabled
-    if (!selectedFiles[0].name.endsWith('.xlsx')) {
+    // Validate file types
+    if (importType === 'excel' && !selectedFiles[0].name.endsWith('.xlsx')) {
       setError('Please upload an Excel file (.xlsx)');
       return;
     }
 
     setError(null);
-    setStep('preview');
-    setIsImporting(true);
-
+    
     try {
-      // Temporarily disabled CSV support to fix build issues
-      // let result;
-      // if (importType === 'excel') {
-      //   result = await importFromExcel(selectedFiles[0]);
-      // } else {
-      //   result = await importFromCSV(selectedFiles);
-      // }
-      
-      // Only support Excel for now
-      const result = await importFromExcel(selectedFiles[0]);
-      
-      setImportResult(result);
-      setIsImporting(false);
-
-      if (result.success) {
+      if (importType === 'excel') {
         setStep('preview');
+        setIsImporting(true);
+        const result = await importFromExcel(selectedFiles[0]);
+        setImportResult(result);
+        setIsImporting(false);
+        
+        if (result.success) {
+          setStep('preview');
+        } else {
+          setError('Import failed. Please check the file format and try again.');
+          setStep('upload');
+        }
       } else {
-        setError('Import failed. Please check the file format and try again.');
-        setStep('upload');
+        // For CSV, show the inspector first 
+        setSelectedCsvFile(selectedFiles[0]);
+        setStep('csvInspector');
       }
     } catch (err) {
       setError(`Import error: ${err instanceof Error ? err.message : String(err)}`);
       setIsImporting(false);
       setStep('upload');
+    }
+  };
+
+  const handleCsvImportComplete = async (mappedData: any) => {
+    setIsImporting(true);
+    
+    try {
+      // Process the mapped data and convert to the format expected by the system
+      const result = await importFromCSV([selectedFiles[0]]);
+      setImportResult(result);
+      
+      if (result.success) {
+        setStep('preview');
+      } else {
+        setError('CSV import failed. Please check the file format.');
+        setStep('upload');
+      }
+    } catch (err) {
+      setError(`CSV import error: ${err instanceof Error ? err.message : String(err)}`);
+      setStep('upload');
+    } finally {
+      setIsImporting(false);
     }
   };
 
@@ -162,6 +177,7 @@ const DataImportTool: React.FC = () => {
     setImportResult(null);
     setStep('upload');
     setError(null);
+    setSelectedCsvFile(null);
     
     // Reset file input
     if (fileInputRef.current) {
@@ -220,14 +236,32 @@ const DataImportTool: React.FC = () => {
 
         {step === 'upload' && (
           <div className="space-y-6">
-            {/* CSV import options temporarily disabled to fix build issues */}
             <div className="flex space-x-4 mb-6">
-              <div className="flex items-center px-4 py-2 rounded-md bg-primary-50 text-primary-600 border border-primary-200">
+              <button
+                type="button"
+                onClick={() => handleImportTypeChange('excel')}
+                className={`flex items-center px-4 py-2 rounded-md border ${
+                  importType === 'excel'
+                    ? 'bg-primary-50 text-primary-600 border-primary-200'
+                    : 'bg-gray-50 text-gray-600 border-gray-200'
+                }`}
+              >
                 <FileSpreadsheet className="w-5 h-5 mr-2" />
                 Excel Import
-              </div>
+              </button>
               
-              {/* CSV import button removed temporarily */}
+              <button
+                type="button"
+                onClick={() => handleImportTypeChange('csv')}
+                className={`flex items-center px-4 py-2 rounded-md border ${
+                  importType === 'csv'
+                    ? 'bg-primary-50 text-primary-600 border-primary-200'
+                    : 'bg-gray-50 text-gray-600 border-gray-200'
+                }`}
+              >
+                <FileText className="w-5 h-5 mr-2" />
+                CSV Import
+              </button>
             </div>
             
             <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center">
@@ -237,13 +271,13 @@ const DataImportTool: React.FC = () => {
                   htmlFor="file-upload"
                   className="relative cursor-pointer rounded-md font-medium text-primary-600 hover:text-primary-500"
                 >
-                  <span>Upload Excel file</span>
+                  <span>Upload {importType === 'excel' ? 'Excel' : 'CSV'} file</span>
                   <input
                     id="file-upload"
                     name="file-upload"
                     type="file"
                     className="sr-only"
-                    accept=".xlsx"
+                    accept={importType === 'excel' ? '.xlsx' : '.csv'}
                     onChange={handleFileChange}
                     multiple={false}
                     ref={fileInputRef}
@@ -252,9 +286,16 @@ const DataImportTool: React.FC = () => {
                 <p className="pl-1 text-gray-500">or drag and drop</p>
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                Excel file (.xlsx) containing case data
+                {importType === 'excel' 
+                  ? 'Excel file (.xlsx) containing case data'
+                  : 'CSV file (.csv) containing case data'
+                }
               </p>
-              {/* CSV import help text removed temporarily */}
+              {importType === 'csv' && (
+                <p className="text-xs text-blue-600 mt-2">
+                  Note: For CSV imports, you'll be able to preview and map columns to help with correct data identification
+                </p>
+              )}
             </div>
 
             {selectedFiles.length > 0 && (
@@ -284,6 +325,14 @@ const DataImportTool: React.FC = () => {
               </Button>
             </div>
           </div>
+        )}
+
+        {step === 'csvInspector' && selectedCsvFile && (
+          <CSVDataInspector 
+            file={selectedCsvFile}
+            onClose={handleReset}
+            onImport={handleCsvImportComplete}
+          />
         )}
 
         {step === 'preview' && importResult && (
@@ -327,7 +376,7 @@ const DataImportTool: React.FC = () => {
                 </div>
               </div>
               
-              {importResult.warnings.length > 0 && (
+              {importResult.warnings && importResult.warnings.length > 0 && (
                 <div className="mt-4">
                   <h4 className="font-medium text-gray-700 mb-2">Warnings</h4>
                   <ul className="text-sm text-yellow-700 bg-yellow-50 rounded-md p-2">
