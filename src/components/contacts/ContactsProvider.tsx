@@ -1,7 +1,7 @@
 import React from 'react';
 import { Refine } from '@refinedev/core';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { RouterBindings } from '@refinedev/react-router-v6';
+import routerProvider from '@refinedev/react-router-v6';
 import { createContextDataProvider } from '../../utils/refine/dataProvider';
 import { useData } from '../../context/DataContext';
 
@@ -26,7 +26,7 @@ export const ContactsProvider: React.FC<{ children: React.ReactNode }> = ({
       dataProvider={dataProvider}
       
       // Set up routing for Refine to use React Router v6
-      routerProvider={RouterBindings()}
+      routerProvider={routerProvider}
       
       // Configure resources (just contacts for now)
       resources={[

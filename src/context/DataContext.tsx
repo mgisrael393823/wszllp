@@ -51,9 +51,7 @@ type Action =
   | { type: 'ADD_PAYMENT_PLAN'; payload: PaymentPlan }
   | { type: 'UPDATE_PAYMENT_PLAN'; payload: PaymentPlan }
   | { type: 'DELETE_PAYMENT_PLAN'; payload: string }
-  | { type: 'ADD_CONTACT'; payload: Contact }
-  | { type: 'UPDATE_CONTACT'; payload: Contact }
-  | { type: 'DELETE_CONTACT'; payload: string }
+  // Contact actions are defined below
   | { type: 'ADD_ZOOM_LINK'; payload: ZoomLink }
   | { type: 'UPDATE_ZOOM_LINK'; payload: ZoomLink }
   | { type: 'DELETE_ZOOM_LINK'; payload: string }
@@ -96,7 +94,44 @@ const initialState: AppState = {
   serviceLogs: [],
   invoices: [],
   paymentPlans: [],
-  contacts: [],
+  contacts: [
+    {
+      contactId: '1',
+      name: 'Jane Smith',
+      role: 'Attorney',
+      email: 'jane.smith@example.com',
+      phone: '555-123-4567',
+      company: 'Smith & Associates',
+      address: '123 Legal Ave, Suite 500\nSan Francisco, CA 94105',
+      notes: 'Lead attorney for property eviction cases.',
+      createdAt: '2023-01-15T10:00:00Z',
+      updatedAt: '2023-01-15T10:00:00Z',
+    },
+    {
+      contactId: '2',
+      name: 'John Davis',
+      role: 'Paralegal',
+      email: 'john.davis@example.com',
+      phone: '555-987-6543',
+      company: 'Smith & Associates',
+      address: '123 Legal Ave, Suite 500\nSan Francisco, CA 94105',
+      notes: 'Works primarily on document preparation and research.',
+      createdAt: '2023-02-10T14:30:00Z',
+      updatedAt: '2023-02-10T14:30:00Z',
+    },
+    {
+      contactId: '3',
+      name: 'Sarah Johnson',
+      role: 'PM',
+      email: 'sarah.johnson@example.com',
+      phone: '555-456-7890',
+      company: 'Bay Property Management',
+      address: '456 Property Lane\nOakland, CA 94612',
+      notes: 'Property manager for multiple apartment complexes in East Bay.',
+      createdAt: '2023-03-05T09:15:00Z',
+      updatedAt: '2023-03-05T09:15:00Z',
+    }
+  ],
   zoomLinks: [],
   workflows: [],
   workflowTasks: [],
@@ -552,34 +587,6 @@ const dataReducer = (state: AppState, action: Action): AppState => {
       // If the generation is linked to a document, don't delete the actual document
       auditLog = createAuditLog('DocumentGeneration', generationId, 'Delete', 
         `Generated document "${generationToDelete?.documentName || 'Unknown'}" deleted`);
-      break;
-      
-    // Contact actions
-    case 'ADD_CONTACT':
-      newState = {
-        ...state,
-        contacts: [...state.contacts, action.payload],
-      };
-      auditLog = createAuditLog('Contact', action.payload.contactId, 'Create', 'Contact created');
-      break;
-      
-    case 'UPDATE_CONTACT':
-      newState = {
-        ...state,
-        contacts: state.contacts.map(c => 
-          c.contactId === action.payload.id ? { ...action.payload.contact, updatedAt: now } : c
-        ),
-      };
-      auditLog = createAuditLog('Contact', action.payload.id, 'Update', 'Contact updated');
-      break;
-      
-    case 'DELETE_CONTACT':
-      const contactId = action.payload;
-      newState = {
-        ...state,
-        contacts: state.contacts.filter(c => c.contactId !== contactId),
-      };
-      auditLog = createAuditLog('Contact', contactId, 'Delete', 'Contact deleted');
       break;
       
     case 'GENERATE_DOCUMENT_FROM_TEMPLATE':
