@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Briefcase, FileClock, FileText, Truck, CreditCard, 
-  Calendar, Users, Video, Activity, ChevronDown, Upload,
-  Settings
+  Calendar, Users, Video, ChevronDown, Upload,
+  Settings, GitBranch, FilePlus, FileCode,
+  Bell, Palette, Home, Clock, LayoutDashboard, 
+  HelpCircle, ChevronRight
 } from 'lucide-react';
 
 interface SidebarProps {
   isOpen: boolean;
+  isCollapsed?: boolean;
   activeSection: string;
   onSectionChange: (section: string) => void;
 }
@@ -16,238 +19,342 @@ interface NavItem {
   value: string;
   icon: React.ReactNode;
   count?: number;
+  description?: string;
+  shortcut?: string;
+  children?: NavItem[];
 }
+
+// Define navigation structure with hierarchical grouping
+const createNavStructure = (): NavItem[] => [
+  { 
+    label: 'Dashboard', 
+    value: 'dashboard', 
+    icon: <LayoutDashboard size={20} />,
+    description: 'Overview of your workspace'
+  },
+  { 
+    label: 'Cases', 
+    value: 'cases', 
+    icon: <Briefcase size={20} />,
+    count: 15,
+    description: 'Manage your legal cases',
+    shortcut: '⌘+1',
+    children: [
+      { 
+        label: 'Hearings', 
+        value: 'hearings', 
+        icon: <Clock size={20} />,
+        description: 'Upcoming court appearances'
+      },
+      { 
+        label: 'Calendar', 
+        value: 'calendar', 
+        icon: <Calendar size={20} />,
+        description: 'Schedule and appointments'
+      }
+    ]
+  },
+  { 
+    label: 'Documents', 
+    value: 'documents', 
+    icon: <FileText size={20} />,
+    description: 'Case documents and files',
+    children: [
+      { 
+        label: 'Document Generator', 
+        value: 'document-generator', 
+        icon: <FilePlus size={20} />,
+        description: 'Create legal documents'
+      },
+      { 
+        label: 'Templates', 
+        value: 'templates', 
+        icon: <FileCode size={20} />,
+        description: 'Document templates'
+      },
+      { 
+        label: 'eFiling', 
+        value: 'efile', 
+        icon: <Upload size={20} />,
+        description: 'Electronic court filings'
+      },
+      { 
+        label: 'Service Logs', 
+        value: 'service-logs', 
+        icon: <Truck size={20} />,
+        description: 'Service of process tracking'
+      },
+      { 
+        label: 'Workflows', 
+        value: 'workflows', 
+        icon: <GitBranch size={20} />,
+        description: 'Automated case processes'
+      }
+    ]
+  },
+  { 
+    label: 'Billing', 
+    value: 'billing',
+    icon: <CreditCard size={20} />,
+    description: 'Billing and payments',
+    children: [
+      { 
+        label: 'Invoices', 
+        value: 'invoices', 
+        icon: <CreditCard size={20} />,
+        description: 'Billing and payments'
+      },
+      { 
+        label: 'Payment Plans', 
+        value: 'payment-plans', 
+        icon: <FileClock size={20} />,
+        description: 'Client payment arrangements'
+      }
+    ]
+  },
+  { 
+    label: 'Contacts', 
+    value: 'contacts', 
+    icon: <Users size={20} />,
+    description: 'Clients and other contacts',
+    children: [
+      { 
+        label: 'Zoom Links', 
+        value: 'zoom-links', 
+        icon: <Video size={20} />,
+        description: 'Virtual meeting links'
+      }
+    ]
+  },
+  { 
+    label: 'Notifications', 
+    value: 'notifications', 
+    icon: <Bell size={20} />,
+    count: 3,
+    description: 'System alerts and messages'
+  },
+  { 
+    label: 'System', 
+    value: 'system',
+    icon: <Settings size={20} />,
+    description: 'System settings and administration',
+    children: [
+      { 
+        label: 'Admin', 
+        value: 'admin', 
+        icon: <Settings size={20} />,
+        description: 'System administration'
+      },
+      { 
+        label: 'Design System', 
+        value: 'design-system', 
+        icon: <Palette size={20} />,
+        description: 'UI components and styles'
+      }
+    ]
+  }
+];
 
 const Sidebar: React.FC<SidebarProps> = ({ 
   isOpen, 
+  isCollapsed = false,
   activeSection, 
   onSectionChange 
 }) => {
-  const navItems: NavItem[] = [
-    { label: 'Dashboard', value: 'dashboard', icon: <Activity size={20} /> },
-    { label: 'Cases', value: 'cases', icon: <Briefcase size={20} /> },
-    { label: 'Hearings', value: 'hearings', icon: <Calendar size={20} /> },
-    { label: 'Documents', value: 'documents', icon: <FileText size={20} /> },
-    { label: 'eFiling', value: 'efile', icon: <Upload size={20} /> },
-    { label: 'Service Logs', value: 'service-logs', icon: <Truck size={20} /> },
-    { label: 'Invoices', value: 'invoices', icon: <CreditCard size={20} /> },
-    { label: 'Payment Plans', value: 'payment-plans', icon: <FileClock size={20} /> },
-    { label: 'Contacts', value: 'contacts', icon: <Users size={20} /> },
-    { label: 'Zoom Links', value: 'zoom-links', icon: <Video size={20} /> },
-    { label: 'Admin', value: 'admin', icon: <Settings size={20} /> },
-  ];
+  // Favorites functionality has been removed
+  
+  // Track recently visited sections
+  const [recentSections, setRecentSections] = useState<string[]>([]);
+  
+  // Track expanded nav panels (parent items)
+  const [expandedPanels, setExpandedPanels] = useState<string[]>([]);
 
-  const [openPanel, setOpenPanel] = React.useState('cases');
+  // Navigation structure
+  const navStructure = createNavStructure();
+  
+  // Update recent sections when active section changes
+  useEffect(() => {
+    if (activeSection && !recentSections.includes(activeSection)) {
+      setRecentSections(prev => [activeSection, ...prev.filter(s => s !== activeSection).slice(0, 4)]);
+    }
+    
+    // Expand parent panel of active section
+    const findParentItem = (items: NavItem[], value: string, parent?: string): string | undefined => {
+      for (const item of items) {
+        if (item.value === value) return parent;
+        if (item.children) {
+          const result = findParentItem(item.children, value, item.value);
+          if (result) return result;
+        }
+      }
+      return undefined;
+    };
+    
+    const parentItem = findParentItem(navStructure, activeSection);
+    if (parentItem && !expandedPanels.includes(parentItem)) {
+      setExpandedPanels(prev => [...prev, parentItem]);
+    }
+  }, [activeSection, navStructure, recentSections]);
 
-  // Group the navigation items
-  const navGroups = {
-    main: ['dashboard', 'cases', 'hearings'],
-    documents: ['documents', 'efile', 'service-logs'],
-    billing: ['invoices', 'payment-plans'],
-    contacts: ['contacts', 'zoom-links'],
-    system: ['admin'],
+  // Toggle expansion of a navigation panel
+  const togglePanel = (panel: string, event?: React.MouseEvent) => {
+    event?.stopPropagation();
+    setExpandedPanels(prev => 
+      prev.includes(panel) 
+        ? prev.filter(p => p !== panel) 
+        : [...prev, panel]
+    );
   };
 
-  const togglePanel = (panel: string) => {
-    setOpenPanel(openPanel === panel ? '' : panel);
+  // Favorite functionality has been removed
+
+  // Find all nav items (flattened) for searching
+  const getAllNavItems = (items: NavItem[] = navStructure): NavItem[] => {
+    return items.reduce((acc: NavItem[], item) => {
+      acc.push(item);
+      if (item.children?.length) {
+        acc.push(...getAllNavItems(item.children));
+      }
+      return acc;
+    }, []);
+  };
+
+  // Get a specific nav item by value
+  const getNavItemByValue = (value: string): NavItem | undefined => {
+    return getAllNavItems().find(item => item.value === value);
+  };
+
+  // Render a navigation item with consistent spacing
+  const renderNavItem = (item: NavItem, depth = 0, isStandalone = false) => {
+    const isExpanded = expandedPanels.includes(item.value);
+    const hasChildren = item.children && item.children.length > 0;
+    
+    return (
+      <div key={item.value} className={isStandalone ? "mb-0.5" : ""}>
+        <button
+          onClick={() => {
+            onSectionChange(item.value);
+            if (hasChildren && !isCollapsed) {
+              togglePanel(item.value);
+            }
+          }}
+          className={`
+            flex items-center w-full px-3 py-2 text-sm font-medium rounded-md transition-colors text-left
+            ${activeSection === item.value 
+              ? 'bg-primary-50 text-primary-600' 
+              : 'text-neutral-700 hover:bg-neutral-50'}
+            ${depth > 0 ? 'pl-6' : 'pl-3'} 
+          `}
+          title={isCollapsed ? `${item.label}${item.description ? ` - ${item.description}` : ''}` : undefined}
+        >
+          <span className={`${isCollapsed ? '' : 'mr-2'} text-neutral-500`}>{item.icon}</span>
+          
+          {!isCollapsed && (
+            <>
+              <span className="flex-1 truncate text-left">{item.label}</span>
+              
+              {item.count !== undefined && (
+                <span className="ml-auto bg-primary-100 text-primary-600 py-0.5 px-2 rounded-full text-xs">
+                  {item.count}
+                </span>
+              )}
+              
+              {item.shortcut && (
+                <span className="ml-auto text-neutral-400 text-xs">{item.shortcut}</span>
+              )}
+              
+              {hasChildren && !isCollapsed && (
+                <button 
+                  onClick={(e) => togglePanel(item.value, e)}
+                  className="ml-1 text-neutral-400"
+                >
+                  <ChevronRight
+                    size={16}
+                    className={`transform transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                  />
+                </button>
+              )}
+              
+            </>
+          )}
+        </button>
+        
+        {/* Render children if expanded */}
+        {hasChildren && isExpanded && !isCollapsed && (
+          <div className="ml-5 pl-2 mt-1 border-l border-neutral-200 space-y-1">
+            {item.children?.map(child => renderNavItem(child, depth + 1))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Favorites section has been removed
+
+  // Recent section has been removed
+
+  // Render the main navigation
+  const renderMainNav = () => {
+    return (
+      <div className="space-y-3">
+        {!isCollapsed && (
+          <div className="px-3 py-2 text-left">
+            <span className="text-sm font-semibold text-neutral-700">Main Navigation</span>
+          </div>
+        )}
+        
+        <div className="space-y-1">
+          {navStructure.map(item => renderNavItem(item))}
+        </div>
+      </div>
+    );
   };
 
   return (
     <div 
       className={`
-        fixed inset-y-0 left-0 z-20 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out
+        fixed inset-y-0 left-0 z-20 bg-white border-r border-neutral-200 
+        transform transition-all duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         md:translate-x-0
+        ${isCollapsed ? 'w-16' : 'w-64'}
       `}
     >
-      <div className="h-16 flex items-center px-6 border-b border-gray-200">
-        <h2 className="text-xl font-semibold text-gray-800">Navigation</h2>
+      {/* Sidebar header with 24px horizontal padding */}
+      <div className="h-16 flex items-center px-6 border-b border-neutral-200">
+        {!isCollapsed ? (
+          <h2 className="text-lg font-semibold text-neutral-800">Navigation</h2>
+        ) : (
+          <div className="w-full flex">
+            <Home size={24} className="text-primary-600" />
+          </div>
+        )}
       </div>
-      <div className="overflow-y-auto h-[calc(100vh-4rem)] p-4">
-        <nav className="space-y-1">
-          {/* Main Items */}
-          <div className="mb-4">
-            {navItems
-              .filter(item => navGroups.main.includes(item.value))
-              .map(item => (
-                <button
-                  key={item.value}
-                  onClick={() => onSectionChange(item.value)}
-                  className={`
-                    flex items-center w-full px-3 py-2 text-sm font-medium rounded-md transition-colors
-                    ${activeSection === item.value 
-                      ? 'bg-primary-50 text-primary-600' 
-                      : 'text-gray-700 hover:bg-gray-100'}
-                  `}
-                >
-                  <span className="mr-3 text-gray-500">{item.icon}</span>
-                  {item.label}
-                  {item.count && (
-                    <span className="ml-auto bg-gray-100 text-gray-600 py-0.5 px-2 rounded-full text-xs">
-                      {item.count}
-                    </span>
-                  )}
-                </button>
-              ))
-            }
-          </div>
-
-          {/* Documents Group */}
-          <div className="mb-4">
-            <button
-              onClick={() => togglePanel('documents')}
-              className="flex items-center justify-between w-full px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100"
-            >
-              <span className="font-semibold">Documents</span>
-              <ChevronDown 
-                size={16} 
-                className={`transform transition-transform ${openPanel === 'documents' ? 'rotate-180' : ''}`} 
-              />
-            </button>
-            
-            {openPanel === 'documents' && (
-              <div className="pl-6 mt-1 space-y-1">
-                {navItems
-                  .filter(item => navGroups.documents.includes(item.value))
-                  .map(item => (
-                    <button
-                      key={item.value}
-                      onClick={() => onSectionChange(item.value)}
-                      className={`
-                        flex items-center w-full px-3 py-2 text-sm font-medium rounded-md transition-colors
-                        ${activeSection === item.value 
-                          ? 'bg-primary-50 text-primary-600' 
-                          : 'text-gray-700 hover:bg-gray-100'}
-                      `}
-                    >
-                      <span className="mr-3 text-gray-500">{item.icon}</span>
-                      {item.label}
-                    </button>
-                  ))
-                }
-              </div>
-            )}
-          </div>
-
-          {/* Billing Group */}
-          <div className="mb-4">
-            <button
-              onClick={() => togglePanel('billing')}
-              className="flex items-center justify-between w-full px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100"
-            >
-              <span className="font-semibold">Billing</span>
-              <ChevronDown 
-                size={16}
-                className={`transform transition-transform ${openPanel === 'billing' ? 'rotate-180' : ''}`} 
-              />
-            </button>
-            
-            {openPanel === 'billing' && (
-              <div className="pl-6 mt-1 space-y-1">
-                {navItems
-                  .filter(item => navGroups.billing.includes(item.value))
-                  .map(item => (
-                    <button
-                      key={item.value}
-                      onClick={() => onSectionChange(item.value)}
-                      className={`
-                        flex items-center w-full px-3 py-2 text-sm font-medium rounded-md transition-colors
-                        ${activeSection === item.value 
-                          ? 'bg-primary-50 text-primary-600' 
-                          : 'text-gray-700 hover:bg-gray-100'}
-                      `}
-                    >
-                      <span className="mr-3 text-gray-500">{item.icon}</span>
-                      {item.label}
-                    </button>
-                  ))
-                }
-              </div>
-            )}
-          </div>
-
-          {/* Contacts Group */}
-          <div className="mb-4">
-            <button
-              onClick={() => togglePanel('contacts')}
-              className="flex items-center justify-between w-full px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100"
-            >
-              <span className="font-semibold">Contacts</span>
-              <ChevronDown 
-                size={16}
-                className={`transform transition-transform ${openPanel === 'contacts' ? 'rotate-180' : ''}`} 
-              />
-            </button>
-            
-            {openPanel === 'contacts' && (
-              <div className="pl-6 mt-1 space-y-1">
-                {navItems
-                  .filter(item => navGroups.contacts.includes(item.value))
-                  .map(item => (
-                    <button
-                      key={item.value}
-                      onClick={() => onSectionChange(item.value)}
-                      className={`
-                        flex items-center w-full px-3 py-2 text-sm font-medium rounded-md transition-colors
-                        ${activeSection === item.value 
-                          ? 'bg-primary-50 text-primary-600' 
-                          : 'text-gray-700 hover:bg-gray-100'}
-                      `}
-                    >
-                      <span className="mr-3 text-gray-500">{item.icon}</span>
-                      {item.label}
-                    </button>
-                  ))
-                }
-              </div>
-            )}
-          </div>
-
-          {/* System Admin Group */}
-          <div className="mb-4">
-            <button
-              onClick={() => togglePanel('system')}
-              className="flex items-center justify-between w-full px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100"
-            >
-              <span className="font-semibold">System</span>
-              <ChevronDown 
-                size={16}
-                className={`transform transition-transform ${openPanel === 'system' ? 'rotate-180' : ''}`} 
-              />
-            </button>
-            
-            {openPanel === 'system' && (
-              <div className="pl-6 mt-1 space-y-1">
-                {navItems
-                  .filter(item => navGroups.system.includes(item.value))
-                  .map(item => (
-                    <button
-                      key={item.value}
-                      onClick={() => onSectionChange(item.value)}
-                      className={`
-                        flex items-center w-full px-3 py-2 text-sm font-medium rounded-md transition-colors
-                        ${activeSection === item.value 
-                          ? 'bg-primary-50 text-primary-600' 
-                          : 'text-gray-700 hover:bg-gray-100'}
-                      `}
-                    >
-                      <span className="mr-3 text-gray-500">{item.icon}</span>
-                      {item.label}
-                    </button>
-                  ))
-                }
-              </div>
-            )}
-          </div>
+      
+      {/* Sidebar content with 16px padding when expanded, 8px when collapsed */}
+      <div className={`overflow-y-auto h-[calc(100vh-4rem)] ${isCollapsed ? 'p-2' : 'p-4'}`}>
+        {/* Navigation with 12px spacing between sections */}
+        <nav className="space-y-3">
+          {renderMainNav()}
         </nav>
         
-        <div className="mt-8 pt-6 border-t border-gray-200">
-          <div className="px-3 py-4 bg-primary-50 rounded-lg">
-            <h3 className="text-sm font-medium text-primary-800">Need Help?</h3>
-            <p className="mt-1 text-xs text-primary-600">
-              Contact support for assistance with your legal case management system.
-            </p>
-          </div>
+        {/* Help section */}
+        <div className="mt-6 pt-4 border-t border-neutral-200">
+          {isCollapsed ? (
+            <button className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-start text-primary-600">
+              <HelpCircle size={20} />
+            </button>
+          ) : (
+            <div className="px-4 py-4 bg-primary-50 rounded-lg text-left">
+              <h3 className="text-sm font-medium text-primary-800">Need Help?</h3>
+              <p className="mt-1 text-xs text-primary-600">
+                Contact support for assistance with your legal case management system.
+              </p>
+              <button className="mt-2 text-xs font-medium text-primary-700 hover:text-primary-800 text-left">
+                Contact Support
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
