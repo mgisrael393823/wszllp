@@ -5,6 +5,7 @@ import hearingsParser from './hearingsParser';
 import documentsParser from './documentsParser';
 import invoicesParser from './invoicesParser';
 import clientsParser from './clientsParser';
+import csvFieldMapper from './csvFieldMapper';
 
 interface ImportResult {
   success: boolean;
@@ -59,7 +60,8 @@ export async function importFromCSV(files: File[]): Promise<ImportResult> {
     // Process each CSV file
     for (const file of files) {
       const fileName = file.name.replace('.csv', '');
-      const sheetName = mapFileNameToSheetName(fileName);
+      // Use the new custom field mapper to determine sheet name
+      const sheetName = csvFieldMapper.mapCustomFileNameToSheetName(fileName);
       
       try {
         // Parse CSV file content
@@ -177,12 +179,20 @@ export async function importFromCSV(files: File[]): Promise<ImportResult> {
           }
         }
         
-        // Store parsed data
-        allSheets[sheetName] = parsedData.data;
-        result.stats.processedFiles++;
-        result.stats.processedRows += parsedData.data.length;
+        // Transform the parsed data to match our expected format
+        const transformedData = csvFieldMapper.transformDataset(parsedData.data, sheetName);
         
-        console.log(`Processed CSV file ${fileName} as sheet ${sheetName} with ${parsedData.data.length} rows`);
+        // Store transformed data
+        allSheets[sheetName] = transformedData;
+        result.stats.processedFiles++;
+        result.stats.processedRows += transformedData.length;
+        
+        console.log(`Processed CSV file ${fileName} as sheet ${sheetName} with ${transformedData.length} rows`);
+        
+        // Log a sample of the transformed data for debugging
+        if (transformedData.length > 0) {
+          console.log('Sample transformed row:', transformedData[0]);
+        }
       } catch (error) {
         result.warnings.push(`Error processing file ${fileName}: ${error}`);
       }

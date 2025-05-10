@@ -5,6 +5,7 @@ import hearingsParser from './hearingsParser';
 import documentsParser from './documentsParser';
 import invoicesParser from './invoicesParser';
 import clientsParser from './clientsParser';
+import csvFieldMapper from './csvFieldMapper';
 
 interface ImportResult {
   success: boolean;
@@ -27,9 +28,9 @@ interface ImportResult {
 }
 
 /**
- * Import data from Excel file
+ * Import data from Excel files
  */
-export async function importFromExcel(file: File): Promise<ImportResult> {
+export async function importFromExcel(files: File[]): Promise<ImportResult> {
   const result: ImportResult = {
     success: false,
     entities: {
@@ -51,24 +52,54 @@ export async function importFromExcel(file: File): Promise<ImportResult> {
   };
   
   try {
-    // Read the Excel file
-    const data = await file.arrayBuffer();
-    const workbook = XLSX.read(data, { type: 'array' });
+    console.log('Starting Excel import process...');
     
-    result.stats.totalSheets = workbook.SheetNames.length;
-    
-    // Extract all sheet data
+    // Extract all sheet data across all files
     const allSheets: { [key: string]: any[] } = {};
-    for (const sheetName of workbook.SheetNames) {
+    
+    // Process each Excel file
+    for (const file of files) {
       try {
-        const sheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(sheet, { defval: null });
+        console.log(`Processing Excel file: ${file.name}`);
         
-        allSheets[sheetName] = jsonData;
-        result.stats.processedSheets++;
-        result.stats.processedRows += jsonData.length;
+        // Read the Excel file
+        const data = await file.arrayBuffer();
+        const workbook = XLSX.read(data, { type: 'array' });
+        
+        console.log(`Excel file ${file.name} loaded. Sheets found:`, workbook.SheetNames);
+        result.stats.totalSheets += workbook.SheetNames.length;
+        
+        // Process each sheet in the workbook
+        for (const sheetName of workbook.SheetNames) {
+          try {
+            const sheet = workbook.Sheets[sheetName];
+            const jsonData = XLSX.utils.sheet_to_json(sheet, { defval: null });
+            
+            console.log(`Sheet ${sheetName} has ${jsonData.length} rows`);
+            
+            // Transform the data using our field mapper
+            const transformedData = csvFieldMapper.transformDataset(jsonData, sheetName);
+            
+            // If this sheet already exists from another file, append the data
+            if (allSheets[sheetName]) {
+              allSheets[sheetName] = [...allSheets[sheetName], ...transformedData];
+            } else {
+              allSheets[sheetName] = transformedData;
+            }
+            
+            // Log a sample of the transformed data for debugging
+            if (transformedData.length > 0) {
+              console.log(`Sample transformed row from ${sheetName}:`, transformedData[0]);
+            }
+            
+            result.stats.processedSheets++;
+            result.stats.processedRows += jsonData.length;
+          } catch (error) {
+            result.warnings.push(`Error processing sheet ${sheetName} in file ${file.name}: ${error}`);
+          }
+        }
       } catch (error) {
-        result.warnings.push(`Error processing sheet ${sheetName}: ${error}`);
+        result.warnings.push(`Error processing Excel file ${file.name}: ${error}`);
       }
     }
     
@@ -182,10 +213,23 @@ export async function importFromExcel(file: File): Promise<ImportResult> {
       result.entities.invoices
     );
     
+    // Log message if no cases were imported
+    if (result.entities.cases.length === 0) {
+      console.log('No cases found in import');
+      result.warnings.push('No case data was found in the imported file.');
+    }
+    
     // Success!
     result.success = true;
+    console.log('Import completed successfully with:', {
+      cases: result.entities.cases.length,
+      hearings: result.entities.hearings.length,
+      documents: result.entities.documents.length,
+      contacts: result.entities.contacts.length
+    });
     
   } catch (error) {
+    console.error('Import failed:', error);
     result.success = false;
     result.errors.push(`Import failed: ${error}`);
   }
