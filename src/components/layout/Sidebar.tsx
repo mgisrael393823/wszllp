@@ -24,7 +24,7 @@ interface NavItem {
   children?: NavItem[];
 }
 
-// Define navigation structure with hierarchical grouping
+// Define navigation structure with hierarchical grouping - simplified for MVP
 const createNavStructure = (): NavItem[] => [
   { 
     label: 'Dashboard', 
@@ -36,21 +36,13 @@ const createNavStructure = (): NavItem[] => [
     label: 'Cases', 
     value: 'cases', 
     icon: <Briefcase size={20} />,
-    count: 15,
     description: 'Manage your legal cases',
-    shortcut: '⌘+1',
     children: [
       { 
         label: 'Hearings', 
         value: 'hearings', 
         icon: <Clock size={20} />,
         description: 'Upcoming court appearances'
-      },
-      { 
-        label: 'Calendar', 
-        value: 'calendar', 
-        icon: <Calendar size={20} />,
-        description: 'Schedule and appointments'
       }
     ]
   },
@@ -60,18 +52,6 @@ const createNavStructure = (): NavItem[] => [
     icon: <FileText size={20} />,
     description: 'Case documents and files',
     children: [
-      { 
-        label: 'Document Generator', 
-        value: 'document-generator', 
-        icon: <FilePlus size={20} />,
-        description: 'Create legal documents'
-      },
-      { 
-        label: 'Templates', 
-        value: 'templates', 
-        icon: <FileCode size={20} />,
-        description: 'Document templates'
-      },
       { 
         label: 'eFiling', 
         value: 'efile', 
@@ -83,75 +63,26 @@ const createNavStructure = (): NavItem[] => [
         value: 'service-logs', 
         icon: <Truck size={20} />,
         description: 'Service of process tracking'
-      },
-      { 
-        label: 'Workflows', 
-        value: 'workflows', 
-        icon: <GitBranch size={20} />,
-        description: 'Automated case processes'
       }
     ]
   },
   { 
-    label: 'Billing', 
-    value: 'billing',
+    label: 'Invoices', 
+    value: 'invoices', 
     icon: <CreditCard size={20} />,
-    description: 'Billing and payments',
-    children: [
-      { 
-        label: 'Invoices', 
-        value: 'invoices', 
-        icon: <CreditCard size={20} />,
-        description: 'Billing and payments'
-      },
-      { 
-        label: 'Payment Plans', 
-        value: 'payment-plans', 
-        icon: <FileClock size={20} />,
-        description: 'Client payment arrangements'
-      }
-    ]
+    description: 'Billing and payments'
   },
   { 
     label: 'Contacts', 
     value: 'contacts', 
     icon: <Users size={20} />,
-    description: 'Clients and other contacts',
-    children: [
-      { 
-        label: 'Zoom Links', 
-        value: 'zoom-links', 
-        icon: <Video size={20} />,
-        description: 'Virtual meeting links'
-      }
-    ]
+    description: 'Clients and other contacts'
   },
   { 
-    label: 'Notifications', 
-    value: 'notifications', 
-    icon: <Bell size={20} />,
-    count: 3,
-    description: 'System alerts and messages'
-  },
-  { 
-    label: 'System', 
-    value: 'system',
+    label: 'Admin', 
+    value: 'admin', 
     icon: <Settings size={20} />,
-    description: 'System settings and administration',
-    children: [
-      { 
-        label: 'Admin', 
-        value: 'admin', 
-        icon: <Settings size={20} />,
-        description: 'System administration'
-      },
-      { 
-        label: 'Design System', 
-        value: 'design-system', 
-        icon: <Palette size={20} />,
-        description: 'UI components and styles'
-      }
-    ]
+    description: 'System administration'
   }
 ];
 
