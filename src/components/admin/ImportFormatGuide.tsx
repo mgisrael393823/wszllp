@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dialog, DialogContent, DialogOverlay } from '@radix-ui/react-dialog';
+import { Dialog, DialogContent, DialogOverlay, DialogTitle } from '@radix-ui/react-dialog';
 import Button from '../ui/Button';
 import { FileSpreadsheet, FileText, X } from 'lucide-react';
 
@@ -41,6 +41,11 @@ const ImportFormatGuide: React.FC<ImportFormatGuideProps> = ({
               <X className="w-5 h-5" />
             </button>
           </div>
+          
+          {/* Hidden DialogTitle for accessibility */}
+          <DialogTitle className="sr-only">
+            {importType === 'excel' ? 'Excel Import Format Guide' : 'CSV Import Format Guide'}
+          </DialogTitle>
 
           <div className="prose prose-sm max-w-none mb-6">
             <p className="text-gray-700">
