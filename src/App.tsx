@@ -24,8 +24,13 @@ import NotificationsPage from './components/notifications/NotificationsPage';
 import NotificationScheduler from './components/notifications/NotificationScheduler';
 import ContactsPage from './components/contacts/ContactsPage';
 
-// Design System Showcase
-import DesignSystemPage from './components/examples/DesignSystemPage';
+// Placeholder for Design System - removed in MVP
+const DesignSystemPage = () => (
+  <div className="p-8">
+    <h1 className="text-2xl font-bold mb-4">Design System</h1>
+    <p>The design system showcase has been deferred for the MVP.</p>
+  </div>
+);
 
 // Component to handle navigation logic
 const AppContent = () => {
