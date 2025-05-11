@@ -135,4 +135,6 @@ This project is proprietary and confidential. Unauthorized copying, distribution
 
 ## Documentation
 
-For detailed documentation, see the [Product Requirements Document](./WSZLLP-PRD.md).
+For detailed documentation, see:
+- [Product Requirements Document](./WSZLLP-PRD.md)
+- [UI Component Task Tracker](../docs/UI_COMPONENT_TASK_TRACKER.md) - Tracks status, priority, and implementation phases of all UI components
