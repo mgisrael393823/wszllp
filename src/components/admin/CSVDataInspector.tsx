@@ -37,6 +37,16 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
     { value: "costs", label: "Costs / Fees" },
     { value: "courtDate", label: "Court Date" },
     { value: "judgmentAmount", label: "Judgment Amount" },
+    { value: "file", label: "File" },
+    { value: "fileId", label: "File ID" },
+    { value: "client", label: "Client" },
+    { value: "caseName", label: "Case Name" },
+    { value: "propertyAddress", label: "Property Address" },
+    { value: "balance", label: "Balance" },
+    { value: "notes", label: "Notes" },
+    { value: "totalCost", label: "Total Cost" },
+    { value: "attorneyFee", label: "Attorney Fee" },
+    { value: "paymentStatus", label: "Payment Status" },
     { value: "notUsed", label: "Not Used" },
   ];
 
@@ -185,6 +195,9 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
     const mappedData = fileData.map(row => {
       const transformedRow: Record<string, any> = {};
       
+      // Generate a unique ID for this record if it doesn't have one already
+      transformedRow.id = row.id || row.caseId || row.file_id || row.caseid || `case-${Math.random().toString(36).substring(2, 15)}`;
+      
       // Apply mappings to each row
       Object.entries(fieldMappings).forEach(([sourceField, targetField]) => {
         if (targetField !== 'notUsed') {
@@ -194,14 +207,31 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
             transformedRow.costs[sourceField] = row[sourceField];
           } else {
             transformedRow[targetField] = row[sourceField];
+            
+            // For caseId field, also set it as the main identifier
+            if (targetField === 'caseId' && row[sourceField]) {
+              transformedRow.id = row[sourceField];
+              transformedRow.caseId = row[sourceField];
+            }
           }
         }
       });
       
+      // Add helpful logging
+      console.log('Mapped row:', transformedRow);
+      
       return transformedRow;
     });
     
-    onImport(mappedData);
+    // Filter out empty rows
+    const validMappedData = mappedData.filter(row => 
+      Object.keys(row).length > 1 && // More than just the ID field
+      Object.values(row).some(val => val !== null && val !== undefined && val !== '')
+    );
+    
+    console.log(`Mapped ${validMappedData.length} valid rows out of ${mappedData.length} total rows`);
+    
+    onImport(validMappedData);
   };
 
   return (

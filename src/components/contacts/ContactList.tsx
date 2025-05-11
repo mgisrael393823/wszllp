@@ -199,6 +199,7 @@ const ContactList: React.FC<ContactListProps> = ({
         <Table
           data={contacts}
           columns={columns}
+          keyField="contactId"
           onRowClick={(item) => navigate(`/contacts/${item.contactId}`)}
         />
       )}

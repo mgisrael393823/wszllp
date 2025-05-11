@@ -374,7 +374,11 @@ async function readFileAsText(file: File): Promise<string> {
 function getExpectedHeadersForSheet(sheetName: string): string[] {
   const headerMap: { [key: string]: string[] } = {
     'Complaint': ['file id', 'plaintiff', 'defendant', 'address', 'date'],
-    'ALL EVICTIONS FILES': ['file', 'file id', 'client', 'property', 'defendant'],
+    'ALL EVICTIONS FILES': [
+      'file', 'file id', 'client', 'case_name', 'property_address', 
+      'balance', 'filing_date', 'status', 'notes', 'total_cost', 
+      'attorney_fee', 'payment_status', 'property', 'defendant'
+    ],
     'Court 25': ['file id', 'court', 'date', 'time', 'defendant'],
     'Court 24': ['file id', 'court', 'date', 'time', 'defendant'],
     'ZOOM': ['file id', 'zoom', 'link', 'meeting', 'password'],

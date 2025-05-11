@@ -47,7 +47,21 @@ const complaintMappings: FieldMapping[] = [
   { sourceField: 'total_atty_fee', targetField: 'Attorney Fee', transform: (val) => formatNumericValue(val) },
   { sourceField: 'total_atty_fee_owed', targetField: 'Attorney Fee Owed', transform: (val) => formatNumericValue(val) },
   { sourceField: 'total_owed_w_fronted_costs', targetField: 'Total Owed', transform: (val) => formatNumericValue(val) },
-  { sourceField: 'total_file_cost', targetField: 'File Cost', transform: (val) => formatNumericValue(val) }
+  { sourceField: 'total_file_cost', targetField: 'File Cost', transform: (val) => formatNumericValue(val) },
+  
+  // New mappings for additional CSV headers
+  { sourceField: 'file', targetField: 'File', transform: (val) => formatStringValue(val) },
+  { sourceField: 'file id', targetField: 'File ID', transform: (val) => formatStringValue(val) },
+  { sourceField: 'client', targetField: 'Client', transform: (val) => formatStringValue(val) },
+  { sourceField: 'case_name', targetField: 'Case Name', transform: (val) => formatStringValue(val) },
+  { sourceField: 'property_address', targetField: 'Property Address', transform: (val) => formatStringValue(val) },
+  { sourceField: 'balance', targetField: 'Balance', transform: (val) => formatNumericValue(val) },
+  { sourceField: 'filing_date', targetField: 'Filing Date', transform: (val) => formatStringValue(val) },
+  { sourceField: 'status', targetField: 'Status', transform: (val) => formatStringValue(val) },
+  { sourceField: 'notes', targetField: 'Notes', transform: (val) => formatStringValue(val) },
+  { sourceField: 'total_cost', targetField: 'Total Cost', transform: (val) => formatNumericValue(val) },
+  { sourceField: 'attorney_fee', targetField: 'Attorney Fee', transform: (val) => formatNumericValue(val) },
+  { sourceField: 'payment_status', targetField: 'Payment Status', transform: (val) => formatStringValue(val) }
 ];
 
 // Custom mapping for summons files
@@ -124,7 +138,13 @@ const fileNameToSheetNameMapping: Record<string, string> = {
   'all_evictions_files_cleaned': 'ALL EVICTIONS FILES',
   'all_evictions': 'ALL EVICTIONS FILES',
   'evictions_files': 'ALL EVICTIONS FILES',
-  'evictions': 'ALL EVICTIONS FILES'
+  'evictions': 'ALL EVICTIONS FILES',
+  // Add new mappings for the additional CSV headers
+  'case_data': 'ALL EVICTIONS FILES',
+  'cases': 'ALL EVICTIONS FILES',
+  'case_import': 'ALL EVICTIONS FILES',
+  'client_cases': 'ALL EVICTIONS FILES',
+  'full_case_data': 'ALL EVICTIONS FILES'
 };
 
 // Map between sheet names and their field mappings

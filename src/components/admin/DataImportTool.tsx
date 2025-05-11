@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { importFromExcel } from '../../utils/dataImport/excelImporter';
 import { importFromCSV } from '../../utils/dataImport/csvImporter';
 import CSVDataInspector from './CSVDataInspector';
@@ -84,15 +85,36 @@ const DataImportTool: React.FC = () => {
     setIsImporting(true);
     
     try {
-      // Process the mapped data and convert to the format expected by the system
-      const result = await importFromCSV([selectedFiles[0]]);
+      // Process the mapped data instead of re-importing the original file
+      // Create a result structure compatible with what importFromCSV would return
+      const result = {
+        success: true,
+        entities: {
+          cases: mappedData, // Use the mapped data that CSVDataInspector provides
+          hearings: [],
+          documents: [],
+          invoices: [],
+          paymentPlans: [],
+          contacts: [],
+          serviceLogs: [],
+        },
+        errors: [],
+        warnings: [],
+        stats: {
+          totalFiles: 1,
+          processedFiles: 1,
+          processedRows: mappedData.length,
+        }
+      };
+      
+      console.log('Using mapped data:', mappedData);
       setImportResult(result);
       
-      if (result.success) {
+      if (mappedData && mappedData.length > 0) {
         setStep('preview');
       } else {
-        setError('CSV import failed. Please check the file format.');
-        setStep('upload');
+        setError('No data was mapped. Please check your column mappings.');
+        setStep('csvInspector');
       }
     } catch (err) {
       setError(`CSV import error: ${err instanceof Error ? err.message : String(err)}`);
@@ -126,12 +148,27 @@ const DataImportTool: React.FC = () => {
       if (entities.cases.length === 0) {
         console.log('No cases found in import');
       }
+      
+      // Validate and enhance imported cases data
+      const enhancedCases = entities.cases.map(caseItem => {
+        // Ensure each case has required fields
+        return {
+          ...caseItem,
+          // Generate required fields if they don't exist
+          caseId: caseItem.caseId || caseItem.id || `case-${Math.random().toString(36).substring(2, 11)}`,
+          id: caseItem.id || caseItem.caseId || `case-${Math.random().toString(36).substring(2, 11)}`,
+          title: caseItem.title || caseItem.caseName || caseItem.name || 'Untitled Case',
+          status: caseItem.status || 'Open',
+          createdAt: caseItem.createdAt || new Date().toISOString(),
+          updatedAt: caseItem.updatedAt || new Date().toISOString()
+        };
+      });
 
       // Load all the data in a single dispatch
       dispatch({
         type: 'LOAD_DATA',
         payload: {
-          cases: entities.cases,
+          cases: enhancedCases,
           hearings: entities.hearings,
           documents: entities.documents,
           serviceLogs: entities.serviceLogs,
@@ -157,6 +194,21 @@ const DataImportTool: React.FC = () => {
             advanceDeadlineReminder: 48,
           },
           auditLogs: [] // New audit logs will be generated during import
+        }
+      });
+      
+      // Add an audit log entry
+      dispatch({
+        type: 'ADD_AUDIT_LOG',
+        payload: {
+          id: uuidv4(),
+          timestamp: new Date().toISOString(),
+          action: 'IMPORT_DATA',
+          entityType: 'CASES',
+          entityId: 'BULK_IMPORT',
+          userId: 'CURRENT_USER', // In a real app, this would be the current user's ID
+          details: `Imported ${enhancedCases.length} cases and related data`,
+          changes: { added: enhancedCases.length }
         }
       });
       
