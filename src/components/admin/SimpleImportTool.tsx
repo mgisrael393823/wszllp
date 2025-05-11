@@ -196,8 +196,8 @@ const SimpleImportTool: React.FC = () => {
       let result;
       
       if (importType === 'excel') {
-        // Use the first file for Excel
-        result = await importFromExcel(selectedFiles[0]);
+        // Use the first file for Excel, but wrap it in an array as expected by the function
+        result = await importFromExcel([selectedFiles[0]]);
       } else {
         // Use all files for CSV
         result = await importFromCSV(selectedFiles);
@@ -394,8 +394,16 @@ const SimpleImportTool: React.FC = () => {
                       : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'
                   }`}
                   onClick={() => setImportType('excel')}
+                  role="radio"
+                  aria-checked={importType === 'excel'}
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      setImportType('excel');
+                    }
+                  }}
                 >
-                  <FileSpreadsheet className="w-5 h-5 mr-2" />
+                  <FileSpreadsheet className="w-5 h-5 mr-2" aria-hidden="true" />
                   Excel Import (.xlsx)
                 </div>
                 
@@ -406,8 +414,16 @@ const SimpleImportTool: React.FC = () => {
                       : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'
                   }`}
                   onClick={() => setImportType('csv')}
+                  role="radio"
+                  aria-checked={importType === 'csv'}
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      setImportType('csv');
+                    }
+                  }}
                 >
-                  <FileText className="w-5 h-5 mr-2" />
+                  <FileText className="w-5 h-5 mr-2" aria-hidden="true" />
                   CSV Import (.csv)
                 </div>
               </div>

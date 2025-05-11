@@ -165,17 +165,38 @@ export async function importFromCSV(files: File[]): Promise<ImportResult> {
         console.log(`CSV file ${fileName} headers: ${headers.join(', ')}`);
         console.log(`Found ${parsedData.data.length} data rows`);
         
-        // Check if expected headers are present for mapped sheet type
-        const expectedHeaders = getExpectedHeadersForSheet(sheetName);
-        if (expectedHeaders.length > 0) {
-          const missingHeaders = expectedHeaders.filter(
-            header => !headers.some(h => h.toLowerCase().includes(header.toLowerCase()))
+        // Check for unnamed columns pattern like in all_evictions_files_cleaned.csv
+        const unnamedColumnCount = headers.filter(h => h.startsWith('unnamed_')).length;
+        if (unnamedColumnCount > 10) {
+          console.log(`Detected ${unnamedColumnCount} unnamed columns, likely an all_evictions_files format`);
+          
+          // Force mapping to ALL EVICTIONS FILES if we detect many unnamed columns
+          sheetName = 'ALL EVICTIONS FILES';
+          console.log(`Remapped to sheet type: ${sheetName} based on unnamed column pattern`);
+          
+          // Check if we have important financial columns that would indicate this is the right format
+          const hasFinancialColumns = headers.some(h => 
+            h.includes('total_cost') || 
+            h.includes('atty_fee') || 
+            h.includes('owed')
           );
           
-          if (missingHeaders.length > 0) {
-            result.warnings.push(
-              `File ${fileName} mapped to sheet ${sheetName} is missing expected headers: ${missingHeaders.join(', ')}`
+          if (hasFinancialColumns) {
+            console.log('Financial columns detected, confirmed as eviction data format');
+          }
+        } else {
+          // Only do standard header check for files without the unnamed column pattern
+          const expectedHeaders = getExpectedHeadersForSheet(sheetName);
+          if (expectedHeaders.length > 0) {
+            const missingHeaders = expectedHeaders.filter(
+              header => !headers.some(h => h.toLowerCase().includes(header.toLowerCase()))
             );
+            
+            if (missingHeaders.length > 0) {
+              result.warnings.push(
+                `File ${fileName} mapped to sheet ${sheetName} is missing expected headers: ${missingHeaders.join(', ')}`
+              );
+            }
           }
         }
         
@@ -353,7 +374,11 @@ async function readFileAsText(file: File): Promise<string> {
 function getExpectedHeadersForSheet(sheetName: string): string[] {
   const headerMap: { [key: string]: string[] } = {
     'Complaint': ['file id', 'plaintiff', 'defendant', 'address', 'date'],
-    'ALL EVICTIONS FILES': ['file', 'file id', 'client', 'property', 'defendant'],
+    'ALL EVICTIONS FILES': [
+      'file', 'file id', 'client', 'case_name', 'property_address', 
+      'balance', 'filing_date', 'status', 'notes', 'total_cost', 
+      'attorney_fee', 'payment_status', 'property', 'defendant'
+    ],
     'Court 25': ['file id', 'court', 'date', 'time', 'defendant'],
     'Court 24': ['file id', 'court', 'date', 'time', 'defendant'],
     'ZOOM': ['file id', 'zoom', 'link', 'meeting', 'password'],

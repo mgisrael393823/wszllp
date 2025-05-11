@@ -3,7 +3,12 @@ import {
   useOne, 
   useCreate, 
   useUpdate, 
-  useDelete
+  useDelete,
+  UseListProps,
+  UseOneProps,
+  UseCreateReturnType,
+  UseUpdateReturnType,
+  UseDeleteReturnType,
 } from '@refinedev/core';
 import { Contact } from '../../../types/schema';
 
@@ -12,48 +17,28 @@ import { Contact } from '../../../types/schema';
  * Provides simplified access to Refine's hooks for CRUD operations
  */
 export const useContacts = () => {
-  // Get all contacts
-  const getAllContacts = (
-    filters?: any[],
-    sorters?: any[],
-    pagination?: { current?: number; pageSize?: number }
-  ) => {
-    return useList<Contact>({
-      resource: "contacts",
-      filters,
-      sorters,
-      pagination
-    });
-  };
-  
-  // Get a single contact by ID
-  const getContact = (id: string) => {
-    return useOne<Contact>({
-      resource: "contacts",
-      id,
-    });
-  };
-  
-  // Create a new contact
-  const createContact = () => {
-    return useCreate<Contact>();
-  };
-  
-  // Update an existing contact
-  const updateContact = () => {
-    return useUpdate<Contact>();
-  };
-  
-  // Delete a contact
-  const deleteContact = () => {
-    return useDelete<Contact>();
-  };
-  
+  // These hooks need to be used directly in components, not wrapped in functions
+  // This file serves as a documentation of available hooks
+
   return {
-    getAllContacts,
-    getContact,
-    createContact,
-    updateContact,
-    deleteContact
+    // Use these hooks directly in your components:
+    // 
+    // List contacts:
+    // const { data, isLoading } = useList<Contact>({ resource: "contacts" });
+    //
+    // Get one contact:
+    // const { data } = useOne<Contact>({ resource: "contacts", id });
+    //
+    // Create contact:
+    // const { mutate } = useCreate<Contact>();
+    // mutate({ resource: "contacts", values: newContact });
+    //
+    // Update contact:
+    // const { mutate } = useUpdate<Contact>();
+    // mutate({ resource: "contacts", id, values: updatedContact });
+    //
+    // Delete contact:
+    // const { mutate } = useDelete<Contact>();
+    // mutate({ resource: "contacts", id });
   };
 };

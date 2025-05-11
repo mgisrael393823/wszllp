@@ -24,6 +24,14 @@ import NotificationsPage from './components/notifications/NotificationsPage';
 import NotificationScheduler from './components/notifications/NotificationScheduler';
 import ContactsPage from './components/contacts/ContactsPage';
 
+// Placeholder for Design System - removed in MVP
+const DesignSystemPage = () => (
+  <div className="p-8">
+    <h1 className="text-2xl font-bold mb-4">Design System</h1>
+    <p>The design system showcase has been deferred for the MVP.</p>
+  </div>
+);
+
 // Component to handle navigation logic
 const AppContent = () => {
   const navigate = useNavigate();
@@ -38,8 +46,23 @@ const AppContent = () => {
 
   const handleSectionChange = (section: string) => {
     setActiveSection(section);
+    
+    // Use window.location.href to handle the design system route which is outside the normal app layout
+    if (section === 'design-system') {
+      window.location.href = '/design-system';
+      return;
+    }
+    
     navigate(`/${section}`);
   };
+  
+  // Check if we're on the design system route
+  const isDesignSystem = location.pathname === '/design-system';
+  
+  // If we're on the design system page, render it without the main layout
+  if (isDesignSystem) {
+    return <DesignSystemPage />;
+  }
   
   return (
     <MainLayout 
@@ -78,7 +101,10 @@ function App() {
   return (
     <DataProvider>
       <BrowserRouter>
-        <AppContent />
+        <Routes>
+          <Route path="/design-system" element={<DesignSystemPage />} />
+          <Route path="/*" element={<AppContent />} />
+        </Routes>
       </BrowserRouter>
     </DataProvider>
   );

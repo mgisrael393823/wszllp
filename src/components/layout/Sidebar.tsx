@@ -24,7 +24,7 @@ interface NavItem {
   children?: NavItem[];
 }
 
-// Define navigation structure with hierarchical grouping
+// Define navigation structure with hierarchical grouping - simplified for MVP
 const createNavStructure = (): NavItem[] => [
   { 
     label: 'Dashboard', 
@@ -36,21 +36,13 @@ const createNavStructure = (): NavItem[] => [
     label: 'Cases', 
     value: 'cases', 
     icon: <Briefcase size={20} />,
-    count: 15,
     description: 'Manage your legal cases',
-    shortcut: '⌘+1',
     children: [
       { 
         label: 'Hearings', 
         value: 'hearings', 
         icon: <Clock size={20} />,
         description: 'Upcoming court appearances'
-      },
-      { 
-        label: 'Calendar', 
-        value: 'calendar', 
-        icon: <Calendar size={20} />,
-        description: 'Schedule and appointments'
       }
     ]
   },
@@ -60,18 +52,6 @@ const createNavStructure = (): NavItem[] => [
     icon: <FileText size={20} />,
     description: 'Case documents and files',
     children: [
-      { 
-        label: 'Document Generator', 
-        value: 'document-generator', 
-        icon: <FilePlus size={20} />,
-        description: 'Create legal documents'
-      },
-      { 
-        label: 'Templates', 
-        value: 'templates', 
-        icon: <FileCode size={20} />,
-        description: 'Document templates'
-      },
       { 
         label: 'eFiling', 
         value: 'efile', 
@@ -83,75 +63,26 @@ const createNavStructure = (): NavItem[] => [
         value: 'service-logs', 
         icon: <Truck size={20} />,
         description: 'Service of process tracking'
-      },
-      { 
-        label: 'Workflows', 
-        value: 'workflows', 
-        icon: <GitBranch size={20} />,
-        description: 'Automated case processes'
       }
     ]
   },
   { 
-    label: 'Billing', 
-    value: 'billing',
+    label: 'Invoices', 
+    value: 'invoices', 
     icon: <CreditCard size={20} />,
-    description: 'Billing and payments',
-    children: [
-      { 
-        label: 'Invoices', 
-        value: 'invoices', 
-        icon: <CreditCard size={20} />,
-        description: 'Billing and payments'
-      },
-      { 
-        label: 'Payment Plans', 
-        value: 'payment-plans', 
-        icon: <FileClock size={20} />,
-        description: 'Client payment arrangements'
-      }
-    ]
+    description: 'Billing and payments'
   },
   { 
     label: 'Contacts', 
     value: 'contacts', 
     icon: <Users size={20} />,
-    description: 'Clients and other contacts',
-    children: [
-      { 
-        label: 'Zoom Links', 
-        value: 'zoom-links', 
-        icon: <Video size={20} />,
-        description: 'Virtual meeting links'
-      }
-    ]
+    description: 'Clients and other contacts'
   },
   { 
-    label: 'Notifications', 
-    value: 'notifications', 
-    icon: <Bell size={20} />,
-    count: 3,
-    description: 'System alerts and messages'
-  },
-  { 
-    label: 'System', 
-    value: 'system',
+    label: 'Admin', 
+    value: 'admin', 
     icon: <Settings size={20} />,
-    description: 'System settings and administration',
-    children: [
-      { 
-        label: 'Admin', 
-        value: 'admin', 
-        icon: <Settings size={20} />,
-        description: 'System administration'
-      },
-      { 
-        label: 'Design System', 
-        value: 'design-system', 
-        icon: <Palette size={20} />,
-        description: 'UI components and styles'
-      }
-    ]
+    description: 'System administration'
   }
 ];
 
@@ -231,7 +162,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     
     return (
       <div key={item.value} className={isStandalone ? "mb-0.5" : ""}>
-        <button
+        <div
           onClick={() => {
             onSectionChange(item.value);
             if (hasChildren && !isCollapsed) {
@@ -239,15 +170,25 @@ const Sidebar: React.FC<SidebarProps> = ({
             }
           }}
           className={`
-            flex items-center w-full px-3 py-2 text-sm font-medium rounded-md transition-colors text-left
+            flex items-center w-full px-3 py-2 text-sm font-medium rounded-md transition-colors text-left cursor-pointer
             ${activeSection === item.value 
               ? 'bg-primary-50 text-primary-600' 
               : 'text-neutral-700 hover:bg-neutral-50'}
             ${depth > 0 ? 'pl-6' : 'pl-3'} 
           `}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              onSectionChange(item.value);
+              if (hasChildren && !isCollapsed) {
+                togglePanel(item.value);
+              }
+            }
+          }}
           title={isCollapsed ? `${item.label}${item.description ? ` - ${item.description}` : ''}` : undefined}
         >
-          <span className={`${isCollapsed ? '' : 'mr-2'} text-neutral-500`}>{item.icon}</span>
+          <span className={`${isCollapsed ? '' : 'mr-2'} text-neutral-500`} aria-hidden="true">{item.icon}</span>
           
           {!isCollapsed && (
             <>
@@ -264,20 +205,33 @@ const Sidebar: React.FC<SidebarProps> = ({
               )}
               
               {hasChildren && !isCollapsed && (
-                <button 
-                  onClick={(e) => togglePanel(item.value, e)}
-                  className="ml-1 text-neutral-400"
+                <span 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    togglePanel(item.value, e);
+                  }}
+                  className="ml-1 text-neutral-400 cursor-pointer"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    e.stopPropagation();
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      togglePanel(item.value, e);
+                    }
+                  }}
+                  aria-label={isExpanded ? "Collapse section" : "Expand section"}
                 >
                   <ChevronRight
                     size={16}
                     className={`transform transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                    aria-hidden="true"
                   />
-                </button>
+                </span>
               )}
               
             </>
           )}
-        </button>
+        </div>
         
         {/* Render children if expanded */}
         {hasChildren && isExpanded && !isCollapsed && (
@@ -341,18 +295,29 @@ const Sidebar: React.FC<SidebarProps> = ({
         {/* Help section */}
         <div className="mt-6 pt-4 border-t border-neutral-200">
           {isCollapsed ? (
-            <button className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-start text-primary-600">
+            <div 
+              role="button" 
+              tabIndex={0}
+              className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-start text-primary-600 cursor-pointer"
+              onClick={() => window.open('/support', '_blank')}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  window.open('/support', '_blank');
+                }
+              }}
+              aria-label="Get help"
+            >
               <HelpCircle size={20} />
-            </button>
+            </div>
           ) : (
             <div className="px-4 py-4 bg-primary-50 rounded-lg text-left">
               <h3 className="text-sm font-medium text-primary-800">Need Help?</h3>
               <p className="mt-1 text-xs text-primary-600">
                 Contact support for assistance with your legal case management system.
               </p>
-              <button className="mt-2 text-xs font-medium text-primary-700 hover:text-primary-800 text-left">
+              <a href="#" className="mt-2 block text-xs font-medium text-primary-700 hover:text-primary-800 text-left">
                 Contact Support
-              </button>
+              </a>
             </div>
           )}
         </div>

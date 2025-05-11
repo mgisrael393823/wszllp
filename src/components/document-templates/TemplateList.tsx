@@ -1,12 +1,18 @@
 import React from 'react';
-import { FileText } from 'lucide-react';
+import Card from '../ui/Card';
 
+/**
+ * Placeholder TemplateList component
+ * The document template features have been deferred for the MVP
+ */
 const TemplateList: React.FC = () => {
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      <h1 className="text-2xl font-bold text-gray-900">Document Templates</h1>
-      <p className="text-gray-500 mt-1">This feature is coming soon</p>
-    </div>
+    <Card className="p-6">
+      <h2 className="text-xl font-semibold mb-4">Document Templates</h2>
+      <p className="text-gray-500">
+        Document templates and generation will be available in a future update.
+      </p>
+    </Card>
   );
 };
 

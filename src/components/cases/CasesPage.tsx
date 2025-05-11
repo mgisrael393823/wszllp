@@ -1,89 +1,58 @@
 import React, { useState } from 'react';
+import { useData } from '../../context/DataContext';
+import { useNavigate } from 'react-router-dom';
 import Card from '../ui/Card';
 import Table from '../ui/Table';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Pagination from '../ui/Pagination';
 import Button from '../ui/Button';
-import { Eye, Edit, File } from 'lucide-react';
+import { Eye, Edit, File, Plus } from 'lucide-react';
 
-// Mock data
-interface Case {
+// Map our case schema to the display format
+interface CaseDisplay {
   id: string;
   caseNumber: string;
   property: string;
   tenant: string;
-  status: 'Open' | 'Closed' | 'Pending';
+  status: string;
   nextHearing: string | null;
 }
 
-const mockCases: Case[] = [
-  {
-    id: '1',
-    caseNumber: 'EVT-2023-1234',
-    property: '123 Main St, Unit 4B',
-    tenant: 'John Smith',
-    status: 'Open',
-    nextHearing: '2023-06-15',
-  },
-  {
-    id: '2',
-    caseNumber: 'EVT-2023-1235',
-    property: '456 Oak Ave, Unit 101',
-    tenant: 'Emily Johnson',
-    status: 'Open',
-    nextHearing: '2023-06-20',
-  },
-  {
-    id: '3',
-    caseNumber: 'EVT-2023-1236',
-    property: '789 Pine St, Unit 3A',
-    tenant: 'Michael Brown',
-    status: 'Closed',
-    nextHearing: null,
-  },
-  {
-    id: '4',
-    caseNumber: 'EVT-2023-1237',
-    property: '321 Maple Rd, Unit 7C',
-    tenant: 'Sarah Wilson',
-    status: 'Open',
-    nextHearing: '2023-06-22',
-  },
-  {
-    id: '5',
-    caseNumber: 'EVT-2023-1238',
-    property: '555 Elm St, Unit 2D',
-    tenant: 'David Martinez',
-    status: 'Pending',
-    nextHearing: '2023-06-28',
-  },
-  {
-    id: '6',
-    caseNumber: 'EVT-2023-1239',
-    property: '888 Cedar Ln, Unit 5F',
-    tenant: 'Lisa Thompson',
-    status: 'Closed',
-    nextHearing: null,
-  },
-  {
-    id: '7',
-    caseNumber: 'EVT-2023-1240',
-    property: '777 Birch Ave, Unit 10B',
-    tenant: 'Robert Garcia',
-    status: 'Open',
-    nextHearing: '2023-07-05',
-  },
-];
-
+// We'll use real data instead of mock data
 const CasesPage: React.FC = () => {
+  const { state } = useData();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  
+  const itemsPerPage = 10;
+
+  // Map cases from data context to display format
+  const mapCasesToDisplay = (): CaseDisplay[] => {
+    return state.cases.map(caseItem => {
+      // Find next hearing for this case (if any)
+      const nextHearing = state.hearings
+        .filter(h => h.caseId === caseItem.caseId)
+        .sort((a, b) => new Date(a.hearingDate).getTime() - new Date(b.hearingDate).getTime())
+        .find(h => new Date(h.hearingDate) > new Date());
+
+      return {
+        id: caseItem.caseId,
+        caseNumber: caseItem.caseId, // Using caseId as case number for now
+        property: caseItem.address,
+        tenant: caseItem.defendant,
+        status: caseItem.status,
+        nextHearing: nextHearing ? nextHearing.hearingDate : null
+      };
+    });
+  };
+
+  const cases = mapCasesToDisplay();
 
   // Filter cases based on search term and status filter
-  const filteredCases = mockCases.filter(caseItem => {
+  const filteredCases = cases.filter(caseItem => {
     const matchesSearch = searchTerm === '' || 
       caseItem.caseNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       caseItem.property.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -106,6 +75,11 @@ const CasesPage: React.FC = () => {
     setCurrentPage(pageNumber);
   };
 
+  // Handle viewing a case
+  const handleViewCase = (caseId: string) => {
+    navigate(`/cases/${caseId}`);
+  };
+
   // Columns configuration for the table
   const columns = [
     {
@@ -125,49 +99,60 @@ const CasesPage: React.FC = () => {
     },
     {
       header: 'Status',
-      accessor: (caseItem: Case) => {
+      accessor: (item: CaseDisplay) => {
         const statusColors = {
-          Open: 'bg-green-100 text-green-800',
-          Closed: 'bg-gray-100 text-gray-800',
-          Pending: 'bg-yellow-100 text-yellow-800',
+          'Active': 'bg-green-100 text-green-800',
+          'Intake': 'bg-yellow-100 text-yellow-800',
+          'Closed': 'bg-gray-100 text-gray-800',
+          'Open': 'bg-green-100 text-green-800',
+          'Pending': 'bg-yellow-100 text-yellow-800',
         };
+        const colorClass = statusColors[item.status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800';
         return (
-          <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[caseItem.status]}`}>
-            {caseItem.status}
+          <span className={`px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}>
+            {item.status}
           </span>
         );
       },
     },
     {
       header: 'Next Hearing',
-      accessor: (caseItem: Case) => {
-        return caseItem.nextHearing 
-          ? new Date(caseItem.nextHearing).toLocaleDateString() 
+      accessor: (item: CaseDisplay) => {
+        return item.nextHearing 
+          ? new Date(item.nextHearing).toLocaleDateString() 
           : 'N/A';
       },
       sortable: true,
     },
     {
       header: 'Actions',
-      accessor: (caseItem: Case) => (
+      accessor: (item: CaseDisplay) => (
         <div className="flex space-x-2">
           <Button 
             variant="text" 
             size="sm" 
             icon={<Eye size={16} />}
-            aria-label={`View case ${caseItem.caseNumber}`}
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent row click 
+              handleViewCase(item.id);
+            }}
+            aria-label={`View case ${item.caseNumber}`}
           />
           <Button 
             variant="text" 
             size="sm" 
             icon={<Edit size={16} />}
-            aria-label={`Edit case ${caseItem.caseNumber}`}
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent row click
+              handleViewCase(item.id);
+            }}
+            aria-label={`Edit case ${item.caseNumber}`}
           />
           <Button 
             variant="text" 
             size="sm" 
             icon={<File size={16} />}
-            aria-label={`View documents for case ${caseItem.caseNumber}`}
+            aria-label={`View documents for case ${item.caseNumber}`}
           />
         </div>
       ),
@@ -176,9 +161,10 @@ const CasesPage: React.FC = () => {
 
   const statusOptions = [
     { value: 'All', label: 'All' },
-    { value: 'Open', label: 'Open' },
-    { value: 'Pending', label: 'Pending' },
+    { value: 'Active', label: 'Active' },
+    { value: 'Intake', label: 'Intake' },
     { value: 'Closed', label: 'Closed' },
+    { value: 'Pending', label: 'Pending' },
   ];
 
   return (
@@ -212,12 +198,27 @@ const CasesPage: React.FC = () => {
       
       {/* Cases table */}
       <Card>
+        <div className="flex justify-end mb-4">
+          <Button 
+            variant="primary"
+            size="sm"
+            icon={<Plus size={16} />}
+            onClick={() => navigate('/cases/new')}
+          >
+            New Case
+          </Button>
+        </div>
+      
         <Table 
           data={currentItems}
           columns={columns}
           keyField="id"
-          onRowClick={(caseItem) => console.log('Case clicked:', caseItem.id)}
-          emptyMessage="No cases found matching your criteria"
+          onRowClick={(item) => handleViewCase(item.id)}
+          emptyMessage={
+            state.cases.length === 0 
+              ? "No cases found. Add your first case or import data." 
+              : "No cases found matching your criteria"
+          }
         />
         
         {/* Pagination */}

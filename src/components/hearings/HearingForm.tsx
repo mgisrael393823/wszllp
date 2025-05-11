@@ -6,6 +6,7 @@ import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
+import { Calendar, LinkIcon } from 'lucide-react';
 
 interface HearingFormProps {
   isOpen: boolean;
@@ -90,6 +91,8 @@ const HearingForm: React.FC<HearingFormProps> = ({ isOpen, onClose, hearingId, d
     const now = new Date().toISOString();
     const hearingDateISO = new Date(formData.hearingDate).toISOString();
     
+    let newHearingId = hearingId;
+    
     if (hearingId) {
       // Update existing hearing
       dispatch({
@@ -102,11 +105,12 @@ const HearingForm: React.FC<HearingFormProps> = ({ isOpen, onClose, hearingId, d
       });
     } else {
       // Create new hearing
+      newHearingId = uuidv4();
       dispatch({
         type: 'ADD_HEARING',
         payload: {
           ...formData,
-          hearingId: uuidv4(),
+          hearingId: newHearingId,
           hearingDate: hearingDateISO,
           createdAt: now,
           updatedAt: now
@@ -115,6 +119,15 @@ const HearingForm: React.FC<HearingFormProps> = ({ isOpen, onClose, hearingId, d
     }
     
     onClose();
+  };
+  
+  const handleSyncToCalendar = () => {
+    if (hearingId) {
+      dispatch({
+        type: 'SYNC_HEARING_TO_CALENDAR',
+        payload: { hearingId }
+      });
+    }
   };
 
   const handleDelete = () => {
@@ -139,9 +152,18 @@ const HearingForm: React.FC<HearingFormProps> = ({ isOpen, onClose, hearingId, d
       footer={
         <>
           {hearingId && (
-            <Button variant="danger" onClick={handleDelete}>
-              Delete
-            </Button>
+            <>
+              <Button variant="danger" onClick={handleDelete}>
+                Delete
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={handleSyncToCalendar}
+                icon={<Calendar size={16} />}
+              >
+                Sync to Calendar
+              </Button>
+            </>
           )}
           <div className="flex-1"></div>
           <Button variant="outline" onClick={onClose}>

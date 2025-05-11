@@ -1,4 +1,13 @@
 import React from 'react';
+import { 
+  Card as ShadcnCard,
+  CardHeader,
+  CardContent,
+  CardFooter,
+  CardTitle,
+  CardDescription
+} from './shadcn-card';
+import { cn } from '@/lib/utils';
 
 type CardElevation = 'flat' | 'low' | 'medium' | 'high';
 type CardBorder = 'none' | 'light' | 'normal' | 'accent';
@@ -20,6 +29,10 @@ interface CardProps {
   onClick?: React.MouseEventHandler<HTMLDivElement>;
 }
 
+/**
+ * Card component that uses Shadcn UI Card internally but maintains the original API
+ * This ensures backward compatibility with existing code
+ */
 const Card: React.FC<CardProps> = ({
   children,
   title,
@@ -63,41 +76,50 @@ const Card: React.FC<CardProps> = ({
   };
 
   // Standardized padding based on 4px scale
-  const paddingStyles = compact ? {
-    header: 'px-4 py-3', // 16px horizontal, 12px vertical
-    body: 'px-4 py-3',   // 16px horizontal, 12px vertical
-    footer: 'px-4 py-3'  // 16px horizontal, 12px vertical
+  const paddingSize = compact ? {
+    x: 'px-4', // 16px horizontal
+    y: 'py-3'   // 12px vertical
   } : {
-    header: 'px-6 py-4', // 24px horizontal, 16px vertical
-    body: 'px-6 py-4',   // 24px horizontal, 16px vertical
-    footer: 'px-6 py-4'  // 24px horizontal, 16px vertical
+    x: 'px-6', // 24px horizontal
+    y: 'py-4'   // 16px vertical
   };
 
   // Interactive effect if onClick is provided
   const interactiveStyles = onClick ? 'cursor-pointer transition-all duration-150 hover:shadow-md' : '';
 
+  // Combined classes for the main card
+  const cardClasses = cn(
+    elevationStyles[elevation],
+    borderStyles[border],
+    variantStyles[variant],
+    interactiveStyles,
+    className
+  );
+
+  // Render with Shadcn Components
   return (
-    <div 
-      className={`rounded-lg overflow-hidden ${elevationStyles[elevation]} ${borderStyles[border]} ${variantStyles[variant]} ${interactiveStyles} ${className}`}
-      onClick={onClick}
-    >
+    <ShadcnCard className={cardClasses} onClick={onClick}>
       {(title || subtitle) && (
-        <div className={`${paddingStyles.header} border-b border-neutral-200 ${headerClassName}`}>
+        <CardHeader className={cn(`${paddingSize.x} ${paddingSize.y} border-b border-neutral-200`, headerClassName)}>
           {typeof title === 'string' ? (
-            <h3 className="text-lg font-medium text-neutral-800">{title}</h3>
+            <CardTitle>{title}</CardTitle>
           ) : (
             title
           )}
-          {subtitle && <p className="text-sm text-neutral-500 mt-1">{subtitle}</p>}
-        </div>
+          {subtitle && <CardDescription>{subtitle}</CardDescription>}
+        </CardHeader>
       )}
-      <div className={`${paddingStyles.body} ${bodyClassName}`}>{children}</div>
+      
+      <CardContent className={cn(`${paddingSize.x} ${paddingSize.y}`, bodyClassName)}>
+        {children}
+      </CardContent>
+      
       {footer && (
-        <div className={`${paddingStyles.footer} bg-neutral-50 border-t border-neutral-200 ${footerClassName}`}>
+        <CardFooter className={cn(`${paddingSize.x} ${paddingSize.y} bg-neutral-50 border-t border-neutral-200`, footerClassName)}>
           {footer}
-        </div>
+        </CardFooter>
       )}
-    </div>
+    </ShadcnCard>
   );
 };
 

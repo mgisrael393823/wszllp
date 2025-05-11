@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useList } from '@refinedev/core';
+import { useList, useDelete } from '@refinedev/core';
 import { useNavigate } from 'react-router-dom';
 import { Edit, Trash2, Eye, Users, Mail, Phone, Search } from 'lucide-react';
 import Card from '../ui/Card';
@@ -46,7 +46,30 @@ const ContactList: React.FC<ContactListProps> = ({
     sorters: [{ field: 'name', order: 'asc' }],
   });
   
+  // Set up delete hook
+  const { mutate: deleteContact } = useDelete();
+  
   const contacts = data?.data || [];
+  
+  // Handle delete contact
+  const handleDeleteContact = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent row click
+    
+    // Confirm before deleting
+    if (window.confirm('Are you sure you want to delete this contact?')) {
+      deleteContact(
+        {
+          resource: 'contacts',
+          id,
+        },
+        {
+          onSuccess: () => {
+            // The list will refresh automatically
+          },
+        }
+      );
+    }
+  };
   
   // Column definitions for the table
   const columns = [
@@ -106,7 +129,7 @@ const ContactList: React.FC<ContactListProps> = ({
           <Button
             variant="text"
             size="sm"
-            onClick={() => {/* Delete function will be added later */}}
+            onClick={(e) => handleDeleteContact(item.contactId, e)}
             icon={<Trash2 size={16} />}
             aria-label="Delete contact"
           />
@@ -176,6 +199,7 @@ const ContactList: React.FC<ContactListProps> = ({
         <Table
           data={contacts}
           columns={columns}
+          keyField="contactId"
           onRowClick={(item) => navigate(`/contacts/${item.contactId}`)}
         />
       )}

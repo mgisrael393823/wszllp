@@ -18,6 +18,7 @@ interface FieldMapping {
 
 // Custom mapping for complaint files
 const complaintMappings: FieldMapping[] = [
+  // Original mappings
   { sourceField: 'caseid', targetField: 'File #', transform: (val) => formatStringValue(val) },
   { sourceField: 'case_#', targetField: 'File #', transform: (val) => formatStringValue(val) },
   { sourceField: 'plaintiff_1', targetField: 'Plaintiff 1', transform: (val) => formatStringValue(val) },
@@ -32,7 +33,35 @@ const complaintMappings: FieldMapping[] = [
   { sourceField: 'notice_total', targetField: 'Notice Total', transform: (val) => formatNumericValue(val) },
   { sourceField: 'court_costs', targetField: 'Court Costs', transform: (val) => formatNumericValue(val) },
   { sourceField: 'owner', targetField: 'Owner', transform: (val) => formatStringValue(val) },
-  { sourceField: 'file_name', targetField: 'File Name', transform: (val) => formatStringValue(val) }
+  { sourceField: 'file_name', targetField: 'File Name', transform: (val) => formatStringValue(val) },
+  
+  // Additional mappings for unnamed fields in the all_evictions_files_cleaned.csv format
+  { sourceField: 'unnamed_0', targetField: 'File #', transform: (val) => formatStringValue(val) },
+  { sourceField: 'all_eviction_files_at_w&s', targetField: 'Case Name', transform: (val) => formatStringValue(val) },
+  { sourceField: 'unnamed_2', targetField: 'Plaintiff 1', transform: (val) => formatStringValue(val) },
+  { sourceField: 'unnamed_3', targetField: 'Defendant 1', transform: (val) => formatStringValue(val) },
+  { sourceField: 'unnamed_4', targetField: 'Property Address', transform: (val) => formatStringValue(val) },
+  { sourceField: 'unnamed_5', targetField: 'Property ID', transform: (val) => formatStringValue(val) },
+  { sourceField: 'total_cost_fronted', targetField: 'Cost Fronted', transform: (val) => formatNumericValue(val) },
+  { sourceField: 'total_costs', targetField: 'Total Costs', transform: (val) => formatNumericValue(val) },
+  { sourceField: 'total_atty_fee', targetField: 'Attorney Fee', transform: (val) => formatNumericValue(val) },
+  { sourceField: 'total_atty_fee_owed', targetField: 'Attorney Fee Owed', transform: (val) => formatNumericValue(val) },
+  { sourceField: 'total_owed_w_fronted_costs', targetField: 'Total Owed', transform: (val) => formatNumericValue(val) },
+  { sourceField: 'total_file_cost', targetField: 'File Cost', transform: (val) => formatNumericValue(val) },
+  
+  // New mappings for additional CSV headers
+  { sourceField: 'file', targetField: 'File', transform: (val) => formatStringValue(val) },
+  { sourceField: 'file id', targetField: 'File ID', transform: (val) => formatStringValue(val) },
+  { sourceField: 'client', targetField: 'Client', transform: (val) => formatStringValue(val) },
+  { sourceField: 'case_name', targetField: 'Case Name', transform: (val) => formatStringValue(val) },
+  { sourceField: 'property_address', targetField: 'Property Address', transform: (val) => formatStringValue(val) },
+  { sourceField: 'balance', targetField: 'Balance', transform: (val) => formatNumericValue(val) },
+  { sourceField: 'filing_date', targetField: 'Filing Date', transform: (val) => formatStringValue(val) },
+  { sourceField: 'status', targetField: 'Status', transform: (val) => formatStringValue(val) },
+  { sourceField: 'notes', targetField: 'Notes', transform: (val) => formatStringValue(val) },
+  { sourceField: 'total_cost', targetField: 'Total Cost', transform: (val) => formatNumericValue(val) },
+  { sourceField: 'attorney_fee', targetField: 'Attorney Fee', transform: (val) => formatNumericValue(val) },
+  { sourceField: 'payment_status', targetField: 'Payment Status', transform: (val) => formatStringValue(val) }
 ];
 
 // Custom mapping for summons files
@@ -104,7 +133,18 @@ const fileNameToSheetNameMapping: Record<string, string> = {
   'final_invoices_cleaned': 'Final Invoices',
   'outstanding_invoices_cleaned': 'Outstanding Invoices',
   'payment_plan_cleaned': 'Payment Plan',
-  'pm_info_cleaned': 'PM INFO'
+  'pm_info_cleaned': 'PM INFO',
+  // Add specific detection for the all_evictions_files_cleaned format
+  'all_evictions_files_cleaned': 'ALL EVICTIONS FILES',
+  'all_evictions': 'ALL EVICTIONS FILES',
+  'evictions_files': 'ALL EVICTIONS FILES',
+  'evictions': 'ALL EVICTIONS FILES',
+  // Add new mappings for the additional CSV headers
+  'case_data': 'ALL EVICTIONS FILES',
+  'cases': 'ALL EVICTIONS FILES',
+  'case_import': 'ALL EVICTIONS FILES',
+  'client_cases': 'ALL EVICTIONS FILES',
+  'full_case_data': 'ALL EVICTIONS FILES'
 };
 
 // Map between sheet names and their field mappings
