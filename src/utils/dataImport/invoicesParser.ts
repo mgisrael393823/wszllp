@@ -16,7 +16,6 @@ export function parseInvoices(
   finalInvoices: any[],
   caseMapping: Map<string, string>
 ): Invoice[] {
-  const invoices: Invoice[] = [];
   const invoiceMap = new Map<string, Invoice>();
   
   // Process invoices from each source

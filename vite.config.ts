@@ -20,4 +20,8 @@ export default defineConfig({
   ssr: {
     noExternal: ['papaparse'],
   },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+  },
 });

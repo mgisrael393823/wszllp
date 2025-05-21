@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import { caseReducer } from './reducers/caseReducer';
 import { 
   Case, Hearing, Document, ServiceLog, Invoice, PaymentPlan, Contact, ZoomLink, AuditLog,
   Workflow, WorkflowTask, DocumentTemplate, DocumentGeneration, CalendarEvent, CalendarIntegration,
@@ -7,7 +8,7 @@ import {
 } from '../types/schema';
 
 // Define the shape of our application state
-interface AppState {
+export interface AppState {
   cases: Case[];
   hearings: Hearing[];
   documents: Document[];
@@ -28,7 +29,7 @@ interface AppState {
 }
 
 // Define the types of actions that can be dispatched
-type Action =
+export type Action =
   | { type: 'LOAD_DATA'; payload: AppState }
   | { type: 'ADD_CASE'; payload: Case }
   | { type: 'UPDATE_CASE'; payload: Case }
@@ -180,44 +181,16 @@ const dataReducer = (state: AppState, action: Action): AppState => {
 
     // Case actions
     case 'ADD_CASE':
-      newState = {
-        ...state,
-        cases: [...state.cases, action.payload],
-      };
-      auditLog = createAuditLog('Case', action.payload.caseId, 'Create', 'Case created');
-      break;
-
     case 'UPDATE_CASE':
-      newState = {
-        ...state,
-        cases: state.cases.map(c => 
-          c.caseId === action.payload.caseId ? { ...action.payload, updatedAt: now } : c
-        ),
-      };
-      auditLog = createAuditLog('Case', action.payload.caseId, 'Update', 'Case updated');
-      break;
-
-    case 'DELETE_CASE':
-      // Handle cascade delete
-      const caseId = action.payload;
-      newState = {
-        ...state,
-        cases: state.cases.filter(c => c.caseId !== caseId),
-        hearings: state.hearings.filter(h => h.caseId !== caseId),
-        documents: state.documents.filter(d => d.caseId !== caseId),
-        invoices: state.invoices.filter(i => i.caseId !== caseId),
-        zoomLinks: state.zoomLinks.filter(z => z.caseId !== caseId),
-      };
-      
-      // Also remove child records of documents and invoices
-      const affectedDocIds = state.documents.filter(d => d.caseId === caseId).map(d => d.docId);
-      const affectedInvoiceIds = state.invoices.filter(i => i.caseId === caseId).map(i => i.invoiceId);
-      
-      newState.serviceLogs = state.serviceLogs.filter(sl => !affectedDocIds.includes(sl.docId));
-      newState.paymentPlans = state.paymentPlans.filter(pp => !affectedInvoiceIds.includes(pp.invoiceId));
-      
-      auditLog = createAuditLog('Case', caseId, 'Delete', 'Case deleted with all related records');
-      break;
+    case 'DELETE_CASE': {
+      const result = caseReducer(state, action, now, createAuditLog);
+      if (result) {
+        newState = result.state;
+        auditLog = result.auditLog;
+        break;
+      }
+      return state;
+    }
 
     // Hearing actions
     case 'ADD_HEARING':
