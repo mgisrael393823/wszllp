@@ -1,6 +1,7 @@
 import React, { useContext } from 'react';
 import { EFileContext } from '@/context/EFileContext';
 import Typography from '../ui/Typography';
+import EFileStatusItem from './EFileStatusItem';
 
 const EFileStatusList: React.FC = () => {
   const { state } = useContext(EFileContext);
@@ -9,10 +10,8 @@ const EFileStatusList: React.FC = () => {
     <div className="mt-8">
       <Typography variant="h2">Filing Status</Typography>
       <ul>
-        {Object.entries(state.envelopes).map(([caseId, envId]) => (
-          <li key={envId} className="mt-2 text-sm text-gray-700">
-            {caseId} – Envelope {envId}
-          </li>
+        {Object.keys(state.envelopes).map(id => (
+          <EFileStatusItem key={id} envelopeId={id} />
         ))}
       </ul>
     </div>

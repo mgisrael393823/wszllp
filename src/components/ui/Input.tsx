@@ -145,9 +145,10 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({
         )}
       </div>
       {message && (
-        <p 
+        <p
           id={props.id ? `${props.id}-message` : undefined}
           className={cn('mt-1 text-sm', messageStyles[activeState])}
+          aria-live="polite"
         >
           {message}
         </p>

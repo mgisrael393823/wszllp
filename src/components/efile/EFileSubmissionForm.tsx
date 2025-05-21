@@ -1,4 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { v4 as uuidv4 } from 'uuid';
+import { EFileContext } from '@/context/EFileContext';
+import { useData } from '@/context/DataContext';
+import { ensureAuth, fileToBase64, submitFiling } from '@/utils/efile';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Button from '../ui/Button';
@@ -30,6 +35,52 @@ const EFileSubmissionForm: React.FC = () => {
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { state, dispatch } = useContext(EFileContext);
+  const { dispatch: dataDispatch } = useData();
+
+  const mutation = useMutation(
+    ({ payload, token }: { payload: any; token: string }) => submitFiling(payload, token),
+    {
+      onSuccess: data => {
+        dispatch({ type: 'ADD_ENVELOPE', caseId: formData.caseNumber, envelopeId: data.item.id });
+        dataDispatch({
+          type: 'ADD_NOTIFICATION',
+          payload: {
+            notificationId: uuidv4(),
+            title: 'Filing submitted',
+            message: `Envelope ${data.item.id} submitted successfully`,
+            type: 'System',
+            priority: 'Low',
+            isRead: false,
+            entityType: 'Filing',
+            entityId: data.item.id,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        });
+        setFormData({ jurisdiction: 'il', county: 'cook', caseNumber: '', attorneyId: '', files: null });
+      },
+      onError: err => {
+        console.error(err);
+        dataDispatch({
+          type: 'ADD_NOTIFICATION',
+          payload: {
+            notificationId: uuidv4(),
+            title: 'Filing error',
+            message: err instanceof Error ? err.message : 'Submission failed',
+            type: 'System',
+            priority: 'High',
+            isRead: false,
+            entityType: 'Filing',
+            entityId: formData.caseNumber,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        });
+      },
+      onSettled: () => setIsSubmitting(false),
+    },
+  );
 
   const jurisdictions = [
     { value: 'ca', label: 'California' },
@@ -129,14 +180,32 @@ const EFileSubmissionForm: React.FC = () => {
     if (!validateForm()) return;
     setIsSubmitting(true);
     try {
-      await new Promise(res => setTimeout(res, 1000));
-      console.log('submit placeholder', formData);
-      alert('eFiling submitted successfully!');
-      setFormData({ jurisdiction: 'il', county: 'cook', caseNumber: '', attorneyId: '', files: null });
+      const token = await ensureAuth(state.authToken, state.tokenExpires, dispatch);
+      const files = await Promise.all(
+        Array.from(formData.files as FileList).map(file =>
+          fileToBase64(file).then(b64 => ({
+            code: 'document',
+            description: file.name,
+            file: b64,
+            file_name: file.name,
+            doc_type: '189705',
+          }))
+        )
+      );
+      const payload = {
+        reference_id: uuidv4(),
+        jurisdiction: `${formData.county}:cvd1`,
+        case_category: '7',
+        case_type: formData.caseNumber,
+        filings: files,
+        payment_account_id: 'demo',
+        filing_attorney_id: formData.attorneyId,
+        filing_party_id: 'Party_25694092',
+      } as any;
+      mutation.mutate({ payload, token });
     } catch (err) {
       console.error(err);
       alert('There was an error submitting your eFiling.');
-    } finally {
       setIsSubmitting(false);
     }
   };
