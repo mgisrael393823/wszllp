@@ -3,7 +3,7 @@ import { useMutation } from '@tanstack/react-query';
 import { v4 as uuidv4 } from 'uuid';
 import { EFileContext } from '@/context/EFileContext';
 import { useData } from '@/context/DataContext';
-import { ensureAuth, fileToBase64, submitFiling, validateFile, ALLOWED_FILE_TYPES, MAX_FILE_SIZE } from '@/utils/efile';
+import { ensureAuth, fileToBase64, submitFiling, validateFile } from '@/utils/efile';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Button from '../ui/Button';
@@ -39,7 +39,7 @@ const EFileSubmissionForm: React.FC = () => {
   const { dispatch: dataDispatch } = useData();
 
   const mutation = useMutation(
-    ({ payload, token }: { payload: any; token: string }) => submitFiling(payload, token),
+    ({ payload, token }: { payload: Record<string, unknown>; token: string }) => submitFiling(payload, token),
     {
       onSuccess: data => {
         dispatch({ type: 'ADD_ENVELOPE', caseId: formData.caseNumber, envelopeId: data.item.id });
@@ -249,7 +249,7 @@ const EFileSubmissionForm: React.FC = () => {
           )
         );
         
-        const payload = {
+        const payload: Record<string, unknown> = {
           reference_id: draftId,
           jurisdiction: `${formData.county}:cvd1`,
           case_category: '7',
@@ -258,7 +258,7 @@ const EFileSubmissionForm: React.FC = () => {
           payment_account_id: 'demo',
           filing_attorney_id: formData.attorneyId,
           filing_party_id: 'Party_25694092',
-        } as any;
+        };
         
         // Add audit log entry for submission attempt
         if (state.userPermissions.includes('efile:submit')) {

@@ -1,16 +1,9 @@
 import { EFileError, AuthenticationError, ServerError, SubmissionError } from './errors';
 
 /**
- * Types of errors that should not be retried
- */
-type NonRetryableErrorType = 
-  | AuthenticationError 
-  | Error & { isRecoverable?: () => boolean };
-
-/**
  * Check if an error should be retried
  */
-function isRetryableError(error: any): boolean {
+function isRetryableError(error: unknown): boolean {
   // Don't retry authentication errors
   if (error instanceof AuthenticationError) {
     return false;
@@ -56,7 +49,6 @@ export async function retryable<T>(
   } = options;
   
   let attempt = 0;
-  let lastError: Error;
   
   while (true) {
     try {
