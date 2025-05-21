@@ -1,16 +1,30 @@
 import React, { createContext, useReducer, useEffect } from 'react';
 import { getStoredToken, isTokenExpired, storeToken } from '@/utils/efile/auth';
 
+interface EnvelopeInfo {
+  caseId: string;
+  status: string;
+  stampedDocument?: string;
+  reviewerComment?: string;
+}
+
 interface State {
   authToken: string | null;
   tokenExpires: number | null;
-  envelopes: Record<string, string>;
+  envelopes: Record<string, EnvelopeInfo>;
 }
 
 type Action =
   | { type: 'SET_TOKEN'; token: string; expires: number }
   | { type: 'LOGOUT' }
-  | { type: 'ADD_ENVELOPE'; caseId: string; envelopeId: string };
+  | { type: 'ADD_ENVELOPE'; caseId: string; envelopeId: string }
+  | {
+      type: 'UPDATE_ENVELOPE_STATUS';
+      envelopeId: string;
+      status: string;
+      stampedDocument?: string;
+      reviewerComment?: string;
+    };
 
 const initialState: State = { authToken: null, tokenExpires: null, envelopes: {} };
 
@@ -21,7 +35,26 @@ function reducer(state: State, action: Action): State {
     case 'LOGOUT':
       return { ...state, authToken: null, tokenExpires: null };
     case 'ADD_ENVELOPE':
-      return { ...state, envelopes: { ...state.envelopes, [action.caseId]: action.envelopeId } };
+      return {
+        ...state,
+        envelopes: {
+          ...state.envelopes,
+          [action.envelopeId]: { caseId: action.caseId, status: 'submitting' },
+        },
+      };
+    case 'UPDATE_ENVELOPE_STATUS':
+      return {
+        ...state,
+        envelopes: {
+          ...state.envelopes,
+          [action.envelopeId]: {
+            ...state.envelopes[action.envelopeId],
+            status: action.status,
+            stampedDocument: action.stampedDocument,
+            reviewerComment: action.reviewerComment,
+          },
+        },
+      };
     default:
       return state;
   }
