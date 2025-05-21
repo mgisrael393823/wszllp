@@ -46,12 +46,14 @@ WSZLLP is a specialized case management platform designed specifically for evict
    npm install
    ```
 
-3. Start the development server:
+3. Copy .env.example to .env.local and add your API credentials
+
+4. Start the development server:
    ```
    npm run dev
    ```
 
-4. Open your browser and navigate to `http://localhost:5173`
+5. Open your browser and navigate to `http://localhost:5173`
 
 ## Data Import Guide
 
