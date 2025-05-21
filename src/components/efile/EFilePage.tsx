@@ -1,12 +1,18 @@
 import React from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { EFileProvider } from '@/context/EFileContext';
 import EFileSubmissionForm from './EFileSubmissionForm';
 import EFileStatusList from './EFileStatusList';
 
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { refetchOnWindowFocus: false } },
+});
+
 const EFilePage: React.FC = () => (
-  <EFileProvider>
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-3xl mx-auto">
+  <QueryClientProvider client={queryClient}>
+    <EFileProvider>
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-3xl mx-auto">
         <div className="flex flex-col items-center mb-8">
           <h1 className="text-2xl font-bold text-center text-gray-800">Batch eFiling</h1>
           <a
@@ -20,9 +26,10 @@ const EFilePage: React.FC = () => (
         </div>
         <EFileSubmissionForm />
         <EFileStatusList />
+        </div>
       </div>
-    </div>
-  </EFileProvider>
+    </EFileProvider>
+  </QueryClientProvider>
 );
 
 export default EFilePage;
