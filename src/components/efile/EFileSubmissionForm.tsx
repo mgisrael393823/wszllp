@@ -1,0 +1,258 @@
+import React, { useState } from 'react';
+import Input from '../ui/Input';
+import Select from '../ui/Select';
+import Button from '../ui/Button';
+import Card from '../ui/Card';
+import EFileUploadItem from './EFileUploadItem';
+
+interface FormData {
+  jurisdiction: string;
+  county: string;
+  caseNumber: string;
+  attorneyId: string;
+}
+
+interface FormErrors {
+  jurisdiction?: string;
+  county?: string;
+  caseNumber?: string;
+  attorneyId?: string;
+  files?: string;
+}
+
+const EFileSubmissionForm: React.FC = () => {
+  const [formData, setFormData] = useState<FormData>({
+    jurisdiction: 'il',
+    county: 'cook',
+    caseNumber: '',
+    attorneyId: '',
+  });
+  const [files, setFiles] = useState<{ file: File; base64: string }[]>([]);
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const jurisdictions = [
+    { value: 'ca', label: 'California' },
+    { value: 'ny', label: 'New York' },
+    { value: 'tx', label: 'Texas' },
+    { value: 'fl', label: 'Florida' },
+    { value: 'il', label: 'Illinois' },
+  ];
+
+  const counties = {
+    il: [
+      { value: 'cook', label: 'Cook County' },
+      { value: 'dupage', label: 'DuPage County' },
+      { value: 'kane', label: 'Kane County' },
+      { value: 'lake', label: 'Lake County' },
+      { value: 'will', label: 'Will County' },
+    ],
+    ca: [
+      { value: 'losangeles', label: 'Los Angeles County' },
+      { value: 'orange', label: 'Orange County' },
+      { value: 'sandiego', label: 'San Diego County' },
+      { value: 'santaclara', label: 'Santa Clara County' },
+    ],
+    ny: [
+      { value: 'newyork', label: 'New York County' },
+      { value: 'kings', label: 'Kings County (Brooklyn)' },
+      { value: 'queens', label: 'Queens County' },
+      { value: 'bronx', label: 'Bronx County' },
+    ],
+    tx: [
+      { value: 'harris', label: 'Harris County' },
+      { value: 'dallas', label: 'Dallas County' },
+      { value: 'bexar', label: 'Bexar County' },
+      { value: 'travis', label: 'Travis County' },
+    ],
+    fl: [
+      { value: 'miamidade', label: 'Miami-Dade County' },
+      { value: 'broward', label: 'Broward County' },
+      { value: 'hillsborough', label: 'Hillsborough County' },
+      { value: 'orange_fl', label: 'Orange County' },
+    ],
+  } as const;
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    if (name === 'jurisdiction') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        county: counties[value as keyof typeof counties]?.[0]?.value || '',
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
+    if (errors[name as keyof FormErrors]) {
+      setErrors(prev => ({ ...prev, [name]: undefined }));
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = Array.from(e.target.files ?? []);
+    setFiles(selected.map(f => ({ file: f, base64: '' })));
+    if (errors.files) {
+      setErrors(prev => ({ ...prev, files: undefined }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors: FormErrors = {};
+    let isValid = true;
+    if (!formData.jurisdiction) {
+      newErrors.jurisdiction = 'Please select a jurisdiction';
+      isValid = false;
+    }
+    if (!formData.county) {
+      newErrors.county = 'Please select a county';
+      isValid = false;
+    }
+    if (!formData.caseNumber) {
+      newErrors.caseNumber = 'Please enter a case number';
+      isValid = false;
+    }
+    if (!formData.attorneyId) {
+      newErrors.attorneyId = 'Please enter an attorney ID';
+      isValid = false;
+    }
+    if (files.length === 0) {
+      newErrors.files = 'Please upload at least one document';
+      isValid = false;
+    }
+    setErrors(newErrors);
+    return isValid;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+    setIsSubmitting(true);
+    try {
+      await new Promise(res => setTimeout(res, 1000));
+      console.log('submit placeholder', { formData, files });
+      alert('eFiling submitted successfully!');
+      setFormData({ jurisdiction: 'il', county: 'cook', caseNumber: '', attorneyId: '' });
+      setFiles([]);
+    } catch (err) {
+      console.error(err);
+      alert('There was an error submitting your eFiling.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Card>
+      <form onSubmit={handleSubmit} noValidate>
+        <Select
+          name="jurisdiction"
+          label="State or Jurisdiction"
+          options={jurisdictions}
+          value={formData.jurisdiction}
+          onChange={handleInputChange}
+          required
+          error={errors.jurisdiction}
+        />
+        <Select
+          name="county"
+          label="County"
+          options={counties[formData.jurisdiction as keyof typeof counties] || []}
+          value={formData.county}
+          onChange={handleInputChange}
+          required
+          error={errors.county}
+        />
+        <Input
+          name="caseNumber"
+          label="Case Number"
+          type="text"
+          value={formData.caseNumber}
+          onChange={handleInputChange}
+          placeholder="Enter case number"
+          required
+          error={errors.caseNumber}
+        />
+        <Input
+          name="attorneyId"
+          label="Attorney ID"
+          type="text"
+          value={formData.attorneyId}
+          onChange={handleInputChange}
+          placeholder="Enter attorney ID"
+          required
+          error={errors.attorneyId}
+        />
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Documents <span className="text-error-600">*</span>
+          </label>
+          <div
+            className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 ${errors.files ? 'border-error-500' : 'border-gray-300'} border-dashed rounded-md`}
+          >
+            <div className="space-y-1 text-center">
+              <svg
+                className="mx-auto h-12 w-12 text-gray-400"
+                stroke="currentColor"
+                fill="none"
+                viewBox="0 0 48 48"
+                aria-hidden="true"
+              >
+                <path
+                  d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <div className="flex text-sm text-gray-600">
+                <label htmlFor="file-upload" className="relative cursor-pointer rounded-md font-medium text-primary-600 hover:text-primary-500">
+                  <span>Upload files</span>
+                  <input id="file-upload" name="files" type="file" multiple className="sr-only" onChange={handleFileChange} required />
+                </label>
+                <p className="pl-1">or drag and drop</p>
+              </div>
+              <p className="text-xs text-gray-500">PDF, DOCX up to 10MB each</p>
+            </div>
+          </div>
+          {errors.files && <p className="mt-1 text-sm text-error-600">{errors.files}</p>}
+          {files.length > 0 && (
+            <div className="mt-2">
+              {files.map((item, index) => (
+                <EFileUploadItem
+                  key={index}
+                  file={item.file}
+                  onRemove={() => setFiles(files.filter((_, i) => i !== index))}
+                  onEncoded={encoded =>
+                    setFiles(prev => {
+                      const updated = [...prev];
+                      updated[index].base64 = encoded;
+                      return updated;
+                    })
+                  }
+                />
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="mt-6">
+          <Button type="submit" variant="primary" fullWidth disabled={isSubmitting}>
+            {isSubmitting ? (
+              <span className="inline-flex items-center">
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Submitting...
+              </span>
+            ) : (
+              'Submit eFile Batch'
+            )}
+          </Button>
+        </div>
+      </form>
+    </Card>
+  );
+};
+
+export default EFileSubmissionForm;
