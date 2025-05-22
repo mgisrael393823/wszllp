@@ -137,6 +137,10 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({
           aria-invalid={!!error}
           aria-describedby={message ? `${props.id}-message` : undefined}
           {...props}
+          onChange={(e) => {
+            console.log('ShadcnInput onChange:', e.target.name, e.target.value);
+            if (props.onChange) props.onChange(e);
+          }}
         />
         {rightIcon && (
           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-neutral-500">

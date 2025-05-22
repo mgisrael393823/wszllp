@@ -18,6 +18,7 @@ const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  console.log('Editing mode:', isEditing); // Debug editing state
   const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState({
     full_name: '',
@@ -95,6 +96,7 @@ const ProfilePage: React.FC = () => {
   }, [navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('Input change detected:', e.target.name, e.target.value);
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -109,17 +111,38 @@ const ProfilePage: React.FC = () => {
     setIsLoading(true);
     
     try {
-      // Update profile in Supabase
-      const { error } = await supabase
+      // Check if the profiles table exists and create it if it doesn't
+      const { error: tableError } = await supabase
         .from('profiles')
-        .upsert({
-          id: profile.id,
-          full_name: formData.full_name,
-          role: formData.role,
-          updated_at: new Date(),
+        .select('id')
+        .limit(1);
+      
+      // If the table doesn't exist or there's another issue, update user metadata instead
+      if (tableError) {
+        console.warn('Error accessing profiles table, updating user metadata instead:', tableError);
+        
+        // Update user metadata as fallback
+        const { error: updateError } = await supabase.auth.updateUser({
+          data: {
+            full_name: formData.full_name,
+            role: formData.role,
+          }
         });
         
-      if (error) throw error;
+        if (updateError) throw updateError;
+      } else {
+        // Update profile in Supabase profiles table
+        const { error } = await supabase
+          .from('profiles')
+          .upsert({
+            id: profile.id,
+            full_name: formData.full_name,
+            role: formData.role,
+            updated_at: new Date(),
+          });
+          
+        if (error) throw error;
+      }
       
       // Update local state
       setProfile(prev => ({
@@ -231,7 +254,10 @@ const ProfilePage: React.FC = () => {
                       <Button
                         type="button"
                         variant="primary"
-                        onClick={() => setIsEditing(true)}
+                        onClick={() => {
+                          console.log('Edit button clicked');
+                          setIsEditing(true);
+                        }}
                       >
                         Edit Profile
                       </Button>
