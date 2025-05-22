@@ -58,71 +58,71 @@ const EFileSubmissionForm: React.FC = () => {
     }
   }, []);
 
-  const mutation = useMutation(
-    ({ payload, token }: { payload: Record<string, unknown>; token: string }) => submitFiling(payload, token),
-    {
-      onSuccess: data => {
-        dispatch({ type: 'ADD_ENVELOPE', caseId: formData.caseNumber, envelopeId: data.item.id });
-        
-        // Add to system notifications
-        dataDispatch({
-          type: 'ADD_NOTIFICATION',
-          payload: {
-            notificationId: uuidv4(),
-            title: 'Filing submitted',
-            message: `Envelope ${data.item.id} submitted successfully`,
-            type: 'System',
-            priority: 'Low',
-            isRead: false,
-            entityType: 'Filing',
-            entityId: data.item.id,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-        });
-        
-        // Show success toast
-        addToast({
-          type: 'success',
-          title: 'Filing Submitted',
-          message: `Envelope ${data.item.id} submitted successfully. You can track its status in the Filing Status panel.`,
-          duration: 5000
-        });
-        
-        // Reset form
-        setFormData({ jurisdiction: 'il', county: 'cook', caseNumber: '', attorneyId: '', files: null });
-      },
-      onError: err => {
-        console.error(err);
-        
-        // Add to system notifications
-        dataDispatch({
-          type: 'ADD_NOTIFICATION',
-          payload: {
-            notificationId: uuidv4(),
-            title: 'Filing error',
-            message: err instanceof Error ? err.message : 'Submission failed',
-            type: 'System',
-            priority: 'High',
-            isRead: false,
-            entityType: 'Filing',
-            entityId: formData.caseNumber,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-        });
-        
-        // Show error toast
-        addToast({
-          type: 'error',
-          title: 'Filing Error',
-          message: err instanceof Error ? err.message : 'Submission failed. Please try again or contact support.',
-          duration: 8000
-        });
-      },
-      onSettled: () => setIsSubmitting(false),
+  // Using TanStack Query v5 API format
+  const mutation = useMutation({
+    mutationFn: ({ payload, token }: { payload: Record<string, unknown>; token: string }) => 
+      submitFiling(payload, token),
+    onSuccess: data => {
+      dispatch({ type: 'ADD_ENVELOPE', caseId: formData.caseNumber, envelopeId: data.item.id });
+      
+      // Add to system notifications
+      dataDispatch({
+        type: 'ADD_NOTIFICATION',
+        payload: {
+          notificationId: uuidv4(),
+          title: 'Filing submitted',
+          message: `Envelope ${data.item.id} submitted successfully`,
+          type: 'System',
+          priority: 'Low',
+          isRead: false,
+          entityType: 'Filing',
+          entityId: data.item.id,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      });
+      
+      // Show success toast
+      addToast({
+        type: 'success',
+        title: 'Filing Submitted',
+        message: `Envelope ${data.item.id} submitted successfully. You can track its status in the Filing Status panel.`,
+        duration: 5000
+      });
+      
+      // Reset form
+      setFormData({ jurisdiction: 'il', county: 'cook', caseNumber: '', attorneyId: '', files: null });
     },
-  );
+    onError: err => {
+      console.error(err);
+      
+      // Add to system notifications
+      dataDispatch({
+        type: 'ADD_NOTIFICATION',
+        payload: {
+          notificationId: uuidv4(),
+          title: 'Filing error',
+          message: err instanceof Error ? err.message : 'Submission failed',
+          type: 'System',
+          priority: 'High',
+          isRead: false,
+          entityType: 'Filing',
+          entityId: formData.caseNumber,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      });
+      
+      // Show error toast
+      addToast({
+        type: 'error',
+        title: 'Filing Error',
+        message: err instanceof Error ? err.message : 'Submission failed. Please try again or contact support.',
+        duration: 8000
+      });
+    },
+    onSettled: () => setIsSubmitting(false),
+  });
 
   const jurisdictions = [
     { value: 'ca', label: 'California' },
