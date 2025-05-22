@@ -1,5 +1,12 @@
-const { createClient } = require('@supabase/supabase-js');
-require('dotenv').config({ path: '.env.local' });
+import { createClient } from '@supabase/supabase-js';
+import * as dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+dotenv.config({ path: resolve(__dirname, '..', '.env.local') });
 
 // Initialize Supabase client
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
@@ -17,8 +24,8 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function testSupabaseConnection() {
   try {
-    // Test the connection by getting the server time
-    const { data, error } = await supabase.rpc('get_current_timestamp');
+    // Test the connection by retrieving the current user info (doesn't require any functions)
+    const { data, error } = await supabase.auth.getSession();
     
     if (error) {
       console.error('Error connecting to Supabase:', error);
@@ -26,7 +33,38 @@ async function testSupabaseConnection() {
     }
     
     console.log('Successfully connected to Supabase!');
-    console.log('Server time:', data);
+    console.log('Connection status: OK');
+    
+    // Create a test user if needed for RLS policies
+    const testEmail = 'test@example.com';
+    const testPassword = 'password123';
+    
+    console.log('Creating a test user for authentication...');
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: testEmail,
+      password: testPassword,
+    });
+    
+    if (authError) {
+      console.error('Error creating test user:', authError);
+      
+      // Try signing in if the user already exists
+      console.log('Trying to sign in with test user...');
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: testEmail,
+        password: testPassword,
+      });
+      
+      if (signInError) {
+        console.error('Error signing in with test user:', signInError);
+        return false;
+      }
+      
+      console.log('Successfully signed in with test user');
+    } else {
+      console.log('Successfully created test user');
+    }
+    
     return true;
   } catch (error) {
     console.error('Exception when connecting to Supabase:', error);
