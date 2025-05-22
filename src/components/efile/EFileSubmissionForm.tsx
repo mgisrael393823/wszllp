@@ -1,8 +1,9 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { v4 as uuidv4 } from 'uuid';
 import { EFileContext } from '@/context/EFileContext';
 import { useData } from '@/context/DataContext';
+import { useToast } from '@/context/ToastContext';
 import { ensureAuth, fileToBase64, submitFiling, validateFile } from '@/utils/efile';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
@@ -37,12 +38,33 @@ const EFileSubmissionForm: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { state, dispatch } = useContext(EFileContext);
   const { dispatch: dataDispatch } = useData();
+  const { addToast } = useToast();
+  
+  // Check for saved drafts when component mounts
+  useEffect(() => {
+    // Get the most recent draft, if any
+    const drafts = Object.values(state.drafts).sort((a, b) => 
+      new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime()
+    );
+    
+    if (drafts.length > 0) {
+      const latestDraft = drafts[0];
+      addToast({
+        type: 'info',
+        title: 'Draft Available',
+        message: `You have a saved draft from ${new Date(latestDraft.savedAt).toLocaleString()}. Would you like to restore it?`,
+        duration: 10000
+      });
+    }
+  }, []);
 
   const mutation = useMutation(
     ({ payload, token }: { payload: Record<string, unknown>; token: string }) => submitFiling(payload, token),
     {
       onSuccess: data => {
         dispatch({ type: 'ADD_ENVELOPE', caseId: formData.caseNumber, envelopeId: data.item.id });
+        
+        // Add to system notifications
         dataDispatch({
           type: 'ADD_NOTIFICATION',
           payload: {
@@ -58,10 +80,22 @@ const EFileSubmissionForm: React.FC = () => {
             updatedAt: new Date().toISOString(),
           },
         });
+        
+        // Show success toast
+        addToast({
+          type: 'success',
+          title: 'Filing Submitted',
+          message: `Envelope ${data.item.id} submitted successfully. You can track its status in the Filing Status panel.`,
+          duration: 5000
+        });
+        
+        // Reset form
         setFormData({ jurisdiction: 'il', county: 'cook', caseNumber: '', attorneyId: '', files: null });
       },
       onError: err => {
         console.error(err);
+        
+        // Add to system notifications
         dataDispatch({
           type: 'ADD_NOTIFICATION',
           payload: {
@@ -76,6 +110,14 @@ const EFileSubmissionForm: React.FC = () => {
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
           },
+        });
+        
+        // Show error toast
+        addToast({
+          type: 'error',
+          title: 'Filing Error',
+          message: err instanceof Error ? err.message : 'Submission failed. Please try again or contact support.',
+          duration: 8000
         });
       },
       onSettled: () => setIsSubmitting(false),
@@ -269,6 +311,8 @@ const EFileSubmissionForm: React.FC = () => {
       } catch (fileErr) {
         // Handle file processing errors
         console.error('File processing error:', fileErr);
+        
+        // Add to system notifications
         dataDispatch({
           type: 'ADD_NOTIFICATION',
           payload: {
@@ -284,6 +328,15 @@ const EFileSubmissionForm: React.FC = () => {
             updatedAt: new Date().toISOString(),
           },
         });
+        
+        // Show error toast
+        addToast({
+          type: 'error',
+          title: 'File Processing Error',
+          message: fileErr instanceof Error ? fileErr.message : 'There was an error processing your files. Please ensure they are valid PDFs or DOCXs under 10MB.',
+          duration: 8000
+        });
+        
         setIsSubmitting(false);
       }
     } catch (err) {
@@ -295,6 +348,7 @@ const EFileSubmissionForm: React.FC = () => {
         errorMessage = err.message;
       }
       
+      // Add to system notifications
       dataDispatch({
         type: 'ADD_NOTIFICATION',
         payload: {
@@ -309,6 +363,14 @@ const EFileSubmissionForm: React.FC = () => {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },
+      });
+      
+      // Show error toast
+      addToast({
+        type: 'error',
+        title: 'Submission Error',
+        message: errorMessage,
+        duration: 8000
       });
       
       setIsSubmitting(false);

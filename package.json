@@ -11,7 +11,10 @@
     "audit:components": "node scripts/component-analysis.js",
     "audit:a11y": "node scripts/accessibility-audit.js",
     "audit": "npm run audit:components && npm run audit:a11y",
-    "docs:generate": "mkdir -p docs/components && node scripts/generate-component-docs.js"
+    "docs:generate": "mkdir -p docs/components && node scripts/generate-component-docs.js",
+    "cy:open": "cypress open",
+    "cy:run": "cypress run",
+    "test:e2e": "cypress run"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.13",
@@ -23,6 +26,7 @@
     "@refinedev/react-router-v6": "^4.6.2",
     "@refinedev/simple-rest": "^5.0.10",
     "@tanstack/react-query": "^5.75.7",
+    "axios": "^1.6.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^2.30.0",
@@ -35,8 +39,7 @@
     "tailwind-merge": "^3.2.0",
     "uuid": "^9.0.1",
     "xlsx": "^0.18.5",
-    "zod": "^3.22.4",
-    "axios": "^1.6.0"
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@babel/parser": "^7.23.6",
@@ -51,6 +54,7 @@
     "autoprefixer": "^10.4.18",
     "axe-core": "^4.8.3",
     "chalk": "^4.1.2",
+    "cypress": "^14.4.0",
     "eslint": "^9.9.1",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.11",

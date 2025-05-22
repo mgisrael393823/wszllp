@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { DataProvider } from './context/DataContext';
+import { EFileProvider } from './context/EFileContext';
+import { ToastProvider } from './context/ToastContext';
 import MainLayout from './components/layout/MainLayout';
 import DashboardHome from './components/dashboard/DashboardHome';
 import CaseList from './components/cases/CaseList';
@@ -100,12 +102,16 @@ const AppContent = () => {
 function App() {
   return (
     <DataProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/design-system" element={<DesignSystemPage />} />
-          <Route path="/*" element={<AppContent />} />
-        </Routes>
-      </BrowserRouter>
+      <ToastProvider>
+        <EFileProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/design-system" element={<DesignSystemPage />} />
+              <Route path="/*" element={<AppContent />} />
+            </Routes>
+          </BrowserRouter>
+        </EFileProvider>
+      </ToastProvider>
     </DataProvider>
   );
 }

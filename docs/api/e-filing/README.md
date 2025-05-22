@@ -51,3 +51,75 @@ As outlined in the implementation strategy document:
    - Audit logging
    - Permission controls
    - Testing
+   - Offline draft support
+   - Toast notifications
+
+## Testing & QA
+
+### Running End-to-End Tests
+
+Our e-filing implementation includes comprehensive end-to-end tests using Cypress:
+
+```bash
+# Open Cypress interactive runner
+npm run cy:open
+
+# Run all tests headlessly
+npm run test:e2e
+
+# Run just e-filing tests
+npx cypress run --spec "cypress/e2e/efile*.spec.js"
+```
+
+### Manual Smoke Testing
+
+To manually test the e-filing functionality:
+
+1. Configure environment variables:
+   ```bash
+   # Add to .env.local
+   VITE_EFILE_BASE_URL=https://stage-api.courts.example.com
+   VITE_EFILE_CLIENT_TOKEN=your_client_token
+   ```
+
+2. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+3. Navigate to the E-Filing page at `/efile`
+
+4. Use the sample documents in `/docs/api/e-filing/samples/`:
+   - `eviction_complaint_template.pdf`
+   - `eviction_summons_template.pdf`
+
+5. Complete and submit the form with test data:
+   - Jurisdiction: Illinois
+   - County: Cook County
+   - Case Number: Any format (e.g., 2025-CV-12345)
+   - Attorney ID: Any format (e.g., AT12345)
+   - Upload at least one of the sample PDFs
+
+6. Verify you receive an envelope ID and see "Submitted" in the status panel
+   - Status should automatically update when polling completes
+   - A success toast notification should appear when the filing is accepted
+   - If available, a stamped document link should appear for download
+
+### Offline Support Testing
+
+To test offline draft functionality:
+
+1. Complete part of the form and upload a document
+2. Use browser developer tools to simulate offline status
+3. Refresh the page
+4. Verify that a toast notification appears offering to restore the draft
+5. Verify that older drafts (>7 days) are automatically purged
+
+### Error Handling Testing
+
+To test error handling:
+
+1. Configure an invalid API endpoint or token
+2. Submit a filing and verify appropriate error messages appear
+3. Check that exponential backoff retry mechanism works by monitoring network requests
+4. Verify that fatal errors (server errors, permission errors) display clear toast notifications
