@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useData } from '../../context/DataContext';
+import { supabase } from '../../lib/supabaseClient';
 import { format } from 'date-fns';
 import { Plus, Filter, Search, Calendar } from 'lucide-react';
 import Card from '../ui/Card';
@@ -10,7 +11,48 @@ import Input from '../ui/Input';
 import CaseForm from './CaseForm';
 
 const CaseList: React.FC = () => {
-  const { state } = useData();
+  const { state, dispatch } = useData();
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Fetch cases from Supabase when component mounts
+  useEffect(() => {
+    const fetchCases = async () => {
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('cases')
+          .select('*');
+          
+        if (error) throw error;
+        
+        // Map the data to match our app's data structure
+        const mappedCases = data.map(c => ({
+          caseId: c.id,
+          plaintiff: c.plaintiff,
+          defendant: c.defendant,
+          address: c.address || '',
+          status: c.status,
+          intakeDate: c.intakeDate,
+          createdAt: c.createdAt,
+          updatedAt: c.updatedAt
+        }));
+        
+        // Update the local state
+        mappedCases.forEach(caseItem => {
+          dispatch({
+            type: 'ADD_CASE',
+            payload: caseItem
+          });
+        });
+      } catch (error) {
+        console.error('Error fetching cases:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchCases();
+  }, [dispatch]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCase, setSelectedCase] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -186,13 +228,20 @@ const CaseList: React.FC = () => {
           </div>
         </div>
 
-        <Table 
-          data={paginatedCases}
-          columns={columns}
-          keyField="caseId"
-          onRowClick={(item) => navigate(`/cases/${item.caseId}`)}
-          emptyMessage="No cases found. Add a new case to get started."
-        />
+        {isLoading ? (
+          <div className="py-12 text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mb-4"></div>
+            <p className="text-neutral-500">Loading cases...</p>
+          </div>
+        ) : (
+          <Table 
+            data={paginatedCases}
+            columns={columns}
+            keyField="caseId"
+            onRowClick={(item) => navigate(`/cases/${item.caseId}`)}
+            emptyMessage="No cases found. Add a new case to get started."
+          />
+        )}
         
         <Pagination
           totalItems={filteredCases.length}

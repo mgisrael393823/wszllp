@@ -7,7 +7,7 @@ This guide explains how to set up the necessary tables and configurations in you
 - **Supabase URL**: `https://karvbtpygbavvqydfcju.supabase.co`
 - **Public Anon Key**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImthcnZidHB5Z2JhdnZxeWRmY2p1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY4MDk0MDksImV4cCI6MjA2MjM4NTQwOX0.dHTzkJ_IwXeBfR5QLDRLw8XZTVCmeLBMRi0oQgUX5wk`
 
-## Setting Up the Hearings Table
+## Setting Up the Cases and Hearings Tables
 
 ### Option 1: Using the Supabase Dashboard SQL Editor
 
@@ -18,7 +18,61 @@ This guide explains how to set up the necessary tables and configurations in you
 5. Copy and paste the following SQL script:
 
 ```sql
--- Create hearings table
+-- First, create the cases table
+CREATE TABLE IF NOT EXISTS public.cases (
+    id UUID PRIMARY KEY,
+    plaintiff TEXT NOT NULL,
+    defendant TEXT NOT NULL,
+    address TEXT,
+    status TEXT NOT NULL DEFAULT 'Intake',
+    intakeDate TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    createdAt TIMESTAMP WITH TIME ZONE DEFAULT now(),
+    updatedAt TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Add RLS (Row Level Security) policies for cases
+ALTER TABLE public.cases ENABLE ROW LEVEL SECURITY;
+
+-- Create policy for authenticated users to see all cases
+CREATE POLICY "Authenticated users can view all cases" 
+ON public.cases FOR SELECT 
+TO authenticated
+USING (true);
+
+-- Create policy for authenticated users to insert cases
+CREATE POLICY "Authenticated users can insert cases" 
+ON public.cases FOR INSERT 
+TO authenticated
+WITH CHECK (true);
+
+-- Create policy for authenticated users to update cases
+CREATE POLICY "Authenticated users can update cases" 
+ON public.cases FOR UPDATE 
+TO authenticated
+USING (true);
+
+-- Create policy for authenticated users to delete cases
+CREATE POLICY "Authenticated users can delete cases" 
+ON public.cases FOR DELETE 
+TO authenticated
+USING (true);
+
+-- Add function to automatically update the updatedAt column
+CREATE OR REPLACE FUNCTION public.update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updatedAt = now();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Add trigger to automatically update the updatedAt timestamp on cases
+DROP TRIGGER IF EXISTS update_cases_updated_at ON public.cases;
+CREATE TRIGGER update_cases_updated_at
+BEFORE UPDATE ON public.cases
+FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+-- Now create the hearings table that references cases
 CREATE TABLE IF NOT EXISTS public.hearings (
     id UUID PRIMARY KEY,
     case_id UUID REFERENCES public.cases(id) ON DELETE CASCADE,
@@ -30,7 +84,7 @@ CREATE TABLE IF NOT EXISTS public.hearings (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
--- Add RLS (Row Level Security) policies
+-- Add RLS (Row Level Security) policies for hearings
 ALTER TABLE public.hearings ENABLE ROW LEVEL SECURITY;
 
 -- Create policy for authenticated users to see all hearings
@@ -39,34 +93,25 @@ ON public.hearings FOR SELECT
 TO authenticated
 USING (true);
 
--- Create policy for authenticated users to insert their own hearings
+-- Create policy for authenticated users to insert hearings
 CREATE POLICY "Authenticated users can insert hearings" 
 ON public.hearings FOR INSERT 
 TO authenticated
 WITH CHECK (true);
 
--- Create policy for authenticated users to update their own hearings
+-- Create policy for authenticated users to update hearings
 CREATE POLICY "Authenticated users can update hearings" 
 ON public.hearings FOR UPDATE 
 TO authenticated
 USING (true);
 
--- Create policy for authenticated users to delete their own hearings
+-- Create policy for authenticated users to delete hearings
 CREATE POLICY "Authenticated users can delete hearings" 
 ON public.hearings FOR DELETE 
 TO authenticated
 USING (true);
 
--- Add function to automatically update the updated_at column
-CREATE OR REPLACE FUNCTION public.update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = now();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
--- Add trigger to automatically update the updated_at timestamp
+-- Add trigger to automatically update the updated_at timestamp on hearings
 DROP TRIGGER IF EXISTS update_hearings_updated_at ON public.hearings;
 CREATE TRIGGER update_hearings_updated_at
 BEFORE UPDATE ON public.hearings
