@@ -45,17 +45,33 @@ describe('Retry utilities', () => {
     });
     
     it('should throw when the operation always fails', async () => {
-      const error = new Error('Always fails');
-      const fn = vi.fn().mockRejectedValue(error);
+      // Define the error outside the function
+      class TestError extends Error {
+        constructor() {
+          super('Always fails');
+          this.name = 'TestError';
+        }
+      }
+      
+      const fn = vi.fn().mockRejectedValue(new TestError());
 
-      // Start the retryable function, but don't await it yet
-      const resultPromise = retryable(fn, { retries: 2, baseDelay: 10 });
-      
-      // Fast-forward time to complete all retries
-      await vi.runAllTimersAsync();
-      
-      // Now await and expect the rejection
-      await expect(resultPromise).rejects.toThrow('Always fails');
+      try {
+        // Start the retryable function
+        const resultPromise = retryable(fn, { retries: 2, baseDelay: 10 });
+        
+        // Fast-forward time to complete all retries
+        await vi.runAllTimersAsync();
+        
+        // Await the result - this should throw
+        await resultPromise;
+        
+        // Should not reach here
+        throw new Error('Expected rejection but got success');
+      } catch (err) {
+        // Verify it's the right error
+        expect(err.message).toBe('Always fails');
+        expect(err.name).toBe('TestError');
+      }
 
       // And still assert it retried the expected number of times
       expect(fn).toHaveBeenCalledTimes(3);
