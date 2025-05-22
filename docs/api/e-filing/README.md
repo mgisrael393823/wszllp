@@ -123,3 +123,32 @@ To test error handling:
 2. Submit a filing and verify appropriate error messages appear
 3. Check that exponential backoff retry mechanism works by monitoring network requests
 4. Verify that fatal errors (server errors, permission errors) display clear toast notifications
+
+### Testing authentication
+
+Use the Node script `scripts/test-auth.js` to verify your credentials.
+
+1. Create a `.env.local` file in the project root with:
+
+   ```
+   VITE_EFILE_BASE_URL=https://api.uslegalpro.com/v4
+   VITE_EFILE_CLIENT_TOKEN=<YOUR_CLIENT_TOKEN>
+   VITE_EFILE_USERNAME=<YOUR_USERNAME>
+   VITE_EFILE_PASSWORD=<YOUR_PASSWORD>
+   ```
+
+2. Restart Vite to load the new variables:
+
+   ```bash
+   npm run dev
+   ```
+
+3. Run the authentication test:
+
+   ```bash
+   npm run test:auth
+   ```
+
+4. Open your browser's DevTools Network tab and look for the
+   `POST /v4/il/user/authenticate` request. Verify the clienttoken header,
+   request payload and response token.
