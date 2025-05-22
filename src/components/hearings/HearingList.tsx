@@ -5,73 +5,47 @@ import Button from '../ui/Button';
 import Table from '../ui/Table';
 import Pagination from '../ui/Pagination';
 import Input from '../ui/Input';
+import { useData } from '../../context/DataContext';
+import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
+
+interface HearingDisplay {
+  hearingId: string;
+  caseTitle: string;
+  courtName: string;
+  hearingDate: string;
+  outcome: string;
+}
 
 const HearingList: React.FC = () => {
+  const { state } = useData();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [dateFilter, setDateFilter] = useState<string>('');
   
   const itemsPerPage = 10;
 
-  // Mock hearings data
-  const hearings = [
-    {
-      hearingId: '1',
-      caseTitle: 'Smith Property v. John Doe',
-      courtName: 'Cook County Circuit Court',
-      hearingDate: '2023-05-15T09:00:00',
-      outcome: 'Pending'
-    },
-    {
-      hearingId: '2',
-      caseTitle: 'Oak Apartments v. Jane Smith',
-      courtName: 'Cook County Circuit Court',
-      hearingDate: '2023-05-16T10:30:00',
-      outcome: 'Pending'
-    },
-    {
-      hearingId: '3',
-      caseTitle: 'Riverside Properties v. Michael Johnson',
-      courtName: 'DuPage County Court',
-      hearingDate: '2023-05-17T14:00:00',
-      outcome: 'Pending'
-    },
-    {
-      hearingId: '4',
-      caseTitle: 'Lakeside Rentals v. Robert Williams',
-      courtName: 'Lake County Circuit Court',
-      hearingDate: '2023-05-18T09:30:00',
-      outcome: 'Pending'
-    },
-    {
-      hearingId: '5',
-      caseTitle: 'Green Valley v. Lisa Brown',
-      courtName: 'Will County Circuit Court',
-      hearingDate: '2023-05-19T11:00:00',
-      outcome: 'Pending'
-    },
-    {
-      hearingId: '6',
-      caseTitle: 'City View Apts v. David Miller',
-      courtName: 'Cook County Circuit Court',
-      hearingDate: '2023-05-22T10:00:00',
-      outcome: 'Pending'
-    },
-    {
-      hearingId: '7',
-      caseTitle: 'Parkview Homes v. Sarah Davis',
-      courtName: 'Kane County Circuit Court',
-      hearingDate: '2023-05-23T13:30:00',
-      outcome: 'Pending'
-    },
-    {
-      hearingId: '8',
-      caseTitle: 'Highland Residences v. Thomas Wilson',
-      courtName: 'DuPage County Court',
-      hearingDate: '2023-05-24T09:00:00',
-      outcome: 'Pending'
-    }
-  ];
+  // Map hearings from data context to display format
+  const mapHearingsToDisplay = (): HearingDisplay[] => {
+    return state.hearings.map(hearing => {
+      // Find the case for this hearing
+      const caseItem = state.cases.find(c => c.caseId === hearing.caseId);
+      const caseTitle = caseItem 
+        ? `${caseItem.plaintiff} v. ${caseItem.defendant}` 
+        : 'Unknown Case';
+      
+      return {
+        hearingId: hearing.hearingId,
+        caseTitle,
+        courtName: hearing.courtName || 'Not specified',
+        hearingDate: hearing.hearingDate,
+        outcome: hearing.outcome || 'Pending'
+      };
+    });
+  };
+
+  const hearings = mapHearingsToDisplay();
 
   // Filter hearings
   const filteredHearings = hearings.filter(h => {
@@ -79,7 +53,7 @@ const HearingList: React.FC = () => {
       h.caseTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
       h.courtName.toLowerCase().includes(searchTerm.toLowerCase());
     
-    // Date filter - simplified for mock data
+    // Date filter
     const matchesDate = dateFilter 
       ? new Date(h.hearingDate).toISOString().startsWith(dateFilter)
       : true;
@@ -97,14 +71,31 @@ const HearingList: React.FC = () => {
     setCurrentPage(page);
   };
 
-  // Mock date filter options
+  // Generate date filter options from actual hearings
   const getDateFilterOptions = () => {
-    return [
-      { value: '', label: 'All Dates' },
-      { value: '2023-05', label: 'May 2023' },
-      { value: '2023-06', label: 'June 2023' },
-      { value: '2023-07', label: 'July 2023' }
+    const options: {value: string, label: string}[] = [
+      { value: '', label: 'All Dates' }
     ];
+    
+    const dates = new Set<string>();
+    
+    state.hearings.forEach(h => {
+      if (h.hearingDate) {
+        const date = new Date(h.hearingDate);
+        const yearMonth = format(date, 'yyyy-MM');
+        dates.add(yearMonth);
+      }
+    });
+    
+    Array.from(dates).sort().reverse().forEach(date => {
+      const [year, month] = date.split('-');
+      options.push({
+        value: date,
+        label: `${new Date(parseInt(year), parseInt(month) - 1).toLocaleString('default', { month: 'long' })} ${year}`
+      });
+    });
+    
+    return options;
   };
 
   // Table columns definition
@@ -121,13 +112,13 @@ const HearingList: React.FC = () => {
     },
     {
       header: 'Date',
-      accessor: (item: typeof hearings[0]) => 
+      accessor: (item: HearingDisplay) => 
         new Date(item.hearingDate).toLocaleDateString(),
       sortable: false,
     },
     {
       header: 'Time',
-      accessor: (item: typeof hearings[0]) => 
+      accessor: (item: HearingDisplay) => 
         new Date(item.hearingDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       sortable: false,
     },
@@ -147,7 +138,11 @@ const HearingList: React.FC = () => {
             Schedule and manage court hearings
           </p>
         </div>
-        <Button variant="primary" icon={<Plus size={16} />}>
+        <Button 
+          variant="primary" 
+          icon={<Plus size={16} />}
+          onClick={() => navigate('/hearings/new')}
+        >
           Add Hearing
         </Button>
       </div>
@@ -184,7 +179,7 @@ const HearingList: React.FC = () => {
           data={paginatedHearings}
           columns={columns}
           keyField="hearingId"
-          onRowClick={(item) => console.log('Clicked hearing:', item.hearingId)}
+          onRowClick={(item) => navigate(`/hearings/${item.hearingId}`)}
           emptyMessage="No hearings found. Add a new hearing to get started."
         />
         

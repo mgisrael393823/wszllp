@@ -12,7 +12,7 @@ import DashboardHome from './components/dashboard/DashboardHome';
 import CaseList from './components/cases/CaseList';
 import CaseDetail from './components/cases/CaseDetail';
 import CasesPage from './components/cases/CasesPage';
-import HearingList from './components/hearings/HearingList';
+import HearingsPage from './components/hearings/HearingsPage';
 import DocumentList from './components/documents/DocumentList';
 import DocumentManagement from './components/documents/DocumentManagement';
 import InvoiceList from './components/invoices/InvoiceList';
@@ -84,7 +84,7 @@ const AppContent = () => {
         <Route path="/cases" element={<CasesPage />} />
         <Route path="/cases/list" element={<CaseList />} />
         <Route path="/cases/:id" element={<CaseDetail />} />
-        <Route path="/hearings" element={<HearingList />} />
+        <Route path="/hearings/*" element={<HearingsPage />} />
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/documents" element={<DocumentManagement />} />
         <Route path="/documents/list" element={<DocumentList />} />

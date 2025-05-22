@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import { useNavigate } from 'react-router-dom';
 import { useData } from '../../context/DataContext';
 import { hearingSchema } from '../../types/schema';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
+import Card from '../ui/Card';
 import { Calendar, LinkIcon } from 'lucide-react';
 
 interface HearingFormProps {
@@ -13,10 +15,18 @@ interface HearingFormProps {
   onClose: () => void;
   hearingId: string | null;
   defaultCaseId?: string | null;
+  standalone?: boolean;
 }
 
-const HearingForm: React.FC<HearingFormProps> = ({ isOpen, onClose, hearingId, defaultCaseId }) => {
+const HearingForm: React.FC<HearingFormProps> = ({ 
+  isOpen, 
+  onClose, 
+  hearingId, 
+  defaultCaseId,
+  standalone = false 
+}) => {
   const { state, dispatch } = useData();
+  const navigate = useNavigate();
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   
   const emptyHearing = {
@@ -143,97 +153,116 @@ const HearingForm: React.FC<HearingFormProps> = ({ isOpen, onClose, hearingId, d
     label: `${c.plaintiff} v. ${c.defendant}`
   }));
 
+  // Form content to be used in both modal and standalone modes
+  const formContent = (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <Select
+        label="Case"
+        name="caseId"
+        value={formData.caseId}
+        onChange={handleChange}
+        options={caseOptions}
+        required
+        error={formErrors.caseId}
+        hint={caseOptions.length === 0 ? "You need to create a case first" : undefined}
+        disabled={caseOptions.length === 0}
+      />
+
+      <Input
+        label="Court Name"
+        name="courtName"
+        value={formData.courtName}
+        onChange={handleChange}
+        maxLength={100}
+        required
+        error={formErrors.courtName}
+      />
+
+      <Input
+        label="Hearing Date and Time"
+        name="hearingDate"
+        type="datetime-local"
+        value={formData.hearingDate}
+        onChange={handleChange}
+        required
+        error={formErrors.hearingDate}
+      />
+
+      <div className="w-full">
+        <label
+          htmlFor="outcome"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
+          Outcome
+        </label>
+        <textarea
+          id="outcome"
+          name="outcome"
+          rows={3}
+          className={`block w-full rounded-md shadow-sm border border-gray-300 focus:border-primary-500 focus:ring focus:ring-primary-500 focus:ring-opacity-50 ${
+            formErrors.outcome ? 'border-error-500' : ''
+          }`}
+          value={formData.outcome || ''}
+          onChange={handleChange}
+          maxLength={500}
+        ></textarea>
+        {formErrors.outcome && (
+          <p className="mt-1 text-sm text-error-600">{formErrors.outcome}</p>
+        )}
+        <p className="mt-1 text-sm text-gray-500">
+          Optional. Can be filled after the hearing is complete.
+        </p>
+      </div>
+
+      {/* Form actions */}
+      <div className="flex justify-end space-x-4 pt-4">
+        {hearingId && (
+          <>
+            <Button variant="danger" type="button" onClick={handleDelete}>
+              Delete
+            </Button>
+            <Button 
+              variant="outline" 
+              type="button"
+              onClick={handleSyncToCalendar}
+              icon={<Calendar size={16} />}
+            >
+              Sync to Calendar
+            </Button>
+          </>
+        )}
+        <div className="flex-1"></div>
+        <Button variant="outline" type="button" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button type="submit">
+          {hearingId ? 'Update' : 'Create'}
+        </Button>
+      </div>
+    </form>
+  );
+
+  // If we're in standalone mode, render without modal
+  if (standalone) {
+    return (
+      <Card className="p-6">
+        <h2 className="text-xl font-semibold mb-4">
+          {hearingId ? 'Edit Hearing' : 'Add New Hearing'}
+        </h2>
+        {formContent}
+      </Card>
+    );
+  }
+
+  // Otherwise render in modal
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
       title={hearingId ? 'Edit Hearing' : 'Add New Hearing'}
       size="lg"
-      footer={
-        <>
-          {hearingId && (
-            <>
-              <Button variant="danger" onClick={handleDelete}>
-                Delete
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={handleSyncToCalendar}
-                icon={<Calendar size={16} />}
-              >
-                Sync to Calendar
-              </Button>
-            </>
-          )}
-          <div className="flex-1"></div>
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit}>
-            {hearingId ? 'Update' : 'Create'}
-          </Button>
-        </>
-      }
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <Select
-          label="Case"
-          name="caseId"
-          value={formData.caseId}
-          onChange={handleChange}
-          options={caseOptions}
-          required
-          error={formErrors.caseId}
-          hint={caseOptions.length === 0 ? "You need to create a case first" : undefined}
-          disabled={caseOptions.length === 0}
-        />
-
-        <Input
-          label="Court Name"
-          name="courtName"
-          value={formData.courtName}
-          onChange={handleChange}
-          maxLength={100}
-          required
-          error={formErrors.courtName}
-        />
-
-        <Input
-          label="Hearing Date and Time"
-          name="hearingDate"
-          type="datetime-local"
-          value={formData.hearingDate}
-          onChange={handleChange}
-          required
-          error={formErrors.hearingDate}
-        />
-
-        <div className="w-full">
-          <label
-            htmlFor="outcome"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Outcome
-          </label>
-          <textarea
-            id="outcome"
-            name="outcome"
-            rows={3}
-            className={`block w-full rounded-md shadow-sm border border-gray-300 focus:border-primary-500 focus:ring focus:ring-primary-500 focus:ring-opacity-50 ${
-              formErrors.outcome ? 'border-error-500' : ''
-            }`}
-            value={formData.outcome || ''}
-            onChange={handleChange}
-            maxLength={500}
-          ></textarea>
-          {formErrors.outcome && (
-            <p className="mt-1 text-sm text-error-600">{formErrors.outcome}</p>
-          )}
-          <p className="mt-1 text-sm text-gray-500">
-            Optional. Can be filled after the hearing is complete.
-          </p>
-        </div>
-      </form>
+      {formContent}
     </Modal>
   );
 };
