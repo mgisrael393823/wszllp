@@ -621,6 +621,9 @@ const QueryClientWrapper: React.FC<{children: React.ReactNode}> = ({ children })
         refetchOnWindowFocus: false,
         retry: false
       },
+      mutations: {
+        // Add default mutation options here if needed
+      }
     },
   });
 

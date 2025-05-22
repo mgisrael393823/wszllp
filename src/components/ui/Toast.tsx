@@ -31,6 +31,11 @@ const Toast: React.FC<ToastProps> = ({
 
   if (!visible) return null;
 
+  // Ensure type is a valid ToastType
+  const safeType: ToastType = ['success', 'error', 'warning', 'info'].includes(type) 
+    ? type 
+    : 'info';
+
   const backgrounds = {
     success: 'bg-green-100 border-green-500 text-green-800',
     error: 'bg-red-100 border-red-500 text-red-800',
@@ -77,33 +82,41 @@ const Toast: React.FC<ToastProps> = ({
     ),
   };
 
-  return (
-    <div
-      className={`fixed top-4 right-4 px-4 py-3 rounded-md border-l-4 shadow-md ${
-        backgrounds[type]
-      } max-w-sm z-50 animate-slide-in-right`}
-      role="alert"
-    >
-      <div className="flex items-start">
-        <div className="flex-shrink-0">{icons[type]}</div>
-        <div className="ml-3">
-          {title && <p className="font-bold">{title}</p>}
-          <p className="text-sm">{message}</p>
-        </div>
-        <div className="ml-auto pl-3">
-          <button
-            className="inline-flex text-gray-400 focus:outline-none focus:text-gray-500 rounded-md"
-            onClick={() => {
-              setVisible(false);
-              if (onClose) onClose();
-            }}
-          >
-            <X className="h-5 w-5" />
-          </button>
+  // Add animation class with fallback
+  const animationClass = 'animate-slide-in-right'; // This needs to be defined in Tailwind config
+
+  try {
+    return (
+      <div
+        className={`fixed top-4 right-4 px-4 py-3 rounded-md border-l-4 shadow-md ${
+          backgrounds[safeType]
+        } max-w-sm z-50 ${animationClass}`}
+        role="alert"
+      >
+        <div className="flex items-start">
+          <div className="flex-shrink-0">{icons[safeType]}</div>
+          <div className="ml-3">
+            {title && <p className="font-bold">{title}</p>}
+            <p className="text-sm">{message}</p>
+          </div>
+          <div className="ml-auto pl-3">
+            <button
+              className="inline-flex text-gray-400 focus:outline-none focus:text-gray-500 rounded-md"
+              onClick={() => {
+                setVisible(false);
+                if (onClose) onClose();
+              }}
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  } catch (error) {
+    console.error("Error rendering Toast:", error);
+    return null; // Fail gracefully
+  }
 };
 
 export default Toast;

@@ -4,8 +4,25 @@ import { EFileProvider } from '@/context/EFileContext';
 import EFileSubmissionForm from './EFileSubmissionForm';
 import EFileStatusList from './EFileStatusList';
 
+// Create with v5 API format
 const queryClient = new QueryClient({
-  defaultOptions: { queries: { refetchOnWindowFocus: false } },
+  defaultOptions: {
+    queries: { 
+      refetchOnWindowFocus: false 
+    },
+    mutations: {
+      // Add default mutation options if needed
+    }
+  },
+});
+
+// Add debug logging
+console.log("EFilePage: Environment variables check:", {
+  hasBaseUrl: !!import.meta.env.VITE_EFILE_BASE_URL,
+  hasClientToken: !!import.meta.env.VITE_EFILE_CLIENT_TOKEN,
+  hasUsername: !!import.meta.env.VITE_EFILE_USERNAME,
+  hasPassword: !!import.meta.env.VITE_EFILE_PASSWORD,
+  reactQueryVersion: '@tanstack/react-query version: 5.x'
 });
 
 const EFilePage: React.FC = () => (
