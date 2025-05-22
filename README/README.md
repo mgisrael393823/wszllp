@@ -21,6 +21,7 @@ WSZLLP is a specialized case management platform designed specifically for evict
 
 - **Frontend**: React, TypeScript, Tailwind CSS
 - **State Management**: Context API with custom hooks
+- **Authentication**: Supabase Auth
 - **Data Handling**: SheetJS (xlsx), PapaParse for data imports
 - **UI Components**: Custom component library
 - **Build Tool**: Vite
@@ -32,6 +33,7 @@ WSZLLP is a specialized case management platform designed specifically for evict
 
 - Node.js (v18+)
 - npm or yarn
+- Supabase account (for authentication)
 
 ### Installation
 
@@ -46,14 +48,24 @@ WSZLLP is a specialized case management platform designed specifically for evict
    npm install
    ```
 
-3. Copy .env.example to .env.local and add your API credentials
+3. Copy .env.local.example to .env.local and add your credentials:
+   ```
+   cp .env.local.example .env.local
+   ```
+   
+   Then edit .env.local to add:
+   - Supabase URL and anon key
+   - E-filing API credentials
 
-4. Start the development server:
+4. Set up Supabase authentication:
+   - Follow the instructions in [SUPABASE-AUTH-SETUP.md](./SUPABASE-AUTH-SETUP.md)
+
+5. Start the development server:
    ```
    npm run dev
    ```
 
-5. Open your browser and navigate to `http://localhost:5173`
+6. Open your browser and navigate to `http://localhost:5173`
 
 ## Data Import Guide
 

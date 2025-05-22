@@ -3,6 +3,10 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from
 import { DataProvider } from './context/DataContext';
 import { EFileProvider } from './context/EFileContext';
 import { ToastProvider } from './context/ToastContext';
+import { AuthProvider } from './context/AuthContext';
+import LoginPage from './components/auth/LoginPage';
+import RegisterPage from './components/auth/RegisterPage';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 import MainLayout from './components/layout/MainLayout';
 import DashboardHome from './components/dashboard/DashboardHome';
 import CaseList from './components/cases/CaseList';
@@ -103,14 +107,20 @@ function App() {
   return (
     <DataProvider>
       <ToastProvider>
-        <EFileProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/design-system" element={<DesignSystemPage />} />
-              <Route path="/*" element={<AppContent />} />
-            </Routes>
-          </BrowserRouter>
-        </EFileProvider>
+        <AuthProvider>
+          <EFileProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/design-system" element={<DesignSystemPage />} />
+                <Route element={<ProtectedRoute />}>
+                  <Route path="/*" element={<AppContent />} />
+                </Route>
+              </Routes>
+            </BrowserRouter>
+          </EFileProvider>
+        </AuthProvider>
       </ToastProvider>
     </DataProvider>
   );

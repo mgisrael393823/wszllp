@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Menu, ChevronLeft, ChevronRight, Search, User, HelpCircle, Settings } from 'lucide-react';
 import Button from '../ui/Button';
 import NotificationBell from '../notifications/NotificationBell';
+import { useAuth } from '../../context/AuthContext';
 
 interface HeaderProps {
   toggleSidebar: () => void;
@@ -17,9 +18,16 @@ const Header: React.FC<HeaderProps> = ({
   isScrolled = false
 }) => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const { user, signOut } = useAuth();
 
   const toggleUserMenu = () => {
     setUserMenuOpen(!userMenuOpen);
+  };
+  
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    if (!user || !user.email) return 'U';
+    return user.email.charAt(0).toUpperCase();
   };
 
   return (
@@ -102,7 +110,7 @@ const Header: React.FC<HeaderProps> = ({
                 aria-haspopup="true"
               >
                 <span className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-medium">
-                  CZ
+                  {getUserInitials()}
                 </span>
               </Button>
 
@@ -131,13 +139,13 @@ const Header: React.FC<HeaderProps> = ({
                       Settings
                     </a>
                     <hr className="my-1 border-neutral-200" />
-                    <a 
-                      href="#logout" 
-                      className="flex items-center px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100"
+                    <button 
+                      onClick={() => signOut()}
+                      className="flex items-center w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100"
                       role="menuitem"
                     >
                       Sign out
-                    </a>
+                    </button>
                   </div>
                 </div>
               )}
