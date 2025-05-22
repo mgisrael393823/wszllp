@@ -82,19 +82,8 @@ export async function retryable<T>(
         maxDelay,
       );
 
-      try {
-        if (onRetry) {
-          onRetry(attempt, err as Error);
-        }
-      } catch (callbackErr) {
-        throw callbackErr;
-      }
-
-      try {
-        await new Promise((res) => setTimeout(res, delay));
-      } catch (timerErr) {
-        throw timerErr;
-      }
+      if (onRetry) onRetry(attempt, err as Error);
+      await new Promise(res => setTimeout(res, delay));
     }
   }
 }
