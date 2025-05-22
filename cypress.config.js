@@ -6,6 +6,7 @@ export default defineConfig({
     setupNodeEvents(on, config) {
       // implement node event listeners here
     },
+    specPattern: "cypress/e2e/**/*.{cy.js,cy.ts,cy.jsx,cy.tsx}"
   },
   env: {
     apiUrl: 'http://localhost:3000/api', // Mock API URL
