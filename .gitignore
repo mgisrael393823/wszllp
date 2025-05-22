@@ -2,6 +2,8 @@
 .env.local
 node_modules/
 dist/
+.vite/
+node_modules/.vite/
 
 # Logs
 logs
