@@ -1,12 +1,20 @@
 import type { AuthenticateRequest, AuthenticateResponse } from '@/types/efile';
 import { apiClient } from './apiClient';
 
-const CLIENT_TOKEN = import.meta.env.VITE_EFILE_CLIENT_TOKEN;
+const isBrowser = typeof window !== 'undefined';
 
-export async function authenticate(
-  username: string,
-  password: string,
-): Promise<string> {
+const CLIENT_TOKEN =
+  isBrowser
+    ? import.meta.env.VITE_EFILE_CLIENT_TOKEN
+    : process.env.VITE_EFILE_CLIENT_TOKEN;
+
+export async function authenticate({
+  username,
+  password,
+}: {
+  username: string;
+  password: string;
+}): Promise<string> {
   const req: AuthenticateRequest = { data: { username, password } };
   const { data } = await apiClient.post<AuthenticateResponse>(
     '/il/user/authenticate',
@@ -42,9 +50,13 @@ export async function ensureAuth(
   if (currentToken && expires && !isTokenExpired(expires)) {
     return currentToken;
   }
-  const username = import.meta.env.VITE_EFILE_USERNAME;
-  const password = import.meta.env.VITE_EFILE_PASSWORD;
-  const token = await authenticate(username, password);
+  const username = isBrowser
+    ? import.meta.env.VITE_EFILE_USERNAME
+    : process.env.VITE_EFILE_USERNAME;
+  const password = isBrowser
+    ? import.meta.env.VITE_EFILE_PASSWORD
+    : process.env.VITE_EFILE_PASSWORD;
+  const token = await authenticate({ username, password });
   // Docs do not specify expiration; assume 1 hour
   const expiry = Date.now() + 60 * 60 * 1000;
   dispatch({ type: 'SET_TOKEN', token, expires: expiry });
