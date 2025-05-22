@@ -192,10 +192,6 @@ const ProfilePage: React.FC = () => {
 
               <form onSubmit={handleSubmit} role="form">
                 <div className="space-y-4">
-                  {/* Debug info to verify edit state */}
-                  <div className="bg-gray-100 p-2 mb-2 rounded text-xs">
-                    Editing mode: {isEditing ? 'ON' : 'OFF'} | Loading: {isLoading ? 'TRUE' : 'FALSE'}
-                  </div>
                   <div className="mb-4">
                     <label htmlFor="full_name" className="block text-sm font-medium text-neutral-700 mb-1">
                       Full Name
@@ -206,7 +202,7 @@ const ProfilePage: React.FC = () => {
                       name="full_name"
                       value={formData.full_name}
                       onChange={handleChange}
-                      disabled={!isEditing || isLoading}
+                      disabled={false}
                       required
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50"
                     />
@@ -238,7 +234,7 @@ const ProfilePage: React.FC = () => {
                       name="role"
                       value={formData.role}
                       onChange={handleChange}
-                      disabled={!isEditing || isLoading}
+                      disabled={false}
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50"
                     />
                   </div>
