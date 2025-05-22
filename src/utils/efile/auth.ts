@@ -1,7 +1,9 @@
 import type { AuthenticateRequest, AuthenticateResponse } from '@/types/efile';
 import { apiClient } from './apiClient';
 
-const CLIENT_TOKEN = import.meta.env.VITE_EFILE_CLIENT_TOKEN;
+const CLIENT_TOKEN =
+  import.meta.env.VITE_EFILE_CLIENT_TOKEN ||
+  process.env.VITE_EFILE_CLIENT_TOKEN;
 
 export async function authenticate(
   username: string,

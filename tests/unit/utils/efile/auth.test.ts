@@ -1,16 +1,15 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { authenticate, storeToken, getStoredToken, isTokenExpired } from '@/utils/efile/auth';
-import { apiClient } from '@/utils/efile/apiClient';
+process.env.VITE_EFILE_CLIENT_TOKEN = 'EVICT87';
 
-// Mock the apiClient module
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
 vi.mock('@/utils/efile/apiClient', () => ({
   apiClient: {
     post: vi.fn(),
   },
 }));
 
-// Mock environment variables
-vi.stubEnv('VITE_EFILE_CLIENT_TOKEN', 'EVICT87');
+import { apiClient } from '@/utils/efile/apiClient';
+const { authenticate, storeToken, getStoredToken, isTokenExpired } = await import('@/utils/efile/auth');
 
 describe('Authentication utilities', () => {
   beforeEach(() => {
