@@ -29,6 +29,8 @@ import CalendarPage from './components/calendar/CalendarPage';
 import NotificationsPage from './components/notifications/NotificationsPage';
 import NotificationScheduler from './components/notifications/NotificationScheduler';
 import ContactsPage from './components/contacts/ContactsPage';
+import ProfilePage from './components/user/ProfilePage';
+import SettingsPage from './components/user/SettingsPage';
 
 // Placeholder for Design System - removed in MVP
 const DesignSystemPage = () => (
@@ -98,6 +100,8 @@ const AppContent = () => {
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/contacts/*" element={<ContactsPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/settings" element={<SettingsPage />} />
       </Routes>
     </MainLayout>
   );
