@@ -30,8 +30,14 @@ describe('Retry utilities', () => {
       
       const onRetry = vi.fn();
       
-      // Directly await the retryable function
-      const result = await retryable(fn, { retries: 3, baseDelay: 0, onRetry });
+      // Start the retryable function, but don't await it yet
+      const resultPromise = retryable(fn, { retries: 3, baseDelay: 10, onRetry });
+      
+      // Fast-forward time to complete all retries
+      await vi.runAllTimersAsync();
+      
+      // Now await the result
+      const result = await resultPromise;
       
       expect(result).toBe('success');
       expect(fn).toHaveBeenCalledTimes(3);
@@ -42,10 +48,14 @@ describe('Retry utilities', () => {
       const error = new Error('Always fails');
       const fn = vi.fn().mockRejectedValue(error);
 
-      // Directly await the retryable promise
-      await expect(
-        retryable(fn, { retries: 2, baseDelay: 0 })
-      ).rejects.toThrow('Always fails');
+      // Start the retryable function, but don't await it yet
+      const resultPromise = retryable(fn, { retries: 2, baseDelay: 10 });
+      
+      // Fast-forward time to complete all retries
+      await vi.runAllTimersAsync();
+      
+      // Now await and expect the rejection
+      await expect(resultPromise).rejects.toThrow('Always fails');
 
       // And still assert it retried the expected number of times
       expect(fn).toHaveBeenCalledTimes(3);
