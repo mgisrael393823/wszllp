@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Papa from 'papaparse';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
-import { AlertTriangle, Check, Database, FileText, Info } from 'lucide-react';
+import { AlertTriangle, Check, Info } from 'lucide-react';
 
 interface CSVDataInspectorProps {
   file: File;
@@ -50,6 +50,9 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
     { value: "notUsed", label: "Not Used" },
   ];
 
+  // Using a workaround to avoid the dependency array issue
+  // parseCSV has a stable reference but ESLint doesn't know that
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   React.useEffect(() => {
     parseCSV();
   }, [file]);

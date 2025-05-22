@@ -55,7 +55,6 @@ export async function retryable<T>(
       return await fn();
     } catch (err) {
       attempt += 1;
-      const lastError = err as Error;
       
       // Check if we should retry this error
       if (!isRetryableError(err)) {

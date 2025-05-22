@@ -53,7 +53,7 @@ describe('Authentication utilities', () => {
       };
       
       // Setup the mock to return our response
-      (apiClient.post as any).mockResolvedValue(mockResponse);
+      (apiClient.post as ReturnType<typeof vi.fn>).mockResolvedValue(mockResponse);
       
       // Call the function
       const result = await authenticate('test-username', 'test-password');
@@ -72,7 +72,7 @@ describe('Authentication utilities', () => {
     it('should throw error if API call fails', async () => {
       // Mock API error
       const mockError = new Error('API error');
-      (apiClient.post as any).mockRejectedValue(mockError);
+      (apiClient.post as ReturnType<typeof vi.fn>).mockRejectedValue(mockError);
       
       // Check that the function throws
       await expect(authenticate('test-username', 'test-password'))

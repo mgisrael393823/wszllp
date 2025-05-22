@@ -51,7 +51,7 @@ describe('Filing utilities', () => {
       };
       
       // Setup the mock to return our response
-      (apiClient.post as any).mockResolvedValue(mockResponse);
+      (apiClient.post as ReturnType<typeof vi.fn>).mockResolvedValue(mockResponse);
       
       // Call the function
       const result = await submitFiling(mockSubmission, 'test-auth-token');
@@ -70,7 +70,7 @@ describe('Filing utilities', () => {
     it('should throw error if API call fails', async () => {
       // Mock API error
       const mockError = new Error('API error');
-      (apiClient.post as any).mockRejectedValue(mockError);
+      (apiClient.post as ReturnType<typeof vi.fn>).mockRejectedValue(mockError);
       
       // Create a simple mock submission
       const mockSubmission: EFileSubmission = {
@@ -110,7 +110,7 @@ describe('Filing utilities', () => {
       };
       
       // Setup the mock to return our response
-      (apiClient.get as any).mockResolvedValue(mockResponse);
+      (apiClient.get as ReturnType<typeof vi.fn>).mockResolvedValue(mockResponse);
       
       // Call the function
       const result = await getFilingStatus('env-123456', 'test-auth-token');
@@ -128,7 +128,7 @@ describe('Filing utilities', () => {
     it('should throw error if API call fails', async () => {
       // Mock API error
       const mockError = new Error('API error');
-      (apiClient.get as any).mockRejectedValue(mockError);
+      (apiClient.get as ReturnType<typeof vi.fn>).mockRejectedValue(mockError);
       
       // Check that the function throws
       await expect(getFilingStatus('env-123456', 'test-auth-token'))

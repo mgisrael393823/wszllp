@@ -1,5 +1,4 @@
 import React from 'react';
-import Card from '../ui/Card';
 import DataImportTool from './DataImportTool';
 import ErrorBoundary from '../ui/ErrorBoundary';
 import { Database } from 'lucide-react';

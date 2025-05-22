@@ -1,6 +1,5 @@
 import { defineConfig } from 'vitest/config';
 import { fileURLToPath } from 'url';
-import { resolve } from 'path';
 
 export default defineConfig({
   test: {
