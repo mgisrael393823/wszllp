@@ -8,7 +8,6 @@ node_modules/
 
 # Areas with known issues that we'll fix separately
 src/utils/dataImport/
-src/components/admin/
 src/utils/refine/
 
 # Specific files with heavy types or known issues
