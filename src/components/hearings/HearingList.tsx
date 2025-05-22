@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Filter, Calendar } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
@@ -6,6 +6,7 @@ import Table from '../ui/Table';
 import Pagination from '../ui/Pagination';
 import Input from '../ui/Input';
 import { useData } from '../../context/DataContext';
+import { supabase } from '../../lib/supabaseClient';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 
@@ -18,34 +19,93 @@ interface HearingDisplay {
 }
 
 const HearingList: React.FC = () => {
-  const { state } = useData();
+  const { state, dispatch } = useData();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [dateFilter, setDateFilter] = useState<string>('');
+  const [hearings, setHearings] = useState<HearingDisplay[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
   const itemsPerPage = 10;
 
-  // Map hearings from data context to display format
-  const mapHearingsToDisplay = (): HearingDisplay[] => {
-    return state.hearings.map(hearing => {
-      // Find the case for this hearing
-      const caseItem = state.cases.find(c => c.caseId === hearing.caseId);
-      const caseTitle = caseItem 
-        ? `${caseItem.plaintiff} v. ${caseItem.defendant}` 
-        : 'Unknown Case';
-      
-      return {
-        hearingId: hearing.hearingId,
-        caseTitle,
-        courtName: hearing.courtName || 'Not specified',
-        hearingDate: hearing.hearingDate,
-        outcome: hearing.outcome || 'Pending'
-      };
-    });
-  };
-
-  const hearings = mapHearingsToDisplay();
+  // Fetch hearings from Supabase
+  useEffect(() => {
+    const fetchHearings = async () => {
+      setIsLoading(true);
+      try {
+        // Fetch hearings from Supabase
+        const { data: hearingsData, error } = await supabase
+          .from('hearings')
+          .select(`
+            id,
+            case_id,
+            court_name,
+            hearing_date,
+            participants,
+            outcome,
+            created_at,
+            updated_at
+          `);
+          
+        if (error) throw error;
+        
+        // Fetch cases for joining data
+        const { data: casesData, error: casesError } = await supabase
+          .from('cases')
+          .select('id, plaintiff, defendant');
+          
+        if (casesError) throw casesError;
+        
+        // Map the data to our display format
+        const displayData: HearingDisplay[] = hearingsData.map(hearing => {
+          // Find the case for this hearing
+          const caseItem = casesData.find(c => c.id === hearing.case_id);
+          const caseTitle = caseItem 
+            ? `${caseItem.plaintiff} v. ${caseItem.defendant}` 
+            : 'Unknown Case';
+          
+          return {
+            hearingId: hearing.id,
+            caseTitle,
+            courtName: hearing.court_name || 'Not specified',
+            hearingDate: hearing.hearing_date,
+            outcome: hearing.outcome || 'Pending'
+          };
+        });
+        
+        // Update the hearings state
+        setHearings(displayData);
+        
+        // Also update the global state (this is optional, depending on your architecture)
+        const hearingsForDataContext = hearingsData.map(h => ({
+          hearingId: h.id,
+          caseId: h.case_id,
+          courtName: h.court_name || '',
+          hearingDate: h.hearing_date,
+          outcome: h.outcome || '',
+          createdAt: h.created_at,
+          updatedAt: h.updated_at
+        }));
+        
+        // Update the data context with the hearings
+        // You might want to add a batch update action to your reducer
+        hearingsForDataContext.forEach(hearing => {
+          dispatch({
+            type: 'ADD_HEARING',
+            payload: hearing
+          });
+        });
+        
+      } catch (error) {
+        console.error('Error fetching hearings:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchHearings();
+  }, [dispatch]);
 
   // Filter hearings
   const filteredHearings = hearings.filter(h => {
@@ -175,13 +235,20 @@ const HearingList: React.FC = () => {
           </div>
         </div>
 
-        <Table 
-          data={paginatedHearings}
-          columns={columns}
-          keyField="hearingId"
-          onRowClick={(item) => navigate(`/hearings/${item.hearingId}`)}
-          emptyMessage="No hearings found. Add a new hearing to get started."
-        />
+        {isLoading ? (
+          <div className="py-12 text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mb-4"></div>
+            <p className="text-neutral-500">Loading hearings...</p>
+          </div>
+        ) : (
+          <Table 
+            data={paginatedHearings}
+            columns={columns}
+            keyField="hearingId"
+            onRowClick={(item) => navigate(`/hearings/${item.hearingId}`)}
+            emptyMessage="No hearings found. Add a new hearing to get started."
+          />
+        )}
         
         <Pagination
           totalItems={filteredHearings.length}

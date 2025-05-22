@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../../context/DataContext';
+import { supabase } from '../../lib/supabaseClient';
 import { hearingSchema } from '../../types/schema';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
@@ -42,29 +43,61 @@ const HearingForm: React.FC<HearingFormProps> = ({
   const [formData, setFormData] = useState(emptyHearing);
 
   useEffect(() => {
-    if (hearingId) {
-      const existingHearing = state.hearings.find(h => h.hearingId === hearingId);
-      if (existingHearing) {
-        // Format the date for the input field
-        const dateObj = new Date(existingHearing.hearingDate);
-        const formattedDate = dateObj.toISOString().slice(0, 16); // format: YYYY-MM-DDThh:mm
-        
-        setFormData({
-          ...existingHearing,
-          hearingDate: formattedDate
-        });
-      }
-    } else {
-      // Set default caseId if there are cases
-      if (state.cases.length > 0) {
-        setFormData({
-          ...emptyHearing,
-          caseId: defaultCaseId || state.cases[0].caseId,
-        });
+    const fetchHearing = async () => {
+      if (hearingId) {
+        try {
+          // Try to fetch from Supabase first
+          const { data, error } = await supabase
+            .from('hearings')
+            .select('*')
+            .eq('id', hearingId)
+            .single();
+            
+          if (error) {
+            // If not found in Supabase, try local state
+            const existingHearing = state.hearings.find(h => h.hearingId === hearingId);
+            if (existingHearing) {
+              // Format the date for the input field
+              const dateObj = new Date(existingHearing.hearingDate);
+              const formattedDate = dateObj.toISOString().slice(0, 16); // format: YYYY-MM-DDThh:mm
+              
+              setFormData({
+                ...existingHearing,
+                hearingDate: formattedDate
+              });
+            }
+          } else if (data) {
+            // Map Supabase data to form data
+            const dateObj = new Date(data.hearing_date);
+            const formattedDate = dateObj.toISOString().slice(0, 16); // format: YYYY-MM-DDThh:mm
+            
+            setFormData({
+              hearingId: data.id,
+              caseId: data.case_id,
+              courtName: data.court_name || '',
+              hearingDate: formattedDate,
+              outcome: data.outcome || '',
+              createdAt: data.created_at,
+              updatedAt: data.updated_at
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching hearing:', error);
+        }
       } else {
-        setFormData(emptyHearing);
+        // Set default caseId if there are cases
+        if (state.cases.length > 0) {
+          setFormData({
+            ...emptyHearing,
+            caseId: defaultCaseId || state.cases[0].caseId,
+          });
+        } else {
+          setFormData(emptyHearing);
+        }
       }
-    }
+    };
+    
+    fetchHearing();
   }, [hearingId, state.hearings, state.cases]);
 
   const validateForm = () => {
@@ -93,7 +126,7 @@ const HearingForm: React.FC<HearingFormProps> = ({
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!validateForm()) return;
@@ -102,33 +135,69 @@ const HearingForm: React.FC<HearingFormProps> = ({
     const hearingDateISO = new Date(formData.hearingDate).toISOString();
     
     let newHearingId = hearingId;
+    const participants: string[] = []; // We'd populate this from the form if we had participant fields
     
-    if (hearingId) {
-      // Update existing hearing
-      dispatch({
-        type: 'UPDATE_HEARING',
-        payload: {
-          ...formData,
-          hearingDate: hearingDateISO,
-          updatedAt: now
-        }
-      });
-    } else {
-      // Create new hearing
-      newHearingId = uuidv4();
-      dispatch({
-        type: 'ADD_HEARING',
-        payload: {
-          ...formData,
-          hearingId: newHearingId,
-          hearingDate: hearingDateISO,
-          createdAt: now,
-          updatedAt: now
-        }
-      });
+    try {
+      if (hearingId) {
+        // Update existing hearing in Supabase
+        const { error } = await supabase
+          .from('hearings')
+          .update({
+            case_id: formData.caseId,
+            hearing_date: hearingDateISO,
+            participants: participants,
+            outcome: formData.outcome || null,
+            updated_at: now
+          })
+          .eq('id', hearingId);
+          
+        if (error) throw error;
+        
+        // Also update in local state
+        dispatch({
+          type: 'UPDATE_HEARING',
+          payload: {
+            ...formData,
+            hearingDate: hearingDateISO,
+            updatedAt: now
+          }
+        });
+      } else {
+        // Create new hearing in Supabase
+        newHearingId = uuidv4();
+        
+        const { error } = await supabase
+          .from('hearings')
+          .insert({
+            id: newHearingId,
+            case_id: formData.caseId,
+            hearing_date: hearingDateISO,
+            participants: participants,
+            outcome: formData.outcome || null,
+            created_at: now,
+            updated_at: now
+          });
+          
+        if (error) throw error;
+        
+        // Also add to local state
+        dispatch({
+          type: 'ADD_HEARING',
+          payload: {
+            ...formData,
+            hearingId: newHearingId,
+            hearingDate: hearingDateISO,
+            createdAt: now,
+            updatedAt: now
+          }
+        });
+      }
+      
+      onClose();
+    } catch (error) {
+      console.error('Error saving hearing:', error);
+      alert('Failed to save hearing. Please try again.');
     }
-    
-    onClose();
   };
   
   const handleSyncToCalendar = () => {
@@ -140,10 +209,24 @@ const HearingForm: React.FC<HearingFormProps> = ({
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (hearingId && confirm('Are you sure you want to delete this hearing?')) {
-      dispatch({ type: 'DELETE_HEARING', payload: hearingId });
-      onClose();
+      try {
+        // Delete from Supabase
+        const { error } = await supabase
+          .from('hearings')
+          .delete()
+          .eq('id', hearingId);
+          
+        if (error) throw error;
+        
+        // Also remove from local state
+        dispatch({ type: 'DELETE_HEARING', payload: hearingId });
+        onClose();
+      } catch (error) {
+        console.error('Error deleting hearing:', error);
+        alert('Failed to delete hearing. Please try again.');
+      }
     }
   };
 
