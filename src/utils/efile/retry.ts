@@ -55,7 +55,7 @@ export async function retryable<T>(
       return await fn();
     } catch (err) {
       attempt += 1;
-      lastError = err as Error;
+      const lastError = err as Error;
       
       // Check if we should retry this error
       if (!isRetryableError(err)) {
@@ -144,7 +144,7 @@ export class CircuitBreaker {
       const serverErrorMultiplier = err instanceof ServerError ? 2 : 1;
       
       // Check if we need to open the circuit
-      if ((this.failureCount >= this.threshold * serverErrorMultiplier) || 
+      if ((this.failureCount >= this.threshold / serverErrorMultiplier) || 
           (this.state === 'HALF_OPEN' && this.failureCount >= this.halfOpenMaxCalls)) {
         this.state = 'OPEN';
       }

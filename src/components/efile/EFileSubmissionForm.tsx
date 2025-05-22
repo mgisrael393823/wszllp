@@ -5,6 +5,7 @@ import { EFileContext } from '@/context/EFileContext';
 import { useData } from '@/context/DataContext';
 import { useToast } from '@/context/ToastContext';
 import { ensureAuth, fileToBase64, submitFiling, validateFile } from '@/utils/efile';
+import { EFileSubmission, EFileDocument } from '@/types/efile';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Button from '../ui/Button';
@@ -58,9 +59,9 @@ const EFileSubmissionForm: React.FC = () => {
     }
   }, []);
 
-  // Using TanStack Query v5 API format
+  // Using TanStack Query v5 API format with proper types
   const mutation = useMutation({
-    mutationFn: ({ payload, token }: { payload: Record<string, unknown>; token: string }) => 
+    mutationFn: ({ payload, token }: { payload: EFileSubmission; token: string }) => 
       submitFiling(payload, token),
     onSuccess: data => {
       dispatch({ type: 'ADD_ENVELOPE', caseId: formData.caseNumber, envelopeId: data.item.id });
@@ -274,7 +275,8 @@ const EFileSubmissionForm: React.FC = () => {
       
       // Process files with proper error handling
       try {
-        const files = await Promise.all(
+        // Process files into EFileDocument array
+        const files: EFileDocument[] = await Promise.all(
           Array.from(formData.files as FileList).map(file =>
             fileToBase64(file)
               .then(b64 => ({
@@ -282,7 +284,7 @@ const EFileSubmissionForm: React.FC = () => {
                 description: file.name,
                 file: b64,
                 file_name: file.name,
-                doc_type: '189705',
+                doc_type: '189705', // Document type code for eviction complaint
               }))
               .catch(error => {
                 // Add specific file error to the form
@@ -291,15 +293,17 @@ const EFileSubmissionForm: React.FC = () => {
           )
         );
         
-        const payload: Record<string, unknown> = {
+        // Create a properly typed submission payload
+        const payload: EFileSubmission = {
           reference_id: draftId,
           jurisdiction: `${formData.county}:cvd1`,
-          case_category: '7',
+          case_category: '7', // Category code for evictions
           case_type: formData.caseNumber,
           filings: files,
           payment_account_id: 'demo',
           filing_attorney_id: formData.attorneyId,
           filing_party_id: 'Party_25694092',
+          is_initial_filing: true,
         };
         
         // Add audit log entry for submission attempt
