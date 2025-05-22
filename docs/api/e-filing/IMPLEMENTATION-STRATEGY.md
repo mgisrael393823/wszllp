@@ -149,6 +149,7 @@ Extend the main reducer or create a dedicated efile slice that stores:
   - `VITE_EFILE_BASE_URL=<your base URL>`
   - `VITE_EFILE_CLIENT_TOKEN=<your client token>`
 • Restart the dev server after any change.
+• The system will automatically fall back to `process.env.VITE_EFILE_CLIENT_TOKEN` when running in Node environments (e.g., during tests), allowing for consistent configuration across all execution contexts.
 
 ### CI/CD Integration
 • GitHub Actions runs `npm run lint`, `npm run test`, and `npm run build` on every PR.  

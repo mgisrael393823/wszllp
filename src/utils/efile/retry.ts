@@ -33,19 +33,19 @@ function isRetryableError(error: unknown): boolean {
  */
 export async function retryable<T>(
   fn: () => Promise<T>,
-  options: { 
-    retries?: number; 
+  options: {
+    retries?: number;
     baseDelay?: number;
     maxDelay?: number;
     onRetry?: (attempt: number, error: Error) => void;
     retryableErrors?: Array<typeof Error>;
   } = {}
 ): Promise<T> {
-  const { 
-    retries = 3, 
+  const {
+    retries = 3,
     baseDelay = 500,
     maxDelay = 10000,
-    onRetry = () => {} 
+    onRetry = () => {},
   } = options;
   
   let attempt = 0;
@@ -73,23 +73,16 @@ export async function retryable<T>(
       // Apply exponential backoff with additional delay for server errors
       let multiplier = 1;
       if (err instanceof ServerError) {
-        // Add more delay for server errors
         multiplier = 2;
       }
-      
-      // Calculate delay with exponential backoff and jitter
-      const jitter = Math.random() * 0.3 + 0.85; // Random between 0.85 and 1.15
+
+      const jitter = Math.random() * 0.3 + 0.85;
       const delay = Math.min(
-        baseDelay * Math.pow(2, attempt - 1) * jitter * multiplier, 
-        maxDelay
+        baseDelay * Math.pow(2, attempt - 1) * jitter * multiplier,
+        maxDelay,
       );
-      
-      // Call the onRetry callback if provided
-      if (onRetry) {
-        onRetry(attempt, err as Error);
-      }
-      
-      // Wait before retrying
+
+      if (onRetry) onRetry(attempt, err as Error);
       await new Promise(res => setTimeout(res, delay));
     }
   }

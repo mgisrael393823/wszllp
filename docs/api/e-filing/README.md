@@ -47,7 +47,10 @@ As outlined in the implementation strategy document:
    - Status tracking and notifications
 
 3. **Phase 3 – Refinement**
-   - Error handling with retry logic
+   - Error handling with enhanced retry logic:
+     - Robust try/catch semantics to prevent unhandled promise rejections
+     - Proper handling of callback errors and timer-related promises
+     - Improved error capture and propagation
    - Audit logging
    - Permission controls
    - Testing
@@ -121,8 +124,12 @@ To test error handling:
 
 1. Configure an invalid API endpoint or token
 2. Submit a filing and verify appropriate error messages appear
-3. Check that exponential backoff retry mechanism works by monitoring network requests
+3. Check that exponential backoff retry mechanism works by monitoring network requests:
+   - The retry utility now features robust try/catch semantics to prevent unhandled rejections
+   - Test with network interruptions to verify proper retry behavior
+   - Verify that callbacks and timers are properly handled without dangling promises
 4. Verify that fatal errors (server errors, permission errors) display clear toast notifications
+5. Check that retryable operations properly distinguish between retryable and non-retryable errors
 
 ### Testing authentication
 
