@@ -30,36 +30,25 @@ describe('Retry utilities', () => {
       
       const onRetry = vi.fn();
       
-      const resultPromise = retryable(fn, { retries: 3, onRetry });
-      
-      // Fast-forward to execute all pending timers
-      await vi.runAllTimersAsync();
-      
-      const result = await resultPromise;
+      // Directly await the retryable function
+      const result = await retryable(fn, { retries: 3, baseDelay: 0, onRetry });
       
       expect(result).toBe('success');
       expect(fn).toHaveBeenCalledTimes(3);
       expect(onRetry).toHaveBeenCalledTimes(2);
     });
     
-    it('should throw after max retries', async () => {
+    it('should throw when the operation always fails', async () => {
       const error = new Error('Always fails');
       const fn = vi.fn().mockRejectedValue(error);
-      
-      // Create a properly wrapped promise that will be caught by expect().rejects
-      const testPromise = expect(
-        (async () => {
-          const result = retryable(fn, { retries: 2, baseDelay: 0 });
-          await vi.runAllTimersAsync();
-          return result;
-        })()
+
+      // Directly await the retryable promise
+      await expect(
+        retryable(fn, { retries: 2, baseDelay: 0 })
       ).rejects.toThrow('Always fails');
-      
-      // Wait for the test promise to complete
-      await testPromise;
-      
-      // Verify function was called the expected number of times
-      expect(fn).toHaveBeenCalledTimes(3); // Initial + 2 retries
+
+      // And still assert it retried the expected number of times
+      expect(fn).toHaveBeenCalledTimes(3);
     });
     
     it('should not retry on authentication errors', async () => {
