@@ -1,9 +1,14 @@
 import type { AuthenticateRequest, AuthenticateResponse } from '@/types/efile';
 import { apiClient } from './apiClient';
 
-const CLIENT_TOKEN =
-  import.meta.env.VITE_EFILE_CLIENT_TOKEN ||
-  process.env.VITE_EFILE_CLIENT_TOKEN;
+const CLIENT_TOKEN = import.meta.env.VITE_EFILE_CLIENT_TOKEN;
+
+// Only fall back to process.env in Node (e.g. when running scripts/tests)
+const FALLBACK_CLIENT_TOKEN =
+  typeof process !== 'undefined' && process.env.VITE_EFILE_CLIENT_TOKEN;
+
+export const getClientToken = () =>
+  CLIENT_TOKEN ?? FALLBACK_CLIENT_TOKEN;
 
 export async function authenticate(
   username: string,
@@ -13,7 +18,7 @@ export async function authenticate(
   const { data } = await apiClient.post<AuthenticateResponse>(
     '/il/user/authenticate',
     req,
-    { headers: { clienttoken: CLIENT_TOKEN } },
+    { headers: { clienttoken: getClientToken() } },
   );
   return data.item.auth_token;
 }
