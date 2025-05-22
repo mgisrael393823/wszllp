@@ -18,7 +18,6 @@ const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  console.log('Editing mode:', isEditing); // Debug editing state
   const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState({
     full_name: '',
@@ -96,7 +95,6 @@ const ProfilePage: React.FC = () => {
   }, [navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('Input change detected:', e.target.name, e.target.value);
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -194,33 +192,56 @@ const ProfilePage: React.FC = () => {
 
               <form onSubmit={handleSubmit} role="form">
                 <div className="space-y-4">
-                  <Input
-                    id="full_name"
-                    name="full_name"
-                    label="Full Name"
-                    value={formData.full_name}
-                    onChange={handleChange}
-                    disabled={!isEditing || isLoading}
-                    required
-                  />
-                  <Input
-                    id="email"
-                    name="email"
-                    label="Email Address"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    disabled={true} // Email can't be changed directly
-                    required
-                  />
-                  <Input
-                    id="role"
-                    name="role"
-                    label="Role"
-                    value={formData.role}
-                    onChange={handleChange}
-                    disabled={!isEditing || isLoading}
-                  />
+                  {/* Debug info to verify edit state */}
+                  <div className="bg-gray-100 p-2 mb-2 rounded text-xs">
+                    Editing mode: {isEditing ? 'ON' : 'OFF'} | Loading: {isLoading ? 'TRUE' : 'FALSE'}
+                  </div>
+                  <div className="mb-4">
+                    <label htmlFor="full_name" className="block text-sm font-medium text-neutral-700 mb-1">
+                      Full Name
+                    </label>
+                    <input
+                      type="text"
+                      id="full_name"
+                      name="full_name"
+                      value={formData.full_name}
+                      onChange={handleChange}
+                      disabled={!isEditing || isLoading}
+                      required
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50"
+                    />
+                  </div>
+                  
+                  <div className="mb-4">
+                    <label htmlFor="email" className="block text-sm font-medium text-neutral-700 mb-1">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      disabled={true}
+                      required
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50"
+                    />
+                  </div>
+                  
+                  <div className="mb-4">
+                    <label htmlFor="role" className="block text-sm font-medium text-neutral-700 mb-1">
+                      Role
+                    </label>
+                    <input
+                      type="text"
+                      id="role"
+                      name="role"
+                      value={formData.role}
+                      onChange={handleChange}
+                      disabled={!isEditing || isLoading}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50"
+                    />
+                  </div>
                 </div>
 
                 <div className="mt-8 flex justify-end space-x-4">
@@ -254,10 +275,7 @@ const ProfilePage: React.FC = () => {
                       <Button
                         type="button"
                         variant="primary"
-                        onClick={() => {
-                          console.log('Edit button clicked');
-                          setIsEditing(true);
-                        }}
+                        onClick={() => setIsEditing(true)}
                       >
                         Edit Profile
                       </Button>
