@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Menu, ChevronLeft, ChevronRight, Search, User, HelpCircle, Settings } from 'lucide-react';
 import Button from '../ui/Button';
 import NotificationBell from '../notifications/NotificationBell';
@@ -122,22 +123,22 @@ const Header: React.FC<HeaderProps> = ({
                   aria-orientation="vertical"
                 >
                   <div className="py-1">
-                    <a 
-                      href="#profile" 
+                    <Link 
+                      to="/profile" 
                       className="flex items-center px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100"
                       role="menuitem"
                     >
                       <User size={16} className="mr-2" />
                       Profile
-                    </a>
-                    <a 
-                      href="#settings" 
+                    </Link>
+                    <Link 
+                      to="/settings" 
                       className="flex items-center px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100"
                       role="menuitem"
                     >
                       <Settings size={16} className="mr-2" />
                       Settings
-                    </a>
+                    </Link>
                     <hr className="my-1 border-neutral-200" />
                     <button 
                       onClick={() => signOut()}
