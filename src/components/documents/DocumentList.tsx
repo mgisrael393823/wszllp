@@ -85,17 +85,32 @@ const DocumentList: React.FC<DocumentListProps> = ({ limit, caseId }) => {
   const columns = [
     {
       header: 'Document',
-      accessor: (item: any) => (
-        <div className="flex items-center">
-          <FileText size={18} className="text-gray-400 mr-2" />
-          <div>
-            <div className="font-medium text-gray-700">{item.type}</div>
-            <div className="text-gray-500 text-sm truncate max-w-xs">
-              {item.fileURL}
+      accessor: (item: any) => {
+        // Extract filename from URL
+        const getFilenameFromUrl = (url: string) => {
+          if (!url) return 'Unknown file';
+          try {
+            const urlParts = url.split('/');
+            const filename = urlParts[urlParts.length - 1];
+            // Decode URL-encoded characters
+            return decodeURIComponent(filename);
+          } catch (error) {
+            return 'Unknown file';
+          }
+        };
+
+        return (
+          <div className="flex items-center">
+            <FileText size={18} className="text-gray-400 mr-2" />
+            <div>
+              <div className="font-medium text-gray-700">{item.type}</div>
+              <div className="text-gray-500 text-sm truncate max-w-xs">
+                {getFilenameFromUrl(item.fileURL)}
+              </div>
             </div>
           </div>
-        </div>
-      ),
+        );
+      },
       sortable: false,
     },
     {
