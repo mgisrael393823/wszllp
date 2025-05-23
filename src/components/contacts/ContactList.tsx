@@ -115,21 +115,21 @@ const ContactList: React.FC<ContactListProps> = ({
           <Button
             variant="text"
             size="sm"
-            onClick={() => navigate(`/contacts/${item.contactId}`)}
+            onClick={() => navigate(`/contacts/${item.id}`)}
             icon={<Eye size={16} />}
             aria-label="View contact"
           />
           <Button
             variant="text"
             size="sm"
-            onClick={() => navigate(`/contacts/${item.contactId}/edit`)}
+            onClick={() => navigate(`/contacts/${item.id}/edit`)}
             icon={<Edit size={16} />}
             aria-label="Edit contact"
           />
           <Button
             variant="text"
             size="sm"
-            onClick={(e) => handleDeleteContact(item.contactId, e)}
+            onClick={(e) => handleDeleteContact(item.id, e)}
             icon={<Trash2 size={16} />}
             aria-label="Delete contact"
           />
@@ -199,8 +199,8 @@ const ContactList: React.FC<ContactListProps> = ({
         <Table
           data={contacts}
           columns={columns}
-          keyField="contactId"
-          onRowClick={(item) => navigate(`/contacts/${item.contactId}`)}
+          keyField="id"
+          onRowClick={(item) => navigate(`/contacts/${item.id}`)}
         />
       )}
     </Card>

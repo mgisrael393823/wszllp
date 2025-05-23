@@ -2,8 +2,7 @@ import React from 'react';
 import { Refine } from '@refinedev/core';
 import { useNavigate, useLocation } from 'react-router-dom';
 import routerProvider from '@refinedev/react-router-v6';
-import { createContextDataProvider } from '../../utils/refine/dataProvider';
-import { useData } from '../../context/DataContext';
+import { createSupabaseDataProvider } from '../../utils/refine/supabaseDataProvider';
 
 /**
  * Provider component that wraps the Contacts module with Refine
@@ -15,14 +14,13 @@ export const ContactsProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { state, dispatch } = useData();
   
-  // Create a data provider that uses our existing DataContext
-  const dataProvider = createContextDataProvider(state, dispatch);
+  // Create a data provider that uses Supabase
+  const dataProvider = createSupabaseDataProvider();
 
   return (
     <Refine
-      // Use our context-based data provider
+      // Use our Supabase-based data provider
       dataProvider={dataProvider}
       
       // Set up routing for Refine to use React Router v6

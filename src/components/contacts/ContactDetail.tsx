@@ -105,7 +105,7 @@ const ContactDetail: React.FC = () => {
           <div className="mt-4 sm:mt-0 flex space-x-2">
             <Button
               variant="outline"
-              onClick={() => navigate(`/contacts/${contact.contactId}/edit`)}
+              onClick={() => navigate(`/contacts/${contact.id}/edit`)}
               icon={<Edit size={16} />}
             >
               Edit
@@ -196,7 +196,7 @@ const ContactDetail: React.FC = () => {
                 <div className="ml-3">
                   <p className="text-sm font-medium text-gray-900">Added</p>
                   <p className="text-sm text-gray-500">
-                    {format(new Date(contact.createdAt), 'MMMM d, yyyy')}
+                    {format(new Date(contact.created_at), 'MMMM d, yyyy')}
                   </p>
                 </div>
               </div>
