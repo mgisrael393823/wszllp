@@ -103,7 +103,7 @@ const DocumentManagement: React.FC = () => {
           <Button
             variant="primary"
             icon={<Upload size={16} />}
-            onClick={() => navigate('/documents/new')}
+            onClick={() => navigate('/documents/upload')}
           >
             Upload
           </Button>
