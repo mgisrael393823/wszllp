@@ -255,7 +255,8 @@ const DocumentUploadForm: React.FC<DocumentUploadFormProps> = ({
             caseId: selectedCaseId,
             type: documentType as 'Complaint' | 'Summons' | 'Affidavit' | 'Motion' | 'Order' | 'Other',
             fileURL: fileUrl,
-            status: 'Pending' as 'Pending' | 'Served' | 'Failed'
+            status: 'Pending' as 'Pending' | 'Served' | 'Failed',
+            originalFilename: fileObj.file.name
           };
 
           const result = await createDocument(documentData);
