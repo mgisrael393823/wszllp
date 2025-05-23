@@ -78,7 +78,7 @@ const DocumentManagement: React.FC = () => {
         <div>
           <h3 className="text-sm font-medium text-red-800">Error loading document data</h3>
           <p className="text-sm text-red-700 mt-1">
-            {error?.message || 'Failed to load document counts. Please try again.'}
+            {typeof error === 'string' ? error : error?.message || 'Failed to load document counts. Please try again.'}
           </p>
         </div>
       </div>
@@ -103,7 +103,7 @@ const DocumentManagement: React.FC = () => {
           <Button
             variant="primary"
             icon={<Upload size={16} />}
-            onClick={() => navigate('/documents/new')}
+            onClick={() => navigate('/documents/upload')}
           >
             Upload
           </Button>

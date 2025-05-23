@@ -15,6 +15,7 @@ import CasesPage from './components/cases/CasesPage';
 import HearingsPage from './components/hearings/HearingsPage';
 import DocumentList from './components/documents/DocumentList';
 import DocumentManagement from './components/documents/DocumentManagement';
+import DocumentUploadForm from './components/documents/DocumentUploadForm';
 import InvoiceList from './components/invoices/InvoiceList';
 import InvoiceDetail from './components/invoices/InvoiceDetail';
 import ServiceLogsList from './components/service-logs/ServiceLogsList';
@@ -88,6 +89,7 @@ const AppContent = () => {
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/documents" element={<DocumentManagement />} />
         <Route path="/documents/list" element={<DocumentList />} />
+        <Route path="/documents/upload" element={<DocumentUploadForm />} />
         <Route path="/invoices" element={<InvoiceList />} />
         <Route path="/invoices/:id" element={<InvoiceDetail />} />
         <Route path="/service-logs" element={<ServiceLogsList />} />

@@ -85,17 +85,57 @@ const DocumentList: React.FC<DocumentListProps> = ({ limit, caseId }) => {
   const columns = [
     {
       header: 'Document',
-      accessor: (item: any) => (
-        <div className="flex items-center">
-          <FileText size={18} className="text-gray-400 mr-2" />
-          <div>
-            <div className="font-medium text-gray-700">{item.type}</div>
-            <div className="text-gray-500 text-sm truncate max-w-xs">
-              {item.fileURL}
+      accessor: (item: any) => {
+        // Use original filename if available, otherwise extract from URL
+        const getDisplayFileName = (item: any): string => {
+          // First try the original filename if it exists
+          if (item.originalFilename) {
+            return item.originalFilename;
+          }
+          
+          // Fallback to extracting from URL
+          const url = item.fileURL;
+          if (!url) return 'Unknown file';
+          
+          try {
+            const urlObj = new URL(url);
+            const pathParts = urlObj.pathname.split('/');
+            const fileName = pathParts[pathParts.length - 1];
+            
+            // If it's a generated filename (timestamp-hash.ext), make it more readable
+            if (fileName.match(/^\d+-[a-z0-9]+\./)) {
+              const ext = fileName.split('.').pop();
+              return `${item.type.toLowerCase()}_document.${ext}`;
+            }
+            
+            return decodeURIComponent(fileName);
+          } catch {
+            return url.substring(url.lastIndexOf('/') + 1) || 'document';
+          }
+        };
+
+        const fileName = getDisplayFileName(item);
+        
+        return (
+          <div className="flex items-center">
+            <FileText size={18} className="text-gray-400 mr-2" />
+            <div>
+              <div className="font-medium text-gray-700">{item.type}</div>
+              <div className="text-gray-500 text-sm truncate max-w-xs">
+                <a 
+                  href={item.fileURL} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 hover:underline"
+                  title={`Download ${fileName}`}
+                >
+                  {fileName}
+                </a>
+              </div>
             </div>
           </div>
-        </div>
-      ),
+        );
+      },
       sortable: false,
     },
     {
@@ -136,7 +176,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ limit, caseId }) => {
         <div>
           <h3 className="text-sm font-medium text-red-800">Error loading documents</h3>
           <p className="text-sm text-red-700 mt-1">
-            {error?.message || 'Failed to load documents. Please try again.'}
+            {typeof error === 'string' ? error : error?.message || 'Failed to load documents. Please try again.'}
           </p>
         </div>
       </div>
