@@ -3,8 +3,12 @@ import { createClient } from '@supabase/supabase-js';
 import { createSupabaseDataProvider, contactQueries } from '../../src/utils/refine/supabaseDataProvider';
 
 // Test configuration
-const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://karvbtpygbavvqydfcju.supabase.co';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImthcnZidHB5Z2JhdnZxeWRmY2p1Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NjgwOTQwOSwiZXhwIjoyMDYyMzg1NDA5fQ.CFpy0tiFC5kldHEJcQlfnnqWeBazYdMa9RYw8VLg3h4';
+const supabaseUrl = process.env.VITE_SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  throw new Error('Missing required environment variables: VITE_SUPABASE_URL and SUPABASE_SERVICE_KEY must be set');
+}
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 const dataProvider = createSupabaseDataProvider();
