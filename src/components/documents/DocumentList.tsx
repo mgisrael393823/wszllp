@@ -176,7 +176,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ limit, caseId }) => {
         <div>
           <h3 className="text-sm font-medium text-red-800">Error loading documents</h3>
           <p className="text-sm text-red-700 mt-1">
-            {error?.message || 'Failed to load documents. Please try again.'}
+            {typeof error === 'string' ? error : error?.message || 'Failed to load documents. Please try again.'}
           </p>
         </div>
       </div>

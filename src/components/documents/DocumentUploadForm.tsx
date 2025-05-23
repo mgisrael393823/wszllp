@@ -96,17 +96,11 @@ const DocumentUploadForm: React.FC<DocumentUploadFormProps> = ({
   const acceptedFileTypes = '.pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
   const validateFile = (file: File): string | null => {
-    // Check file type
-    const allowedTypes = [
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    ];
-    
+    // Check file extension first (more reliable than MIME type)
     const allowedExtensions = ['.pdf', '.doc', '.docx'];
     const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
     
-    if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
+    if (!allowedExtensions.includes(fileExtension)) {
       return 'Only PDF, DOC, and DOCX files are allowed';
     }
 
@@ -133,7 +127,7 @@ const DocumentUploadForm: React.FC<DocumentUploadFormProps> = ({
         id: `${Date.now()}-${i}`,
         progress: 0,
         status: error ? 'error' : 'pending',
-        error
+        error: error || undefined
       });
     }
 
@@ -358,7 +352,7 @@ const DocumentUploadForm: React.FC<DocumentUploadFormProps> = ({
               label="Case"
               name="caseId"
               value={selectedCaseId}
-              onChange={(e) => setSelectedCaseId(e.target.value)}
+              onChange={(value) => setSelectedCaseId(value)}
               options={[
                 { 
                   value: '', 
@@ -378,7 +372,7 @@ const DocumentUploadForm: React.FC<DocumentUploadFormProps> = ({
               label="Document Type"
               name="documentType"
               value={documentType}
-              onChange={(e) => setDocumentType(e.target.value)}
+              onChange={(value) => setDocumentType(value)}
               options={documentTypes}
               required
             />
@@ -449,7 +443,9 @@ const DocumentUploadForm: React.FC<DocumentUploadFormProps> = ({
                           {(fileObj.file.size / 1024 / 1024).toFixed(2)} MB
                         </p>
                         {fileObj.error && (
-                          <p className="text-xs text-red-600 mt-1">{fileObj.error}</p>
+                          <p className="text-xs text-red-600 mt-1">
+                            {typeof fileObj.error === 'string' ? fileObj.error : 'Upload error occurred'}
+                          </p>
                         )}
                       </div>
                     </div>
