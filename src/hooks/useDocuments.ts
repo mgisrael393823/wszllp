@@ -101,7 +101,7 @@ export function useDocuments(limit?: number, filters?: DocumentFilters, page: nu
               caseId: doc.case_id,
               type: doc.type,
               fileURL: doc.file_url || doc.fileURL, // Handle both snake_case and camelCase
-              originalFilename: undefined,
+              originalFilename: doc.original_filename,
               status: doc.status,
               serviceDate: doc.service_date,
               createdAt: doc.created_at,
@@ -169,7 +169,7 @@ export async function createDocument(document: Omit<Document, 'docId' | 'created
         file_url: document.fileURL,
         status: document.status,
         service_date: document.serviceDate || null,
-        // original_filename: document.originalFilename || null, // Column doesn't exist yet
+        original_filename: document.originalFilename || null,
         created_at: now,
         updated_at: now
       })
