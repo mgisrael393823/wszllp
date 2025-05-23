@@ -1,16 +1,23 @@
-import React, { useState } from 'react';
-import { Plus, Filter, FileText } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Plus, Filter, FileText, AlertCircle } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Table from '../ui/Table';
 import Pagination from '../ui/Pagination';
 import Input from '../ui/Input';
+// DEBUGGING: Switch between real and mock data
+import { useDocuments } from '../../hooks/useDocuments';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '../../context/ToastContext';
 
 interface DocumentListProps {
   limit?: number;
+  caseId?: string;
 }
 
-const DocumentList: React.FC<DocumentListProps> = ({ limit }) => {
+const DocumentList: React.FC<DocumentListProps> = ({ limit, caseId }) => {
+  const navigate = useNavigate();
+  const { addToast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [typeFilter, setTypeFilter] = useState<string>('');
@@ -18,103 +25,38 @@ const DocumentList: React.FC<DocumentListProps> = ({ limit }) => {
   
   const itemsPerPage = 10;
 
-  // Mock documents data
-  const documents = [
-    {
-      docId: '1',
-      type: 'Complaint',
-      caseTitle: 'Smith Property v. John Doe',
-      fileURL: 'smith_vs_doe_complaint.pdf',
-      status: 'Served',
-      serviceDate: '2023-05-05',
-      createdAt: '2023-05-01'
-    },
-    {
-      docId: '2',
-      type: 'Summons',
-      caseTitle: 'Smith Property v. John Doe',
-      fileURL: 'smith_vs_doe_summons.pdf',
-      status: 'Served',
-      serviceDate: '2023-05-05',
-      createdAt: '2023-05-01'
-    },
-    {
-      docId: '3',
-      type: 'Complaint',
-      caseTitle: 'Oak Apartments v. Jane Smith',
-      fileURL: 'oak_vs_smith_complaint.pdf',
-      status: 'Served',
-      serviceDate: '2023-05-06',
-      createdAt: '2023-05-02'
-    },
-    {
-      docId: '4',
-      type: 'Summons',
-      caseTitle: 'Oak Apartments v. Jane Smith',
-      fileURL: 'oak_vs_smith_summons.pdf',
-      status: 'Served',
-      serviceDate: '2023-05-06',
-      createdAt: '2023-05-02'
-    },
-    {
-      docId: '5',
-      type: 'Complaint',
-      caseTitle: 'Riverside Properties v. Michael Johnson',
-      fileURL: 'riverside_vs_johnson_complaint.pdf',
-      status: 'Pending',
-      serviceDate: null,
-      createdAt: '2023-05-10'
-    },
-    {
-      docId: '6',
-      type: 'Affidavit',
-      caseTitle: 'Smith Property v. John Doe',
-      fileURL: 'smith_vs_doe_affidavit.pdf',
-      status: 'Pending',
-      serviceDate: null,
-      createdAt: '2023-05-12'
-    },
-    {
-      docId: '7',
-      type: 'Motion',
-      caseTitle: 'Smith Property v. John Doe',
-      fileURL: 'smith_vs_doe_motion_for_default.pdf',
-      status: 'Pending',
-      serviceDate: null,
-      createdAt: '2023-05-15'
-    },
-    {
-      docId: '8',
-      type: 'Order',
-      caseTitle: 'Oak Apartments v. Jane Smith',
-      fileURL: 'oak_vs_smith_eviction_order.pdf',
-      status: 'Failed',
-      serviceDate: null,
-      createdAt: '2023-05-18'
-    }
-  ];
+  // Memoize filters to prevent infinite re-renders
+  const filters = useMemo(() => ({
+    type: typeFilter,
+    status: statusFilter,
+    searchTerm: searchTerm,
+    caseId: caseId
+  }), [typeFilter, statusFilter, searchTerm, caseId]);
 
-  // Filter documents
-  const filteredDocuments = documents.filter(doc => {
-    const matchesSearch = 
-      doc.fileURL.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doc.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doc.caseTitle.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesType = typeFilter ? doc.type === typeFilter : true;
-    const matchesStatus = statusFilter ? doc.status === statusFilter : true;
-    
-    return matchesSearch && matchesType && matchesStatus;
-  });
-
-  // Limit documents if specified
-  const limitedDocuments = limit ? filteredDocuments.slice(0, limit) : filteredDocuments;
+  // Use the Supabase hook for documents
+  const { 
+    documents, 
+    isLoading, 
+    error, 
+    totalCount 
+  } = useDocuments(
+    limit, 
+    filters,
+    currentPage,
+    itemsPerPage
+  );
   
-  // Paginate if not limiting
-  const paginatedDocuments = !limit ? limitedDocuments.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  ) : limitedDocuments;
+  // Show error toast if data fetching fails
+  useEffect(() => {
+    if (error) {
+      addToast({
+        type: 'error',
+        title: 'Error Loading Documents',
+        message: error.message || 'Failed to load documents. Please try again.',
+        duration: 5000
+      });
+    }
+  }, [error, addToast]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -143,7 +85,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ limit }) => {
   const columns = [
     {
       header: 'Document',
-      accessor: (item: typeof documents[0]) => (
+      accessor: (item: any) => (
         <div className="flex items-center">
           <FileText size={18} className="text-gray-400 mr-2" />
           <div>
@@ -158,12 +100,14 @@ const DocumentList: React.FC<DocumentListProps> = ({ limit }) => {
     },
     {
       header: 'Case',
-      accessor: 'caseTitle',
+      accessor: (item: any) => (
+        item.case ? `${item.case.plaintiff} v. ${item.case.defendant}` : 'Unknown Case'
+      ),
       sortable: true,
     },
     {
       header: 'Status',
-      accessor: (item: typeof documents[0]) => (
+      accessor: (item: any) => (
         <span 
           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
             ${item.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 
@@ -178,23 +122,52 @@ const DocumentList: React.FC<DocumentListProps> = ({ limit }) => {
     },
     {
       header: 'Service Date',
-      accessor: (item: typeof documents[0]) => 
+      accessor: (item: any) => 
         item.serviceDate ? new Date(item.serviceDate).toLocaleDateString() : 'Not served',
       sortable: false,
     },
   ];
 
+  // Error display component
+  const ErrorMessage = () => (
+    <div className="bg-red-50 border border-red-200 rounded-md p-4 my-4">
+      <div className="flex">
+        <AlertCircle size={20} className="text-red-500 mr-2" />
+        <div>
+          <h3 className="text-sm font-medium text-red-800">Error loading documents</h3>
+          <p className="text-sm text-red-700 mt-1">
+            {error?.message || 'Failed to load documents. Please try again.'}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Loading state component
+  const LoadingState = () => (
+    <div className="py-12 text-center">
+      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mb-4"></div>
+      <p className="text-neutral-500">Loading documents...</p>
+    </div>
+  );
+
   // Simplified view for when a limit is provided
   if (limit) {
     return (
       <div>
-        <Table 
-          data={paginatedDocuments}
-          columns={columns}
-          keyField="docId"
-          onRowClick={(item) => console.log('Clicked document:', item.docId)}
-          emptyMessage="No documents found. Add a new document to get started."
-        />
+        {error && <ErrorMessage />}
+        
+        {isLoading ? (
+          <LoadingState />
+        ) : (
+          <Table 
+            data={documents}
+            columns={columns}
+            keyField="docId"
+            onRowClick={(item) => navigate(`/documents/${item.docId}`)}
+            emptyMessage="No documents found. Add a new document to get started."
+          />
+        )}
       </div>
     );
   }
@@ -209,7 +182,11 @@ const DocumentList: React.FC<DocumentListProps> = ({ limit }) => {
             Manage legal documents and track their service status
           </p>
         </div>
-        <Button variant="primary" icon={<Plus size={16} />}>
+        <Button 
+          variant="primary" 
+          icon={<Plus size={16} />}
+          onClick={() => navigate('/documents/new')}
+        >
           Add Document
         </Button>
       </div>
@@ -254,16 +231,22 @@ const DocumentList: React.FC<DocumentListProps> = ({ limit }) => {
           </div>
         </div>
 
-        <Table 
-          data={paginatedDocuments}
-          columns={columns}
-          keyField="docId"
-          onRowClick={(item) => console.log('Clicked document:', item.docId)}
-          emptyMessage="No documents found. Add a new document to get started."
-        />
+        {error && <ErrorMessage />}
+        
+        {isLoading ? (
+          <LoadingState />
+        ) : (
+          <Table 
+            data={documents}
+            columns={columns}
+            keyField="docId"
+            onRowClick={(item) => navigate(`/documents/${item.docId}`)}
+            emptyMessage="No documents found. Add a new document to get started."
+          />
+        )}
         
         <Pagination
-          totalItems={filteredDocuments.length}
+          totalItems={totalCount}
           itemsPerPage={itemsPerPage}
           currentPage={currentPage}
           onPageChange={handlePageChange}
