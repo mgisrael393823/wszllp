@@ -8,6 +8,7 @@ import Select from '../ui/Select';
 import { supabase } from '../../lib/supabaseClient';
 import { useToast } from '../../context/ToastContext';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface DocumentUploadProps {}
 
 const DocumentUpload: React.FC<DocumentUploadProps> = () => {
