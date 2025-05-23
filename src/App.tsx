@@ -11,6 +11,7 @@ import MainLayout from './components/layout/MainLayout';
 import DashboardHome from './components/dashboard/DashboardHome';
 import CaseList from './components/cases/CaseList';
 import CaseDetail from './components/cases/CaseDetail';
+import NewCasePage from './components/cases/NewCasePage';
 import CasesPage from './components/cases/CasesPage';
 import HearingsPage from './components/hearings/HearingsPage';
 import DocumentList from './components/documents/DocumentList';
@@ -85,6 +86,7 @@ const AppContent = () => {
         <Route path="/dashboard" element={<DashboardHome />} />
         <Route path="/cases" element={<CasesPage />} />
         <Route path="/cases/list" element={<CaseList />} />
+        <Route path="/cases/new" element={<NewCasePage />} />
         <Route path="/cases/:id" element={<CaseDetail />} />
         <Route path="/hearings/*" element={<HearingsPage />} />
         <Route path="/calendar" element={<CalendarPage />} />

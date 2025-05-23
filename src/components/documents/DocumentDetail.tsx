@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Download, Eye, Edit, Trash2, FileText, Calendar, User, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Download, Eye, Edit, Trash2, FileText, User, AlertCircle, ExternalLink } from 'lucide-react';
+import { format } from 'date-fns';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import { useDocuments } from '../../hooks/useDocuments';
 import { useToast } from '../../context/ToastContext';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface DocumentDetailProps {}
 
 const DocumentDetail: React.FC<DocumentDetailProps> = () => {
@@ -95,10 +97,13 @@ const DocumentDetail: React.FC<DocumentDetailProps> = () => {
   
   if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <div className="animate-pulse space-y-6">
+          <div className="flex items-center space-x-4">
+            <div className="h-10 w-32 bg-neutral-200 rounded"></div>
+            <div className="h-8 w-64 bg-neutral-200 rounded"></div>
+          </div>
+          <div className="h-96 bg-neutral-200 rounded"></div>
         </div>
       </div>
     );
@@ -106,10 +111,10 @@ const DocumentDetail: React.FC<DocumentDetailProps> = () => {
   
   if (error || !document) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
         <div className="flex items-center mb-6">
           <Button
-            variant="ghost"
+            variant="text"
             onClick={() => navigate('/documents')}
             icon={<ArrowLeft size={16} />}
           >
@@ -117,242 +122,276 @@ const DocumentDetail: React.FC<DocumentDetailProps> = () => {
           </Button>
         </div>
         
-        <div className="bg-red-50 border border-red-200 rounded-md p-4">
-          <div className="flex">
-            <AlertCircle size={20} className="text-red-500 mr-2" />
+        <Card variant="error" className="p-6">
+          <div className="flex items-start">
+            <AlertCircle size={20} className="text-error-500 mr-3 mt-0.5" />
             <div>
-              <h3 className="text-sm font-medium text-red-800">Document Not Found</h3>
-              <p className="text-sm text-red-700 mt-1">
+              <h3 className="text-sm font-semibold text-error-800 mb-1">Document Not Found</h3>
+              <p className="text-sm text-error-700">
                 {error || 'The requested document could not be found.'}
               </p>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
     );
   }
   
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
-      {/* Header with navigation */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+      {/* Header Section */}
+      <div className="mb-8">
+        {/* Back Navigation */}
+        <div className="mb-6">
           <Button
-            variant="ghost"
+            variant="text"
             onClick={() => navigate('/documents')}
             icon={<ArrowLeft size={16} />}
+            className="px-0"
           >
             Back to Documents
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">{document.type}</h1>
-            <p className="text-sm text-gray-500">
+        </div>
+
+        {/* Page Title and Actions */}
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+          <div className="flex-1">
+            <h1 className="text-2xl font-bold text-neutral-900 mb-2">
+              {document.type}
+            </h1>
+            <p className="text-base text-neutral-600">
               {document.case ? `${document.case.plaintiff} v. ${document.case.defendant}` : 'No case assigned'}
             </p>
           </div>
-        </div>
-        
-        <div className="flex items-center space-x-2">
-          {document.fileURL && (
-            <>
-              <Button
-                variant="outline"
-                onClick={handleViewFile}
-                icon={<Eye size={16} />}
-              >
-                View
-              </Button>
-              <Button
-                variant="outline"
-                onClick={handleDownload}
-                icon={<Download size={16} />}
-              >
-                Download
-              </Button>
-            </>
-          )}
-          <Button
-            variant="outline"
-            onClick={() => navigate(`/documents/${document.docId}/edit`)}
-            icon={<Edit size={16} />}
-          >
-            Edit
-          </Button>
-          <Button
-            variant="danger"
-            onClick={handleDelete}
-            icon={<Trash2 size={16} />}
-          >
-            Delete
-          </Button>
+          
+          <div className="flex flex-wrap gap-3">
+            {document.fileURL && (
+              <>
+                <Button
+                  variant="secondary"
+                  onClick={handleViewFile}
+                  icon={<ExternalLink size={16} />}
+                  className="min-w-24"
+                >
+                  View File
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleDownload}
+                  icon={<Download size={16} />}
+                  className="min-w-24"
+                >
+                  Download
+                </Button>
+              </>
+            )}
+            <Button
+              variant="outline"
+              onClick={() => navigate(`/documents/${document.docId}/edit`)}
+              icon={<Edit size={16} />}
+              className="min-w-16"
+            >
+              Edit
+            </Button>
+            <Button
+              variant="danger"
+              onClick={handleDelete}
+              icon={<Trash2 size={16} />}
+              className="min-w-20"
+            >
+              Delete
+            </Button>
+          </div>
         </div>
       </div>
-      
-      {/* Document Information */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          <Card>
-            <div className="p-6">
-              <h2 className="text-lg font-semibold mb-4">Document Details</h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+      {/* Main Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Primary Content - Document Details */}
+        <div className="lg:col-span-3">
+          <Card className="p-6 mb-6">
+            <div className="flex items-center mb-6">
+              <FileText size={20} className="text-primary-600 mr-3 flex-shrink-0" />
+              <h2 className="text-xl font-semibold text-neutral-900 leading-none">Document Details</h2>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Document Type
-                  </label>
-                  <p className="text-sm text-gray-900">{document.type}</p>
+                  <dt className="text-sm font-medium text-neutral-700">Document Type</dt>
+                  <dd className="text-base text-neutral-900 mt-1">{document.type}</dd>
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Status
-                  </label>
-                  <span 
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                      ${document.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 
-                        document.status === 'Served' ? 'bg-green-100 text-green-800' : 
-                          'bg-red-100 text-red-800'}`
-                    }
-                  >
-                    {document.status}
-                  </span>
+                  <dt className="text-sm font-medium text-neutral-700">Status</dt>
+                  <dd className="mt-1">
+                    <span 
+                      className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                        ${document.status === 'Pending' ? 'bg-warning-100 text-warning-800' : 
+                          document.status === 'Served' ? 'bg-success-100 text-success-800' : 
+                            'bg-error-100 text-error-800'}`
+                      }
+                    >
+                      {document.status}
+                    </span>
+                  </dd>
                 </div>
-                
-                {document.serviceDate && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Service Date
-                    </label>
-                    <p className="text-sm text-gray-900">
-                      {new Date(document.serviceDate).toLocaleDateString()}
-                    </p>
-                  </div>
-                )}
                 
                 {document.fileURL && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      File Name
-                    </label>
-                    <p className="text-sm text-gray-900">{getFilenameFromUrl(document.fileURL)}</p>
+                    <dt className="text-sm font-medium text-neutral-700">File Name</dt>
+                    <dd className="text-base text-neutral-900 mt-1 break-words">
+                      {getFilenameFromUrl(document.fileURL)}
+                    </dd>
                   </div>
                 )}
               </div>
               
-              {document.notes && (
-                <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Notes
-                  </label>
-                  <p className="text-sm text-gray-900 whitespace-pre-wrap">{document.notes}</p>
-                </div>
-              )}
-            </div>
-          </Card>
-          
-          {/* File Preview */}
-          {document.fileURL && (
-            <Card>
-              <div className="p-6">
-                <h2 className="text-lg font-semibold mb-4">File Preview</h2>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                  <FileText size={48} className="mx-auto text-gray-400 mb-4" />
-                  <p className="text-gray-600 mb-4">
-                    {getFilenameFromUrl(document.fileURL) || 'Document file'}
-                  </p>
-                  <div className="flex justify-center space-x-2">
-                    <Button
-                      variant="primary"
-                      onClick={handleViewFile}
-                      icon={<Eye size={16} />}
-                    >
-                      Open File
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={handleDownload}
-                      icon={<Download size={16} />}
-                    >
-                      Download
-                    </Button>
+              <div className="space-y-4">
+                {document.serviceDate && (
+                  <div>
+                    <dt className="text-sm font-medium text-neutral-700">Service Date</dt>
+                    <dd className="text-base text-neutral-900 mt-1">
+                      {format(new Date(document.serviceDate), 'MMMM d, yyyy')}
+                    </dd>
                   </div>
+                )}
+                
+                <div>
+                  <dt className="text-sm font-medium text-neutral-700">Created</dt>
+                  <dd className="text-base text-neutral-900 mt-1">
+                    {document.createdAt ? format(new Date(document.createdAt), 'MMMM d, yyyy') : 'Unknown'}
+                  </dd>
                 </div>
+                
+                {document.updatedAt && (
+                  <div>
+                    <dt className="text-sm font-medium text-neutral-700">Last Updated</dt>
+                    <dd className="text-base text-neutral-900 mt-1">
+                      {format(new Date(document.updatedAt), 'MMMM d, yyyy')}
+                    </dd>
+                  </div>
+                )}
               </div>
-            </Card>
-          )}
-        </div>
-        
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Case Information */}
-          {document.case && (
-            <Card>
-              <div className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Associated Case</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center">
-                    <User size={16} className="text-gray-400 mr-2" />
-                    <div>
-                      <p className="text-sm font-medium">Plaintiff</p>
-                      <p className="text-sm text-gray-600">{document.case.plaintiff}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center">
-                    <User size={16} className="text-gray-400 mr-2" />
-                    <div>
-                      <p className="text-sm font-medium">Defendant</p>
-                      <p className="text-sm text-gray-600">{document.case.defendant}</p>
-                    </div>
-                  </div>
+            </div>
+            
+            {document.notes && (
+              <div className="mt-6 pt-6 border-t border-neutral-200">
+                <dt className="text-sm font-medium text-neutral-700 mb-2">Notes</dt>
+                <dd className="text-base text-neutral-900 whitespace-pre-wrap">
+                  {document.notes}
+                </dd>
+              </div>
+            )}
+          </Card>
+
+          {/* File Preview Section */}
+          {document.fileURL && (
+            <Card className="p-6">
+              <div className="flex items-center mb-6">
+                <Eye size={20} className="text-primary-600 mr-3 flex-shrink-0" />
+                <h2 className="text-xl font-semibold text-neutral-900 leading-none">File Preview</h2>
+              </div>
+              
+              <div className="border-2 border-dashed border-neutral-300 rounded-lg p-8 text-center bg-neutral-50">
+                <FileText size={64} className="mx-auto text-neutral-400 mb-4" />
+                <p className="text-lg font-medium text-neutral-900 mb-2">
+                  {getFilenameFromUrl(document.fileURL) || 'Document file'}
+                </p>
+                <p className="text-sm text-neutral-600 mb-6">
+                  Click to view or download this document
+                </p>
+                <div className="flex flex-col sm:flex-row justify-center gap-3">
+                  <Button
+                    variant="primary"
+                    onClick={handleViewFile}
+                    icon={<ExternalLink size={16} />}
+                    className="min-w-32"
+                  >
+                    Open File
+                  </Button>
                   <Button
                     variant="outline"
-                    size="sm"
-                    onClick={() => navigate(`/cases/${document.case.id}`)}
-                    className="w-full mt-3"
+                    onClick={handleDownload}
+                    icon={<Download size={16} />}
+                    className="min-w-32"
                   >
-                    View Case Details
+                    Download
                   </Button>
                 </div>
               </div>
             </Card>
           )}
-          
-          {/* Document Metadata */}
-          <Card>
-            <div className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Document Information</h3>
-              <div className="space-y-3">
-                <div className="flex items-center">
-                  <Calendar size={16} className="text-gray-400 mr-2" />
-                  <div>
-                    <p className="text-sm font-medium">Created</p>
-                    <p className="text-sm text-gray-600">
-                      {document.createdAt ? new Date(document.createdAt).toLocaleDateString() : 'Unknown'}
-                    </p>
-                  </div>
-                </div>
-                
-                {document.updatedAt && (
-                  <div className="flex items-center">
-                    <Calendar size={16} className="text-gray-400 mr-2" />
-                    <div>
-                      <p className="text-sm font-medium">Last Updated</p>
-                      <p className="text-sm text-gray-600">
-                        {new Date(document.updatedAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                )}
-                
-                <div className="flex items-center">
-                  <FileText size={16} className="text-gray-400 mr-2" />
-                  <div>
-                    <p className="text-sm font-medium">Document ID</p>
-                    <p className="text-sm text-gray-600 font-mono">{document.docId}</p>
-                  </div>
-                </div>
+        </div>
+        
+        {/* Sidebar - Case Information */}
+        <div className="lg:col-span-1">
+          {document.case && (
+            <Card className="p-6 mb-6">
+              <div className="flex items-center mb-4">
+                <User size={18} className="text-primary-600 mr-3 flex-shrink-0" />
+                <h3 className="text-lg font-semibold text-neutral-900 leading-none">
+                  Associated Case
+                </h3>
               </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <dt className="text-sm font-medium text-neutral-700">Plaintiff</dt>
+                  <dd className="text-sm text-neutral-900 mt-1">{document.case.plaintiff}</dd>
+                </div>
+                
+                <div>
+                  <dt className="text-sm font-medium text-neutral-700">Defendant</dt>
+                  <dd className="text-sm text-neutral-900 mt-1">{document.case.defendant}</dd>
+                </div>
+                
+                <Button
+                  variant="outline"
+                  onClick={() => navigate(`/cases/${document.case.id}`)}
+                  className="w-full mt-4"
+                >
+                  View Case Details
+                </Button>
+              </div>
+            </Card>
+          )}
+          
+          {/* Quick Actions */}
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold text-neutral-900 mb-4 leading-none">
+              Quick Actions
+            </h3>
+            
+            <div className="space-y-3">
+              <Button
+                variant="outline"
+                onClick={() => navigate(`/documents/${document.docId}/edit`)}
+                icon={<Edit size={16} />}
+                className="w-full justify-start"
+              >
+                Edit Document
+              </Button>
+              
+              {document.fileURL && (
+                <Button
+                  variant="outline"
+                  onClick={handleDownload}
+                  icon={<Download size={16} />}
+                  className="w-full justify-start"
+                >
+                  Download File
+                </Button>
+              )}
+              
+              <Button
+                variant="danger"
+                onClick={handleDelete}
+                icon={<Trash2 size={16} />}
+                className="w-full justify-start"
+              >
+                Delete Document
+              </Button>
             </div>
           </Card>
         </div>
