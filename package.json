@@ -20,7 +20,11 @@
     "test:auth": "node --loader ts-node/esm scripts/test-auth.js",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
-    "test": "npm run test:unit && npm run test:e2e"
+    "test": "npm run test:unit && npm run test:e2e",
+    "contacts:migrate": "npx tsx scripts/contacts-migration.ts",
+    "migration:validate": "npx tsx scripts/migration-validator.ts",
+    "contacts:seed": "npm run contacts:migrate seed",
+    "contacts:validate": "npm run migration:validate post-validate"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.13",

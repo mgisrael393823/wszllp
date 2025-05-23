@@ -93,7 +93,7 @@ const ContactForm: React.FC = () => {
         {
           onSuccess: (data) => {
             // Navigate to the newly created contact
-            navigate(`/contacts/${data.data.contactId}`);
+            navigate(`/contacts/${data.data.id}`);
           },
         }
       );
