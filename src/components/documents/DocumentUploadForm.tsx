@@ -45,7 +45,7 @@ const DocumentUploadForm: React.FC<DocumentUploadFormProps> = ({
         const { data, error } = await supabase
           .from('cases')
           .select('id, plaintiff, defendant')
-          .order('created_at', { ascending: false });
+          .order('createdat', { ascending: false });
 
         if (error) throw error;
 
