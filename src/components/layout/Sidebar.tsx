@@ -1,10 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { 
-  Briefcase, FileClock, FileText, Truck, CreditCard, 
-  Calendar, Users, Video, ChevronDown, Upload,
-  Settings, GitBranch, FilePlus, FileCode,
-  Bell, Palette, Home, Clock, LayoutDashboard, 
-  HelpCircle, ChevronRight
+  Briefcase, FileText, CreditCard, Users, Settings,
+  Home, LayoutDashboard, HelpCircle
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -24,7 +21,7 @@ interface NavItem {
   children?: NavItem[];
 }
 
-// Define navigation structure with hierarchical grouping - simplified for MVP
+// Define navigation structure - flat structure with top-level pages only
 const createNavStructure = (): NavItem[] => [
   { 
     label: 'Dashboard', 
@@ -36,35 +33,13 @@ const createNavStructure = (): NavItem[] => [
     label: 'Cases', 
     value: 'cases', 
     icon: <Briefcase size={20} />,
-    description: 'Manage your legal cases',
-    children: [
-      { 
-        label: 'Hearings', 
-        value: 'hearings', 
-        icon: <Clock size={20} />,
-        description: 'Upcoming court appearances'
-      }
-    ]
+    description: 'Manage your legal cases'
   },
   { 
     label: 'Documents', 
     value: 'documents', 
     icon: <FileText size={20} />,
-    description: 'Case documents and files',
-    children: [
-      { 
-        label: 'eFiling', 
-        value: 'efile', 
-        icon: <Upload size={20} />,
-        description: 'Electronic court filings'
-      },
-      { 
-        label: 'Service Logs', 
-        value: 'service-logs', 
-        icon: <Truck size={20} />,
-        description: 'Service of process tracking'
-      }
-    ]
+    description: 'Case documents and files'
   },
   { 
     label: 'Invoices', 
@@ -92,98 +67,45 @@ const Sidebar: React.FC<SidebarProps> = ({
   activeSection, 
   onSectionChange 
 }) => {
-  // Favorites functionality has been removed
-  
-  // Track recently visited sections
-  const [recentSections, setRecentSections] = useState<string[]>([]);
-  
-  // Track expanded nav panels (parent items)
-  const [expandedPanels, setExpandedPanels] = useState<string[]>([]);
-
   // Navigation structure
   const navStructure = createNavStructure();
   
-  // Update recent sections when active section changes
-  useEffect(() => {
-    if (activeSection && !recentSections.includes(activeSection)) {
-      setRecentSections(prev => [activeSection, ...prev.filter(s => s !== activeSection).slice(0, 4)]);
+  // Helper function to determine if a nav item should be highlighted
+  // based on current route (supports child routes)
+  const isNavItemActive = (itemValue: string): boolean => {
+    if (activeSection === itemValue) return true;
+    
+    // Special handling for parent pages with child routes
+    if (itemValue === 'cases' && ['hearings'].includes(activeSection)) {
+      return true;
+    }
+    if (itemValue === 'documents' && ['efile', 'service-logs'].includes(activeSection)) {
+      return true;
     }
     
-    // Expand parent panel of active section
-    const findParentItem = (items: NavItem[], value: string, parent?: string): string | undefined => {
-      for (const item of items) {
-        if (item.value === value) return parent;
-        if (item.children) {
-          const result = findParentItem(item.children, value, item.value);
-          if (result) return result;
-        }
-      }
-      return undefined;
-    };
-    
-    const parentItem = findParentItem(navStructure, activeSection);
-    if (parentItem && !expandedPanels.includes(parentItem)) {
-      setExpandedPanels(prev => [...prev, parentItem]);
-    }
-  }, [activeSection, navStructure, recentSections]);
-
-  // Toggle expansion of a navigation panel
-  const togglePanel = (panel: string, event?: React.MouseEvent) => {
-    event?.stopPropagation();
-    setExpandedPanels(prev => 
-      prev.includes(panel) 
-        ? prev.filter(p => p !== panel) 
-        : [...prev, panel]
-    );
+    return false;
   };
 
-  // Favorite functionality has been removed
 
-  // Find all nav items (flattened) for searching
-  const getAllNavItems = (items: NavItem[] = navStructure): NavItem[] => {
-    return items.reduce((acc: NavItem[], item) => {
-      acc.push(item);
-      if (item.children?.length) {
-        acc.push(...getAllNavItems(item.children));
-      }
-      return acc;
-    }, []);
-  };
-
-  // Get a specific nav item by value
-  const getNavItemByValue = (value: string): NavItem | undefined => {
-    return getAllNavItems().find(item => item.value === value);
-  };
-
-  // Render a navigation item with consistent spacing
-  const renderNavItem = (item: NavItem, depth = 0, isStandalone = false) => {
-    const isExpanded = expandedPanels.includes(item.value);
-    const hasChildren = item.children && item.children.length > 0;
+  // Render a navigation item - simplified for flat structure
+  const renderNavItem = (item: NavItem) => {
+    const isActive = isNavItemActive(item.value);
     
     return (
-      <div key={item.value} className={isStandalone ? "mb-0.5" : ""}>
+      <div key={item.value}>
         <div
-          onClick={() => {
-            onSectionChange(item.value);
-            if (hasChildren && !isCollapsed) {
-              togglePanel(item.value);
-            }
-          }}
+          onClick={() => onSectionChange(item.value)}
           className={`
             flex items-center w-full px-3 py-2 text-sm font-medium rounded-md transition-colors text-left cursor-pointer
-            ${activeSection === item.value 
+            ${isActive 
               ? 'bg-primary-50 text-primary-600' 
               : 'text-neutral-700 hover:bg-neutral-50'}
-            ${depth > 0 ? 'pl-6' : 'pl-3'} 
           `}
           role="button"
           tabIndex={0}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               onSectionChange(item.value);
-              if (hasChildren && !isCollapsed) {
-                togglePanel(item.value);
-              }
             }
           }}
           title={isCollapsed ? `${item.label}${item.description ? ` - ${item.description}` : ''}` : undefined}
@@ -203,42 +125,9 @@ const Sidebar: React.FC<SidebarProps> = ({
               {item.shortcut && (
                 <span className="ml-auto text-neutral-400 text-xs">{item.shortcut}</span>
               )}
-              
-              {hasChildren && !isCollapsed && (
-                <span 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    togglePanel(item.value, e);
-                  }}
-                  className="ml-1 text-neutral-400 cursor-pointer"
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    e.stopPropagation();
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      togglePanel(item.value, e);
-                    }
-                  }}
-                  aria-label={isExpanded ? "Collapse section" : "Expand section"}
-                >
-                  <ChevronRight
-                    size={16}
-                    className={`transform transition-transform ${isExpanded ? 'rotate-90' : ''}`}
-                    aria-hidden="true"
-                  />
-                </span>
-              )}
-              
             </>
           )}
         </div>
-        
-        {/* Render children if expanded */}
-        {hasChildren && isExpanded && !isCollapsed && (
-          <div className="ml-5 pl-2 mt-1 border-l border-neutral-200 space-y-1">
-            {item.children?.map(child => renderNavItem(child, depth + 1))}
-          </div>
-        )}
       </div>
     );
   };

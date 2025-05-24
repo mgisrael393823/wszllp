@@ -19,6 +19,7 @@ import DocumentManagement from './components/documents/DocumentManagement';
 import DocumentUploadForm from './components/documents/DocumentUploadForm';
 import DocumentDetail from './components/documents/DocumentDetail';
 import DocumentUpload from './components/documents/DocumentUpload';
+import DocumentOverview from './components/documents/DocumentOverview';
 import InvoiceList from './components/invoices/InvoiceList';
 import InvoiceDetail from './components/invoices/InvoiceDetail';
 import ServiceLogsList from './components/service-logs/ServiceLogsList';
@@ -85,21 +86,23 @@ const AppContent = () => {
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<DashboardHome />} />
-        <Route path="/cases" element={<CasesPage />} />
-        <Route path="/cases/list" element={<CaseList />} />
-        <Route path="/cases/new" element={<NewCasePage />} />
+        <Route path="/cases" element={<CasesPage />}>
+          <Route index element={<CaseList />} />
+          <Route path="new" element={<NewCasePage />} />
+          <Route path="hearings" element={<HearingsPage />} />
+        </Route>
         <Route path="/cases/:id" element={<CaseDetail />} />
-        <Route path="/hearings/*" element={<HearingsPage />} />
         <Route path="/calendar" element={<CalendarPage />} />
-        <Route path="/documents" element={<DocumentManagement />} />
-        <Route path="/documents/list" element={<DocumentList />} />
-        <Route path="/documents/upload" element={<DocumentUploadForm />} />
+        <Route path="/documents" element={<DocumentManagement />}>
+          <Route index element={<DocumentOverview />} />
+          <Route path="upload" element={<DocumentUploadForm />} />
+          <Route path="efile" element={<EFilePage />} />
+          <Route path="service-logs" element={<ServiceLogsList />} />
+        </Route>
         <Route path="/documents/new" element={<DocumentUpload />} />
         <Route path="/documents/:id" element={<DocumentDetail />} />
         <Route path="/invoices" element={<InvoiceList />} />
         <Route path="/invoices/:id" element={<InvoiceDetail />} />
-        <Route path="/service-logs" element={<ServiceLogsList />} />
-        <Route path="/efile" element={<EFilePage />} />
         <Route path="/workflows" element={<WorkflowDashboard />} />
         <Route path="/workflows/:id" element={<WorkflowDetail />} />
         <Route path="/templates" element={<TemplateList />} />
