@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, Edit, Trash2, FileText, AlertCircle, ExternalLink } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, parseISO, isValid } from 'date-fns';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import { useDocuments } from '../../hooks/useDocuments';
@@ -247,23 +247,50 @@ const DocumentDetail: React.FC = () => {
               <div>
                 <label className="text-sm font-medium text-gray-700">Service Date</label>
                 <p className="mt-1 text-sm text-gray-900">
-                  {format(new Date(document.serviceDate), 'MMM d, yyyy')}
+                  {(() => {
+                    const date = typeof document.serviceDate === 'string'
+                      ? parseISO(document.serviceDate)
+                      : document.serviceDate instanceof Date
+                      ? document.serviceDate
+                      : null;
+                    return date && isValid(date)
+                      ? format(date, 'MMM d, yyyy')
+                      : 'Invalid Date';
+                  })()}
                 </p>
               </div>
             )}
             
             <div>
               <label className="text-sm font-medium text-gray-700">Created</label>
-              <p className="mt-1 text-sm text-gray-900">
-                {document.createdAt ? format(new Date(document.createdAt), 'MMM d, yyyy') : 'Unknown'}
-              </p>
+                <p className="mt-1 text-sm text-gray-900">
+                  {document.createdAt ? (() => {
+                    const date = typeof document.createdAt === 'string'
+                      ? parseISO(document.createdAt)
+                      : document.createdAt instanceof Date
+                      ? document.createdAt
+                      : null;
+                    return date && isValid(date)
+                      ? format(date, 'MMM d, yyyy')
+                      : 'Invalid Date';
+                  })() : 'Unknown'}
+                </p>
             </div>
             
             {document.updatedAt && (
               <div>
                 <label className="text-sm font-medium text-gray-700">Last Updated</label>
                 <p className="mt-1 text-sm text-gray-900">
-                  {format(new Date(document.updatedAt), 'MMM d, yyyy')}
+                  {(() => {
+                    const date = typeof document.updatedAt === 'string'
+                      ? parseISO(document.updatedAt)
+                      : document.updatedAt instanceof Date
+                      ? document.updatedAt
+                      : null;
+                    return date && isValid(date)
+                      ? format(date, 'MMM d, yyyy')
+                      : 'Invalid Date';
+                  })()}
                 </p>
               </div>
             )}

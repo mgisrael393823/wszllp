@@ -215,7 +215,7 @@ function Table<T>({
           <tbody className={`bg-white divide-y divide-neutral-200 ${bodyClassName}`}>
             {sortedData.map((item, rowIndex) => (
               <tr
-                key={String(item[keyField])}
+                key={`${String(item[keyField])}-${rowIndex}`}
                 className={getRowStyles(item, rowIndex)}
                 onClick={() => onRowClick && onRowClick(item)}
               >

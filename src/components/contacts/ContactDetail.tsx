@@ -15,7 +15,7 @@ import {
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import { Contact } from '../../types/schema';
-import { format } from 'date-fns';
+import { format, parseISO, isValid } from 'date-fns';
 
 const ContactDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -195,9 +195,18 @@ const ContactDetail: React.FC = () => {
                 </div>
                 <div className="ml-3">
                   <p className="text-sm font-medium text-gray-900">Added</p>
-                  <p className="text-sm text-gray-500">
-                    {format(new Date(contact.created_at), 'MMMM d, yyyy')}
-                  </p>
+                    <p className="text-sm text-gray-500">
+                      {(() => {
+                        const date = typeof contact.created_at === 'string'
+                          ? parseISO(contact.created_at)
+                          : contact.created_at instanceof Date
+                          ? contact.created_at
+                          : null;
+                        return date && isValid(date)
+                          ? format(date, 'MMMM d, yyyy')
+                          : 'Invalid Date';
+                      })()}
+                    </p>
                 </div>
               </div>
             </div>

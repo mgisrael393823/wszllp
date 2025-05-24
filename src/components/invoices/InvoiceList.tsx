@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../../context/DataContext';
-import { format } from 'date-fns';
+import { format, parseISO, isValid } from 'date-fns';
 import { Plus, Filter, Search, DollarSign } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
@@ -41,9 +41,21 @@ const InvoiceList: React.FC = () => {
   });
 
   // Sort by newest first
-  const sortedInvoices = [...filteredInvoices].sort(
-    (a, b) => new Date(b.issueDate).getTime() - new Date(a.issueDate).getTime()
-  );
+  const sortedInvoices = [...filteredInvoices].sort((a, b) => {
+    const dateA = typeof a.issueDate === 'string'
+      ? parseISO(a.issueDate)
+      : a.issueDate instanceof Date
+      ? a.issueDate
+      : null;
+    const dateB = typeof b.issueDate === 'string'
+      ? parseISO(b.issueDate)
+      : b.issueDate instanceof Date
+      ? b.issueDate
+      : null;
+    const timeA = dateA && isValid(dateA) ? dateA.getTime() : 0;
+    const timeB = dateB && isValid(dateB) ? dateB.getTime() : 0;
+    return timeB - timeA;
+  });
 
   // Paginate
   const paginatedInvoices = sortedInvoices.slice(
@@ -74,9 +86,15 @@ const InvoiceList: React.FC = () => {
     const dates = new Set<string>();
     
     state.invoices.forEach(invoice => {
-      const date = new Date(invoice.issueDate);
-      const yearMonth = format(date, 'yyyy-MM');
-      dates.add(yearMonth);
+      const date = typeof invoice.issueDate === 'string'
+        ? parseISO(invoice.issueDate)
+        : invoice.issueDate instanceof Date
+        ? invoice.issueDate
+        : null;
+      if (date && isValid(date)) {
+        const yearMonth = format(date, 'yyyy-MM');
+        dates.add(yearMonth);
+      }
     });
     
     Array.from(dates).sort().reverse().forEach(date => {
@@ -109,14 +127,30 @@ const InvoiceList: React.FC = () => {
     },
     {
       header: 'Issue Date',
-      accessor: (item: typeof state.invoices[0]) => 
-        format(new Date(item.issueDate), 'MMM d, yyyy'),
+      accessor: (item: typeof state.invoices[0]) => {
+        const date = typeof item.issueDate === 'string'
+          ? parseISO(item.issueDate)
+          : item.issueDate instanceof Date
+          ? item.issueDate
+          : null;
+        return date && isValid(date)
+          ? format(date, 'MMM d, yyyy')
+          : 'Invalid Date';
+      },
       sortable: true,
     },
     {
       header: 'Due Date',
-      accessor: (item: typeof state.invoices[0]) => 
-        format(new Date(item.dueDate), 'MMM d, yyyy'),
+      accessor: (item: typeof state.invoices[0]) => {
+        const date = typeof item.dueDate === 'string'
+          ? parseISO(item.dueDate)
+          : item.dueDate instanceof Date
+          ? item.dueDate
+          : null;
+        return date && isValid(date)
+          ? format(date, 'MMM d, yyyy')
+          : 'Invalid Date';
+      },
       sortable: true,
     },
     {

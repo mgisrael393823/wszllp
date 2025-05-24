@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useData } from '../../context/DataContext';
-import { format } from 'date-fns';
+import { format, parseISO, isValid } from 'date-fns';
 import { ArrowLeft, Plus, DollarSign, Calendar } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
@@ -41,8 +41,16 @@ const InvoiceDetail: React.FC = () => {
   const paymentPlanColumns = [
     {
       header: 'Due Date',
-      accessor: (item: typeof state.paymentPlans[0]) => 
-        format(new Date(item.installmentDate), 'MMM d, yyyy'),
+      accessor: (item: typeof state.paymentPlans[0]) => {
+        const date = typeof item.installmentDate === 'string'
+          ? parseISO(item.installmentDate)
+          : item.installmentDate instanceof Date
+          ? item.installmentDate
+          : null;
+        return date && isValid(date)
+          ? format(date, 'MMM d, yyyy')
+          : 'Invalid Date';
+      },
       sortable: true,
     },
     {
@@ -118,18 +126,36 @@ const InvoiceDetail: React.FC = () => {
                 </span>
               </dd>
             </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">Issue Date</dt>
-              <dd className="mt-1 text-sm text-gray-900">
-                {format(new Date(invoice.issueDate), 'MMMM d, yyyy')}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">Due Date</dt>
-              <dd className="mt-1 text-sm text-gray-900">
-                {format(new Date(invoice.dueDate), 'MMMM d, yyyy')}
-              </dd>
-            </div>
+              <div>
+                <dt className="text-sm font-medium text-gray-500">Issue Date</dt>
+                <dd className="mt-1 text-sm text-gray-900">
+                  {(() => {
+                    const date = typeof invoice.issueDate === 'string'
+                      ? parseISO(invoice.issueDate)
+                      : invoice.issueDate instanceof Date
+                      ? invoice.issueDate
+                      : null;
+                    return date && isValid(date)
+                      ? format(date, 'MMMM d, yyyy')
+                      : 'Invalid Date';
+                  })()}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-sm font-medium text-gray-500">Due Date</dt>
+                <dd className="mt-1 text-sm text-gray-900">
+                  {(() => {
+                    const date = typeof invoice.dueDate === 'string'
+                      ? parseISO(invoice.dueDate)
+                      : invoice.dueDate instanceof Date
+                      ? invoice.dueDate
+                      : null;
+                    return date && isValid(date)
+                      ? format(date, 'MMMM d, yyyy')
+                      : 'Invalid Date';
+                  })()}
+                </dd>
+              </div>
           </dl>
         </Card>
 
