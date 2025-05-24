@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { DataProvider } from './context/DataContext';
 import { EFileProvider } from './context/EFileContext';
@@ -15,12 +15,15 @@ import NewCasePage from './components/cases/NewCasePage';
 import CasesPage from './components/cases/CasesPage';
 import HearingsPage from './components/hearings/HearingsPage';
 import DocumentList from './components/documents/DocumentList';
-import DocumentManagement from './components/documents/DocumentManagement';
 import DocumentUploadForm from './components/documents/DocumentUploadForm';
 import DocumentDetail from './components/documents/DocumentDetail';
 import DocumentUpload from './components/documents/DocumentUpload';
 import InvoiceList from './components/invoices/InvoiceList';
 import InvoiceDetail from './components/invoices/InvoiceDetail';
+
+const DocumentManagement = React.lazy(
+  () => import('./components/documents/DocumentManagement')
+);
 import ServiceLogsList from './components/service-logs/ServiceLogsList';
 import EFilePage from './components/efile/EFilePage';
 import AdminPage from './components/admin/AdminPage';
@@ -91,7 +94,14 @@ const AppContent = () => {
         <Route path="/cases/:id" element={<CaseDetail />} />
         <Route path="/hearings/*" element={<HearingsPage />} />
         <Route path="/calendar" element={<CalendarPage />} />
-        <Route path="/documents" element={<DocumentManagement />} />
+        <Route
+          path="/documents"
+          element={
+            <Suspense fallback={<div className="p-4">Loading…</div>}>
+              <DocumentManagement />
+            </Suspense>
+          }
+        />
         <Route path="/documents/list" element={<DocumentList />} />
         <Route path="/documents/upload" element={<DocumentUploadForm />} />
         <Route path="/documents/new" element={<DocumentUpload />} />

@@ -84,6 +84,14 @@ const DocumentManagement: React.FC = () => {
       </div>
     </div>
   );
+
+  const DocumentSkeleton = () => (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-pulse">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div key={i} className="document-card h-24" />
+      ))}
+    </div>
+  );
   
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -113,14 +121,20 @@ const DocumentManagement: React.FC = () => {
       {error && <ErrorMessage />}
       
       {/* Document Categories */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/documents/list?type=Complaint')}>
-          <div className="flex items-center">
-            <div className="bg-primary-100 p-3 rounded-lg">
-              <File className="h-6 w-6 text-primary-600" />
-            </div>
-            <div className="ml-4">
-              <h3 className="text-lg font-medium">Complaints</h3>
+      {isLoading ? (
+        <DocumentSkeleton />
+      ) : (
+        <div className="document-grid">
+          <Card
+            className="document-card hover:shadow-md transition-shadow cursor-pointer"
+            onClick={() => navigate('/documents/list?type=Complaint')}
+          >
+            <div className="flex items-center">
+              <div className="bg-primary-100 p-3 rounded-lg">
+                <File className="h-6 w-6 text-primary-600" />
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-medium">Complaints</h3>
               <p className="text-sm text-gray-500">
                 Case filings and complaints
                 {!isLoading && documentCounts['Complaint'] !== undefined && (
@@ -131,15 +145,18 @@ const DocumentManagement: React.FC = () => {
                 {isLoading && <Loader size={12} className="inline ml-2 animate-spin" />}
               </p>
             </div>
-          </div>
-        </Card>
-        
-        <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/documents/list?type=Summons')}>
-          <div className="flex items-center">
-            <div className="bg-success-100 p-3 rounded-lg">
-              <File className="h-6 w-6 text-success-600" />
             </div>
-            <div className="ml-4">
+          </Card>
+
+          <Card
+            className="document-card hover:shadow-md transition-shadow cursor-pointer"
+            onClick={() => navigate('/documents/list?type=Summons')}
+          >
+            <div className="flex items-center">
+              <div className="bg-success-100 p-3 rounded-lg">
+                <File className="h-6 w-6 text-success-600" />
+              </div>
+              <div className="ml-4">
               <h3 className="text-lg font-medium">Summons</h3>
               <p className="text-sm text-gray-500">
                 Summons and notices
@@ -151,15 +168,18 @@ const DocumentManagement: React.FC = () => {
                 {isLoading && <Loader size={12} className="inline ml-2 animate-spin" />}
               </p>
             </div>
-          </div>
-        </Card>
-        
-        <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/documents/list?type=Other')}>
-          <div className="flex items-center">
-            <div className="bg-secondary-100 p-3 rounded-lg">
-              <FolderOpen className="h-6 w-6 text-secondary-600" />
             </div>
-            <div className="ml-4">
+          </Card>
+
+          <Card
+            className="document-card hover:shadow-md transition-shadow cursor-pointer"
+            onClick={() => navigate('/documents/list?type=Other')}
+          >
+            <div className="flex items-center">
+              <div className="bg-secondary-100 p-3 rounded-lg">
+                <FolderOpen className="h-6 w-6 text-secondary-600" />
+              </div>
+              <div className="ml-4">
               <h3 className="text-lg font-medium">Other Documents</h3>
               <p className="text-sm text-gray-500">
                 Motions, orders, and other filings
@@ -174,9 +194,10 @@ const DocumentManagement: React.FC = () => {
                 {isLoading && <Loader size={12} className="inline ml-2 animate-spin" />}
               </p>
             </div>
-          </div>
-        </Card>
-      </div>
+            </div>
+          </Card>
+        </div>
+      )}
       
       {/* Recent Documents */}
       <div className="mt-8">
