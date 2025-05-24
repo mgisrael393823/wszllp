@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../../context/DataContext';
 import { supabase } from '../../lib/supabaseClient';
-import { format } from 'date-fns';
+import { format, parseISO, isValid } from 'date-fns';
 import { Plus, Filter, Search, Calendar } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
@@ -167,8 +167,17 @@ const CaseList: React.FC = () => {
     },
     {
       header: 'Intake Date',
-      accessor: (item: typeof state.cases[0]) => 
-        format(new Date(item.intakeDate), 'MMM d, yyyy'),
+      accessor: (item: typeof state.cases[0]) => {
+        const date = typeof item.intakeDate === 'string' 
+          ? parseISO(item.intakeDate) 
+          : item.intakeDate instanceof Date 
+          ? item.intakeDate 
+          : null;
+        
+        return date && isValid(date) 
+          ? format(date, 'MMM d, yyyy') 
+          : 'Invalid Date';
+      },
       sortable: true,
     },
   ];
