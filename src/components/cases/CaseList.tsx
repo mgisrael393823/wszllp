@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useData } from '../../context/DataContext';
 import { supabase } from '../../lib/supabaseClient';
 import { format } from 'date-fns';
 import { Plus, Filter, Search, Calendar } from 'lucide-react';
 import Card from '../ui/Card';
-import CaseSkeleton from './CaseSkeleton';
 import Button from '../ui/Button';
 import Table from '../ui/Table';
 import Pagination from '../ui/Pagination';
@@ -12,6 +12,7 @@ import Input from '../ui/Input';
 import CaseForm from './CaseForm';
 
 const CaseList: React.FC = () => {
+  const navigate = useNavigate();
   const { state, dispatch } = useData();
   const [isLoading, setIsLoading] = useState(true);
   
@@ -230,7 +231,10 @@ const CaseList: React.FC = () => {
         </div>
 
         {isLoading ? (
-          <CaseSkeleton />
+          <div className="py-12 text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mb-4"></div>
+            <p className="text-neutral-500">Loading cases...</p>
+          </div>
         ) : (
           <Table
             data={paginatedCases}
