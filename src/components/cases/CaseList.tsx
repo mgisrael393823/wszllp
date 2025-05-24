@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useData } from '../../context/DataContext';
 import { supabase } from '../../lib/supabaseClient';
 import { format } from 'date-fns';
@@ -11,6 +12,7 @@ import Input from '../ui/Input';
 import CaseForm from './CaseForm';
 
 const CaseList: React.FC = () => {
+  const navigate = useNavigate();
   const { state, dispatch } = useData();
   const [isLoading, setIsLoading] = useState(true);
   
@@ -234,7 +236,7 @@ const CaseList: React.FC = () => {
             <p className="text-neutral-500">Loading cases...</p>
           </div>
         ) : (
-          <Table 
+          <Table
             data={paginatedCases}
             columns={columns}
             keyField="caseId"

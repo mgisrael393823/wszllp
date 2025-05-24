@@ -36,13 +36,13 @@ const CasesPage: React.FC = () => {
       {/* Page Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-neutral-900">Cases</h1>
+          <h1 className="page-title">Cases</h1>
           <p className="text-neutral-600 mt-1">Manage your legal cases and proceedings</p>
         </div>
       </div>
 
       {/* Tab Navigation */}
-      <TabBar tabs={tabs} className="sticky top-0 bg-white z-10" />
+      <TabBar tabs={tabs} className="tab-bar sticky top-0 bg-white z-10" />
 
       {/* Tab Content */}
       <div className="min-h-96">
