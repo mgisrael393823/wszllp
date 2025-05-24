@@ -69,6 +69,11 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y xvfb
+
     - name: Cypress run
       uses: cypress-io/github-action@v6
       with:
@@ -77,10 +82,14 @@ jobs:
         wait-on: 'http://localhost:4173'
         spec: cypress/e2e/*.cy.js
         browser: chrome
+        headed: false
       env:
         # Don't include real credentials in CI
         CYPRESS_INCLUDE_CREDENTIALS: 0
         VITE_EFILE_BASE_URL: 'https://api.mock.example.com/v4'
+        # Mock Supabase for e2e tests
+        VITE_SUPABASE_URL: 'https://mock-project.supabase.co'
+        VITE_SUPABASE_ANON_KEY: 'mock-anon-key'
 
     - name: Archive test artifacts
       uses: actions/upload-artifact@v3
