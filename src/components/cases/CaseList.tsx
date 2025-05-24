@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../../context/DataContext';
 import { supabase } from '../../lib/supabaseClient';
-import { format } from 'date-fns';
+import { parseISO, isValid, format } from 'date-fns';
 import { Plus, Filter, Search, Calendar } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
@@ -108,29 +108,28 @@ const CaseList: React.FC = () => {
     setCurrentPage(page);
   };
 
-  // Generate month/year options for date filter
+  // Generate date options for the filter
   const getDateFilterOptions = () => {
-    const options: {value: string, label: string}[] = [
-      { value: '', label: 'All Dates' }
-    ];
-    
-    const dates = new Set<string>();
-    
-    state.cases.forEach(c => {
-      const date = new Date(c.intakeDate);
-      const yearMonth = format(date, 'yyyy-MM');
-      dates.add(yearMonth);
-    });
-    
-    Array.from(dates).sort().reverse().forEach(date => {
-      const [year, month] = date.split('-');
-      options.push({
-        value: date,
-        label: `${new Date(parseInt(year), parseInt(month) - 1).toLocaleString('default', { month: 'long' })} ${year}`
-      });
-    });
-    
-    return options;
+    const opts = state.cases
+      .map(c => c.intakeDate)
+      .map(raw => {
+        const date =
+          typeof raw === 'string'
+            ? parseISO(raw)
+            : raw instanceof Date
+              ? raw
+              : null;
+
+        if (!date || !isValid(date)) return null;
+
+        return {
+          label: format(date, 'MM/dd/yyyy'),
+          value: raw,
+        };
+      })
+      .filter((v): v is { label: string; value: string } => v !== null);
+
+    return opts.length > 0 ? opts : [];
   };
 
   // Table columns definition
@@ -167,8 +166,16 @@ const CaseList: React.FC = () => {
     },
     {
       header: 'Intake Date',
-      accessor: (item: typeof state.cases[0]) => 
-        format(new Date(item.intakeDate), 'MMM d, yyyy'),
+      accessor: (item: typeof state.cases[0]) => {
+        const raw = item.intakeDate;
+        const date =
+          typeof raw === 'string'
+            ? parseISO(raw)
+            : raw instanceof Date
+              ? raw
+              : null;
+        return date && isValid(date) ? format(date, 'MMM d, yyyy') : '';
+      },
       sortable: true,
     },
   ];
