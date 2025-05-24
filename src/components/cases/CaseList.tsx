@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabaseClient';
 import { format } from 'date-fns';
 import { Plus, Filter, Search, Calendar } from 'lucide-react';
 import Card from '../ui/Card';
+import CaseSkeleton from './CaseSkeleton';
 import Button from '../ui/Button';
 import Table from '../ui/Table';
 import Pagination from '../ui/Pagination';
@@ -229,12 +230,9 @@ const CaseList: React.FC = () => {
         </div>
 
         {isLoading ? (
-          <div className="py-12 text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mb-4"></div>
-            <p className="text-neutral-500">Loading cases...</p>
-          </div>
+          <CaseSkeleton />
         ) : (
-          <Table 
+          <Table
             data={paginatedCases}
             columns={columns}
             keyField="caseId"
