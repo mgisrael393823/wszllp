@@ -106,14 +106,30 @@ const CaseDetail: React.FC = () => {
     },
     {
       header: 'Date',
-      accessor: (item: typeof state.hearings[0]) => 
-        format(new Date(item.hearingDate), 'MMM d, yyyy'),
+      accessor: (item: typeof state.hearings[0]) => {
+        const date = typeof item.hearingDate === 'string'
+          ? parseISO(item.hearingDate)
+          : item.hearingDate instanceof Date
+          ? item.hearingDate
+          : null;
+        return date && isValid(date)
+          ? format(date, 'MMM d, yyyy')
+          : 'Invalid Date';
+      },
       sortable: true,
     },
     {
       header: 'Time',
-      accessor: (item: typeof state.hearings[0]) => 
-        format(new Date(item.hearingDate), 'h:mm a'),
+      accessor: (item: typeof state.hearings[0]) => {
+        const date = typeof item.hearingDate === 'string'
+          ? parseISO(item.hearingDate)
+          : item.hearingDate instanceof Date
+          ? item.hearingDate
+          : null;
+        return date && isValid(date)
+          ? format(date, 'h:mm a')
+          : 'Invalid Date';
+      },
       sortable: false,
     },
     {
@@ -147,8 +163,16 @@ const CaseDetail: React.FC = () => {
     },
     {
       header: 'Created',
-      accessor: (item: typeof state.documents[0]) => 
-        format(new Date(item.createdAt), 'MMM d, yyyy'),
+      accessor: (item: typeof state.documents[0]) => {
+        const date = typeof item.createdAt === 'string'
+          ? parseISO(item.createdAt)
+          : item.createdAt instanceof Date
+          ? item.createdAt
+          : null;
+        return date && isValid(date)
+          ? format(date, 'MMM d, yyyy')
+          : 'Invalid Date';
+      },
       sortable: true,
     },
     {
@@ -178,8 +202,16 @@ const CaseDetail: React.FC = () => {
     },
     {
       header: 'Issue Date',
-      accessor: (item: typeof state.invoices[0]) => 
-        format(new Date(item.issueDate), 'MMM d, yyyy'),
+      accessor: (item: typeof state.invoices[0]) => {
+        const date = typeof item.issueDate === 'string'
+          ? parseISO(item.issueDate)
+          : item.issueDate instanceof Date
+          ? item.issueDate
+          : null;
+        return date && isValid(date)
+          ? format(date, 'MMM d, yyyy')
+          : 'Invalid Date';
+      },
       sortable: true,
     },
     {
@@ -200,8 +232,16 @@ const CaseDetail: React.FC = () => {
   const activityColumns = [
     {
       header: 'Time',
-      accessor: (item: typeof state.auditLogs[0]) => 
-        format(new Date(item.timestamp), 'MMM d, h:mm a'),
+      accessor: (item: typeof state.auditLogs[0]) => {
+        const date = typeof item.timestamp === 'string'
+          ? parseISO(item.timestamp)
+          : item.timestamp instanceof Date
+          ? item.timestamp
+          : null;
+        return date && isValid(date)
+          ? format(date, 'MMM d, h:mm a')
+          : 'Invalid Date';
+      },
       sortable: true,
     },
     {
@@ -393,7 +433,16 @@ const CaseDetail: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-900">Next Hearing</p>
                 <p className="text-xs text-primary-600">
-                  {format(new Date(scheduledHearing.hearingDate), 'MMMM d, yyyy')} at {format(new Date(scheduledHearing.hearingDate), 'h:mm a')}
+                  {(() => {
+                    const date = typeof scheduledHearing.hearingDate === 'string'
+                      ? parseISO(scheduledHearing.hearingDate)
+                      : scheduledHearing.hearingDate instanceof Date
+                      ? scheduledHearing.hearingDate
+                      : null;
+                    return date && isValid(date)
+                      ? `${format(date, 'MMMM d, yyyy')} at ${format(date, 'h:mm a')}`
+                      : 'Invalid Date';
+                  })()}
                 </p>
               </div>
             </div>
@@ -434,7 +483,16 @@ const CaseDetail: React.FC = () => {
                   Intake Date
                 </dt>
                 <dd className="mt-1 text-sm text-gray-900">
-                  {format(new Date(caseData.intakeDate), 'MMMM d, yyyy')}
+                  {(() => {
+                    const date = typeof caseData.intakeDate === 'string'
+                      ? parseISO(caseData.intakeDate)
+                      : caseData.intakeDate instanceof Date
+                      ? caseData.intakeDate
+                      : null;
+                    return date && isValid(date)
+                      ? format(date, 'MMMM d, yyyy')
+                      : 'Invalid Date';
+                  })()}
                 </dd>
               </div>
             </dl>

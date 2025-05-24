@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useData } from '../../context/DataContext';
-import { format } from 'date-fns';
+import { format, parseISO, isValid } from 'date-fns';
 import { Plus, Filter, Truck } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
@@ -41,9 +41,21 @@ const ServiceLogsList: React.FC = () => {
   });
 
   // Sort by newest attempt date first
-  const sortedLogs = [...filteredLogs].sort(
-    (a, b) => new Date(b.attemptDate).getTime() - new Date(a.attemptDate).getTime()
-  );
+  const sortedLogs = [...filteredLogs].sort((a, b) => {
+    const dateA = typeof a.attemptDate === 'string'
+      ? parseISO(a.attemptDate)
+      : a.attemptDate instanceof Date
+      ? a.attemptDate
+      : null;
+    const dateB = typeof b.attemptDate === 'string'
+      ? parseISO(b.attemptDate)
+      : b.attemptDate instanceof Date
+      ? b.attemptDate
+      : null;
+    const timeA = dateA && isValid(dateA) ? dateA.getTime() : 0;
+    const timeB = dateB && isValid(dateB) ? dateB.getTime() : 0;
+    return timeB - timeA;
+  });
 
   // Paginate
   const paginatedLogs = sortedLogs.slice(
@@ -114,8 +126,16 @@ const ServiceLogsList: React.FC = () => {
     },
     {
       header: 'Attempt Date',
-      accessor: (item: typeof state.serviceLogs[0]) => 
-        format(new Date(item.attemptDate), 'MMM d, yyyy h:mm a'),
+      accessor: (item: typeof state.serviceLogs[0]) => {
+        const date = typeof item.attemptDate === 'string'
+          ? parseISO(item.attemptDate)
+          : item.attemptDate instanceof Date
+          ? item.attemptDate
+          : null;
+        return date && isValid(date)
+          ? format(date, 'MMM d, yyyy h:mm a')
+          : 'Invalid Date';
+      },
       sortable: false,
     },
     {
