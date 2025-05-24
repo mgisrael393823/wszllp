@@ -117,9 +117,16 @@ const CaseList: React.FC = () => {
     const dates = new Set<string>();
     
     state.cases.forEach(c => {
-      const date = new Date(c.intakeDate);
-      const yearMonth = format(date, 'yyyy-MM');
-      dates.add(yearMonth);
+      const date = typeof c.intakeDate === 'string' 
+        ? parseISO(c.intakeDate) 
+        : c.intakeDate instanceof Date 
+        ? c.intakeDate 
+        : null;
+      
+      if (date && isValid(date)) {
+        const yearMonth = format(date, 'yyyy-MM');
+        dates.add(yearMonth);
+      }
     });
     
     Array.from(dates).sort().reverse().forEach(date => {
