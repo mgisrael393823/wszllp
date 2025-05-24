@@ -42,12 +42,6 @@ const createNavStructure = (): NavItem[] => [
     description: 'Case documents and files'
   },
   { 
-    label: 'Invoices', 
-    value: 'invoices', 
-    icon: <CreditCard size={20} />,
-    description: 'Billing and payments'
-  },
-  { 
     label: 'Contacts', 
     value: 'contacts', 
     icon: <Users size={20} />,

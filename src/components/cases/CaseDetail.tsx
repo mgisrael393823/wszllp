@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useData } from '../../context/DataContext';
-import { format } from 'date-fns';
+import { format, parseISO, isValid } from 'date-fns';
 import { 
   ArrowLeft, Plus, Calendar, FileText, Edit, 
   Clock, AlertCircle, User, CreditCard, Download,
@@ -297,7 +297,16 @@ const CaseDetail: React.FC = () => {
               {caseData.plaintiff} v. {caseData.defendant}
             </h1>
             <p className="mt-1 text-sm text-gray-500">
-              Case ID: {caseData.caseId} | Created {format(new Date(caseData.createdAt), 'MMMM d, yyyy')}
+              Case ID: {caseData.caseId} | Created {(() => {
+                const date = typeof caseData.createdAt === 'string' 
+                  ? parseISO(caseData.createdAt) 
+                  : caseData.createdAt instanceof Date 
+                  ? caseData.createdAt 
+                  : null;
+                return date && isValid(date) 
+                  ? format(date, 'MMMM d, yyyy') 
+                  : 'Unknown';
+              })()}
             </p>
           </div>
         </div>
