@@ -159,8 +159,10 @@ const ProfilePage: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-2xl font-semibold mb-6">User Profile</h1>
+    <div className="page-container">
+      <div className="page-header">
+        <h1 className="page-title">User Profile</h1>
+      </div>
       
       <Card className="max-w-3xl mx-auto">
         <div className="p-6">

@@ -1,18 +1,21 @@
 import React from 'react';
-import { Outlet } from 'react-router-dom';
-import { FileText, Upload, Truck } from 'lucide-react';
+import { Outlet, useNavigate } from 'react-router-dom';
+import { FileText, Upload, Truck, Plus } from 'lucide-react';
 import TabBar, { TabItem } from '../ui/TabBar';
+import Button from '../ui/Button';
 
 /**
  * Document Management component
  * Central hub for all document-related features with tab navigation
  */
 const DocumentManagement: React.FC = () => {
+  const navigate = useNavigate();
+  
   // Define tabs for the Documents section
   const tabs: TabItem[] = [
     {
-      label: 'All Documents',
-      value: 'all',
+      label: 'Documents',
+      value: 'list',
       route: '/documents',
       icon: <FileText size={16} />
     },
@@ -37,22 +40,31 @@ const DocumentManagement: React.FC = () => {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
+    <div className="page-container">
       {/* Page Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-bold text-neutral-900">Documents</h1>
-          <p className="text-neutral-600 mt-1">Manage legal documents, filings, and service attempts</p>
+          <h1 className="page-title">Documents</h1>
+          <p className="page-subtitle">Manage legal documents, filings, and service attempts</p>
+        </div>
+        <div className="page-actions">
+          <Button 
+            variant="primary" 
+            icon={<Plus size={16} />}
+            onClick={() => navigate('/documents/new')}
+          >
+            Add Document
+          </Button>
         </div>
       </div>
 
       {/* Tab Navigation */}
-      <TabBar tabs={tabs} className="sticky top-0 bg-white z-10" />
+      <div className="sticky top-0 z-10 backdrop-blur-sm pb-2 -mx-6 px-6">
+        <TabBar tabs={tabs} />
+      </div>
 
       {/* Tab Content */}
-      <div className="min-h-96">
-        <Outlet />
-      </div>
+      <Outlet />
     </div>
   );
 };

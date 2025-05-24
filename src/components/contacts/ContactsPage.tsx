@@ -17,29 +17,27 @@ const ContactsPage: React.FC = () => {
   
   return (
     <ContactsProvider>
-      <div className="max-w-7xl mx-auto">
+      <div className="page-container">
         <Routes>
           <Route 
             path="/" 
             element={
               <>
                 {/* Page Header */}
-                <div className="mb-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h1 className="text-2xl font-bold text-gray-900">Contacts</h1>
-                      <p className="mt-1 text-sm text-gray-500">
-                        Manage all your contacts, clients, and relationships
-                      </p>
-                    </div>
-                    <Button 
-                      variant="primary" 
-                      icon={<Plus size={16} />}
-                      onClick={() => navigate('/contacts/new')}
-                    >
-                      New Contact
-                    </Button>
+                <div className="page-header">
+                  <div>
+                    <h1 className="page-title">Contacts</h1>
+                    <p className="page-subtitle">
+                      Manage all your contacts, clients, and relationships
+                    </p>
                   </div>
+                  <Button 
+                    variant="primary" 
+                    icon={<Plus size={16} />}
+                    onClick={() => navigate('/contacts/new')}
+                  >
+                    New Contact
+                  </Button>
                 </div>
                 
                 {/* Contact List */}

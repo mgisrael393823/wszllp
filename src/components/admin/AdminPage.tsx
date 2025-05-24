@@ -1,7 +1,6 @@
 import React from 'react';
 import DataImportTool from './DataImportTool';
 import ErrorBoundary from '../ui/ErrorBoundary';
-import { Database } from 'lucide-react';
 
 /**
  * Simplified AdminPage for MVP
@@ -9,22 +8,14 @@ import { Database } from 'lucide-react';
  */
 const AdminPage: React.FC = () => {
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Admin</h1>
-        <p className="text-gray-600">Data Import</p>
+    <div className="page-container">
+      <div className="page-header">
+        <h1 className="page-title">Admin</h1>
       </div>
 
-      <div className="bg-white shadow-sm rounded-lg p-6">
-        <div className="flex items-center mb-4">
-          <Database className="w-5 h-5 mr-2 text-primary-600" />
-          <h2 className="text-xl font-semibold">CSV Data Import</h2>
-        </div>
-        
-        <ErrorBoundary>
-          <DataImportTool />
-        </ErrorBoundary>
-      </div>
+      <ErrorBoundary>
+        <DataImportTool />
+      </ErrorBoundary>
     </div>
   );
 };

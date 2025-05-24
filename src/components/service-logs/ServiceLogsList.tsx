@@ -1,12 +1,8 @@
 import React, { useState } from 'react';
 import { useData } from '../../context/DataContext';
 import { format, parseISO, isValid } from 'date-fns';
-import { Plus, Filter, Truck } from 'lucide-react';
-import Card from '../ui/Card';
-import Button from '../ui/Button';
-import Table from '../ui/Table';
-import Pagination from '../ui/Pagination';
-import Input from '../ui/Input';
+import { Plus, Truck } from 'lucide-react';
+import { Card, Button, Table, Pagination, FilterBar } from '../ui';
 import ServiceLogForm from './ServiceLogForm';
 
 const ServiceLogsList: React.FC = () => {
@@ -168,44 +164,24 @@ const ServiceLogsList: React.FC = () => {
       </div>
 
       <Card>
-        <div className="flex flex-col md:flex-row justify-between gap-4 mb-4">
-          <div className="relative w-full md:w-64">
-            <Input
-              placeholder="Search documents or cases..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-            <Truck className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-          </div>
-          
-          <div className="flex items-center gap-2 flex-wrap">
-            <Filter size={16} className="text-gray-400" />
-            <select
-              value={methodFilter}
-              onChange={(e) => setMethodFilter(e.target.value)}
-              className="form-select rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-500 focus:ring-opacity-50"
-            >
-              {methodOptions.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            
-            <select
-              value={resultFilter}
-              onChange={(e) => setResultFilter(e.target.value)}
-              className="form-select rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-500 focus:ring-opacity-50"
-            >
-              {resultOptions.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
+        <FilterBar
+          searchValue={searchTerm}
+          onSearchChange={setSearchTerm}
+          searchPlaceholder="Search documents or cases..."
+          primaryFilter={{
+            value: methodFilter,
+            onChange: setMethodFilter,
+            options: methodOptions,
+            placeholder: "All Methods",
+            icon: <Truck className="icon-standard text-neutral-400" />
+          }}
+          secondaryFilter={{
+            value: resultFilter,
+            onChange: setResultFilter,
+            options: resultOptions,
+            placeholder: "All Results"
+          }}
+        />
 
         <Table 
           data={paginatedLogs}

@@ -1,10 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, Filter, FileText, AlertCircle } from 'lucide-react';
-import Card from '../ui/Card';
-import Button from '../ui/Button';
-import Table from '../ui/Table';
-import Pagination from '../ui/Pagination';
-import Input from '../ui/Input';
+import { Plus, FileText, AlertCircle } from 'lucide-react';
+import { Card, Button, Table, Pagination, FilterBar, LoadingState, ErrorState } from '../ui';
 // DEBUGGING: Switch between real and mock data
 import { useDocuments } from '../../hooks/useDocuments';
 import { useNavigate } from 'react-router-dom';
@@ -117,10 +113,10 @@ const DocumentList: React.FC<DocumentListProps> = ({ limit, caseId }) => {
         const fileName = getDisplayFileName(item);
         return (
           <div className="flex items-center">
-            <FileText size={18} className="text-gray-400 mr-2" />
+            <FileText size={18} className="text-neutral-400 mr-2" />
             <div>
-              <div className="font-medium text-gray-700">{item.type}</div>
-              <div className="text-gray-500 text-sm truncate max-w-xs">
+              <div className="font-medium text-neutral-700">{item.type}</div>
+              <div className="text-neutral-500 text-sm truncate max-w-xs">
                 <a 
                   href={item.fileURL} 
                   target="_blank" 
@@ -194,10 +190,15 @@ const DocumentList: React.FC<DocumentListProps> = ({ limit, caseId }) => {
   if (limit) {
     return (
       <div>
-        {error && <ErrorMessage />}
+        {error && (
+          <ErrorState 
+            title="Error loading documents"
+            message={typeof error === 'string' ? error : error?.message || 'Failed to load documents. Please try again.'}
+          />
+        )}
         
         {isLoading ? (
-          <LoadingState />
+          <LoadingState message="Loading documents..." />
         ) : (
           <Table 
             data={documents}
@@ -213,85 +214,52 @@ const DocumentList: React.FC<DocumentListProps> = ({ limit, caseId }) => {
   
   // Full view with filters and pagination
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Documents</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Manage legal documents and track their service status
-          </p>
-        </div>
-        <Button 
-          variant="primary" 
-          icon={<Plus size={16} />}
-          onClick={() => navigate('/documents/new')}
-        >
-          Add Document
-        </Button>
-      </div>
+    <Card>
+      <FilterBar
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search documents..."
+        primaryFilter={{
+          value: typeFilter,
+          onChange: setTypeFilter,
+          options: typeOptions,
+          placeholder: "All Types",
+          icon: <FileText className="icon-standard text-neutral-400" />
+        }}
+        secondaryFilter={{
+          value: statusFilter,
+          onChange: setStatusFilter,
+          options: statusOptions,
+          placeholder: "All Statuses"
+        }}
+      />
 
-      <Card>
-        <div className="flex flex-col md:flex-row justify-between gap-4 mb-4">
-          <div className="relative w-full md:w-64">
-            <Input
-              placeholder="Search documents..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-            <FileText className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-          </div>
-          
-          <div className="flex items-center gap-2 flex-wrap">
-            <Filter size={16} className="text-gray-400" />
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="form-select rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-500 focus:ring-opacity-50"
-            >
-              {typeOptions.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="form-select rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-500 focus:ring-opacity-50"
-            >
-              {statusOptions.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {error && <ErrorMessage />}
-        
-        {isLoading ? (
-          <LoadingState />
-        ) : (
-          <Table 
-            data={documents}
-            columns={columns}
-            keyField="docId"
-            onRowClick={(item) => navigate(`/documents/${item.docId}`)}
-            emptyMessage="No documents found. Add a new document to get started."
-          />
-        )}
-        
-        <Pagination
-          totalItems={totalCount}
-          itemsPerPage={itemsPerPage}
-          currentPage={currentPage}
-          onPageChange={handlePageChange}
+      {error && (
+        <ErrorState 
+          title="Error loading documents"
+          message={typeof error === 'string' ? error : error?.message || 'Failed to load documents. Please try again.'}
         />
-      </Card>
-    </div>
+      )}
+      
+      {isLoading ? (
+        <LoadingState message="Loading documents..." />
+      ) : (
+        <Table 
+          data={documents}
+          columns={columns}
+          keyField="docId"
+          onRowClick={(item) => navigate(`/documents/${item.docId}`)}
+          emptyMessage="No documents found. Add a new document to get started."
+        />
+      )}
+      
+      <Pagination
+        totalItems={totalCount}
+        itemsPerPage={itemsPerPage}
+        currentPage={currentPage}
+        onPageChange={handlePageChange}
+      />
+    </Card>
   );
 };
 

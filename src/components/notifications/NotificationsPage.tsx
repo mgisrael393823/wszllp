@@ -7,12 +7,14 @@ import Card from '../ui/Card';
  */
 const NotificationsPage: React.FC = () => {
   return (
-    <Card className="p-6">
-      <h2 className="text-xl font-semibold mb-4">Notifications</h2>
-      <p className="text-gray-500">
-        Notification features will be available in a future update.
-      </p>
-    </Card>
+    <div className="page-container">
+      <div className="page-header">
+        <h1 className="page-title">Notifications</h1>
+        <p className="page-subtitle">
+          Notification features will be available in a future update.
+        </p>
+      </div>
+    </div>
   );
 };
 

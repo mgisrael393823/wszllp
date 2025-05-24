@@ -3,13 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useData } from '../../context/DataContext';
 import { supabase } from '../../lib/supabaseClient';
 import { format, parseISO, isValid } from 'date-fns';
-import { Plus, Filter, Search, Calendar } from 'lucide-react';
-import Card from '../ui/Card';
-import Button from '../ui/Button';
-import Table from '../ui/Table';
-import Pagination from '../ui/Pagination';
-import Input from '../ui/Input';
-import CaseForm from './CaseForm';
+import { Calendar } from 'lucide-react';
+import { Card, Table, Pagination, FilterBar, LoadingState } from '../ui';
 
 const CaseList: React.FC = () => {
   const navigate = useNavigate();
@@ -55,8 +50,6 @@ const CaseList: React.FC = () => {
     
     fetchCases();
   }, [dispatch]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedCase, setSelectedCase] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<string>('');
@@ -89,20 +82,6 @@ const CaseList: React.FC = () => {
     currentPage * itemsPerPage
   );
 
-  const openAddModal = () => {
-    setSelectedCase(null);
-    setIsModalOpen(true);
-  };
-
-  const openEditModal = (caseId: string) => {
-    setSelectedCase(caseId);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedCase(null);
-  };
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -164,7 +143,7 @@ const CaseList: React.FC = () => {
           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
             ${item.status === 'Intake' ? 'bg-blue-100 text-blue-800' : 
               item.status === 'Active' ? 'bg-green-100 text-green-800' : 
-                'bg-gray-100 text-gray-800'}`
+                'bg-neutral-100 text-neutral-800'}`
           }
         >
           {item.status}
@@ -190,67 +169,31 @@ const CaseList: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Cases</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Manage all legal cases and related information
-          </p>
-        </div>
-        <Button onClick={openAddModal} icon={<Plus size={16} />}>
-          Add Case
-        </Button>
-      </div>
-
-      <Card>
-        <div className="flex flex-col md:flex-row justify-between gap-4 mb-4">
-          <div className="relative w-full md:w-64">
-            <Input
-              placeholder="Search cases..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-          </div>
-          
-          <div className="flex items-center gap-2 flex-wrap">
-            <Filter size={16} className="text-gray-400" />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="form-select rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-500 focus:ring-opacity-50"
-            >
-              <option value="">All Statuses</option>
-              <option value="Intake">Intake</option>
-              <option value="Active">Active</option>
-              <option value="Closed">Closed</option>
-              <option value="Intake">Intake</option>
-              <option value="Active">Active</option>
-              <option value="Closed">Closed</option>
-            </select>
-            
-            <Calendar size={16} className="text-gray-400 ml-2" />
-            <select
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              className="form-select rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-500 focus:ring-opacity-50"
-            >
-              {getDateFilterOptions().map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
+    <Card>
+      <FilterBar
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search cases..."
+        primaryFilter={{
+          value: statusFilter,
+          onChange: setStatusFilter,
+          options: [
+            { value: '', label: 'All Statuses' },
+            { value: 'Intake', label: 'Intake' },
+            { value: 'Active', label: 'Active' },
+            { value: 'Closed', label: 'Closed' }
+          ]
+        }}
+        secondaryFilter={{
+          value: dateFilter,
+          onChange: setDateFilter,
+          options: getDateFilterOptions(),
+          icon: <Calendar className="icon-standard text-neutral-400" />
+        }}
+      />
 
         {isLoading ? (
-          <div className="py-12 text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mb-4"></div>
-            <p className="text-neutral-500">Loading cases...</p>
-          </div>
+          <LoadingState message="Loading cases..." />
         ) : (
           <Table
             data={paginatedCases}
@@ -268,15 +211,6 @@ const CaseList: React.FC = () => {
           onPageChange={handlePageChange}
         />
       </Card>
-
-      {isModalOpen && (
-        <CaseForm 
-          isOpen={isModalOpen}
-          onClose={closeModal}
-          caseId={selectedCase}
-        />
-      )}
-    </div>
   );
 };
 

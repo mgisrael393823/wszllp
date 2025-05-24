@@ -322,7 +322,7 @@ const CaseDetail: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="page-container">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-4">
           <Button
@@ -333,10 +333,10 @@ const CaseDetail: React.FC = () => {
             Back
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="page-title">
               {caseData.plaintiff} v. {caseData.defendant}
             </h1>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="page-subtitle">
               Case ID: {caseData.caseId} | Created {(() => {
                 const date = typeof caseData.createdAt === 'string' 
                   ? parseISO(caseData.createdAt) 

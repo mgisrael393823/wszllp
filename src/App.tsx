@@ -15,6 +15,7 @@ const NewCasePage = React.lazy(() => import('./components/cases/NewCasePage'));
 import CasesPage from './components/cases/CasesPage';
 import CaseSkeleton from './components/cases/CaseSkeleton';
 import HearingsPage from './components/hearings/HearingsPage';
+import HearingForm from './components/hearings/HearingForm';
 import DocumentList from './components/documents/DocumentList';
 import DocumentManagement from './components/documents/DocumentManagement';
 import DocumentUploadForm from './components/documents/DocumentUploadForm';
@@ -98,12 +99,38 @@ const AppContent = () => {
               <NewCasePage />
             </Suspense>
           } />
-          <Route path="hearings" element={<HearingsPage />} />
         </Route>
         <Route path="/cases/:id" element={<CaseDetail />} />
+        <Route path="/hearings" element={<HearingsPage />} />
+        <Route path="/hearings/new" element={
+          <div className="page-container">
+            <div className="page-header">
+              <h1 className="page-title">Add New Hearing</h1>
+            </div>
+            <HearingForm 
+              isOpen={true}
+              onClose={() => window.history.back()}
+              hearingId={null}
+              standalone={true}
+            />
+          </div>
+        } />
+        <Route path="/hearings/:id" element={
+          <div className="page-container">
+            <div className="page-header">
+              <h1 className="page-title">Edit Hearing</h1>
+            </div>
+            <HearingForm 
+              isOpen={true}
+              onClose={() => window.history.back()}
+              hearingId={null}
+              standalone={true}
+            />
+          </div>
+        } />
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/documents" element={<DocumentManagement />}>
-          <Route index element={<DocumentOverview />} />
+          <Route index element={<DocumentList />} />
           <Route path="upload" element={<DocumentUploadForm />} />
           <Route path="efile" element={<EFilePage />} />
           <Route path="service-logs" element={<ServiceLogsList />} />

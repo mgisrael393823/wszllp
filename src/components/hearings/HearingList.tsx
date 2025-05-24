@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Filter, Calendar } from 'lucide-react';
-import Card from '../ui/Card';
-import Button from '../ui/Button';
-import Table from '../ui/Table';
-import Pagination from '../ui/Pagination';
-import Input from '../ui/Input';
+import { Calendar } from 'lucide-react';
+import { Card, Table, Pagination, FilterBar, LoadingState } from '../ui';
 import { useData } from '../../context/DataContext';
 import { supabase } from '../../lib/supabaseClient';
 import { format } from 'date-fns';
@@ -190,56 +186,22 @@ const HearingList: React.FC = () => {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Hearings</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Schedule and manage court hearings
-          </p>
-        </div>
-        <Button 
-          variant="primary" 
-          icon={<Plus size={16} />}
-          onClick={() => navigate('/hearings/new')}
-        >
-          Add Hearing
-        </Button>
-      </div>
-
-      <Card>
-        <div className="flex flex-col md:flex-row justify-between gap-4 mb-4">
-          <div className="relative w-full md:w-64">
-            <Input
-              placeholder="Search court or case..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-            <Calendar className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Filter size={16} className="text-gray-400" />
-            <select
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              className="form-select rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-500 focus:ring-opacity-50"
-            >
-              {getDateFilterOptions().map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
+    <Card>
+        <FilterBar
+          searchValue={searchTerm}
+          onSearchChange={setSearchTerm}
+          searchPlaceholder="Search court or case..."
+          secondaryFilter={{
+            value: dateFilter,
+            onChange: setDateFilter,
+            options: getDateFilterOptions(),
+            placeholder: "All Dates",
+            icon: <Calendar className="icon-standard text-neutral-400" />
+          }}
+        />
 
         {isLoading ? (
-          <div className="py-12 text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mb-4"></div>
-            <p className="text-neutral-500">Loading hearings...</p>
-          </div>
+          <LoadingState message="Loading hearings..." />
         ) : (
           <Table 
             data={paginatedHearings}
@@ -256,8 +218,7 @@ const HearingList: React.FC = () => {
           currentPage={currentPage}
           onPageChange={handlePageChange}
         />
-      </Card>
-    </div>
+    </Card>
   );
 };
 

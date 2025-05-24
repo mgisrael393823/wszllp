@@ -1,11 +1,13 @@
 import React from 'react';
 import { useData } from '../../context/DataContext';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import TabBar, { TabItem } from '../ui/TabBar';
-import { Briefcase, Plus, Clock } from 'lucide-react';
+import Button from '../ui/Button';
+import { Briefcase, Plus } from 'lucide-react';
 
 const CasesPage: React.FC = () => {
   const { state } = useData();
+  const navigate = useNavigate();
 
   // Define tabs for the Cases section
   const tabs: TabItem[] = [
@@ -21,33 +23,31 @@ const CasesPage: React.FC = () => {
       value: 'new',
       route: '/cases/new',
       icon: <Plus size={16} />
-    },
-    {
-      label: 'Hearings',
-      value: 'hearings',
-      route: '/cases/hearings',
-      icon: <Clock size={16} />,
-      count: state.hearings.length
     }
   ];
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
+    <div className="page-container">
       {/* Page Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div className="page-header">
         <div>
           <h1 className="page-title">Cases</h1>
-          <p className="text-neutral-600 mt-1">Manage your legal cases and proceedings</p>
+          <p className="page-subtitle">Manage your legal cases and proceedings</p>
+        </div>
+        <div className="page-actions">
+          <Button onClick={() => navigate('/cases/new')} icon={<Plus size={16} />}>
+            New Case
+          </Button>
         </div>
       </div>
 
       {/* Tab Navigation */}
-      <TabBar tabs={tabs} className="tab-bar sticky top-0 bg-white z-10" />
+      <div className="sticky top-0 z-10 backdrop-blur-sm pb-2 -mx-6 px-6">
+        <TabBar tabs={tabs} />
+      </div>
 
       {/* Tab Content */}
-      <div className="min-h-96">
-        <Outlet />
-      </div>
+      <Outlet />
     </div>
   );
 };

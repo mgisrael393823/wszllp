@@ -57,8 +57,10 @@ const SettingsPage: React.FC = () => {
   ];
 
   return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-2xl font-semibold mb-6">Settings</h1>
+    <div className="page-container">
+      <div className="page-header">
+        <h1 className="page-title">Settings</h1>
+      </div>
       
       <div className="grid gap-6 max-w-3xl mx-auto">
         {settingsSections.map((section) => (

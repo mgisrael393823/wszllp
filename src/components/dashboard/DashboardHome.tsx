@@ -2,17 +2,25 @@ import React from 'react';
 import Card from '../ui/Card';
 
 /**
- * Placeholder DashboardHome component
- * The full dashboard functionality has been deferred for the MVP
+ * Dashboard Home component with standardized layout
+ * Uses consistent page structure and design tokens
  */
 const DashboardHome: React.FC = () => {
   return (
-    <Card className="p-6">
-      <h2 className="text-xl font-semibold mb-4">Dashboard</h2>
-      <p className="text-gray-500">
-        Advanced dashboard features will be available in a future update.
-      </p>
-    </Card>
+    <div className="page-container">
+      <div className="page-header">
+        <h1 className="page-title">Dashboard</h1>
+        <p className="page-subtitle">
+          Advanced dashboard features will be available in a future update.
+        </p>
+      </div>
+      
+      <Card className="p-6">
+        <p className="text-neutral-600">
+          Dashboard content coming soon...
+        </p>
+      </Card>
+    </div>
   );
 };
 

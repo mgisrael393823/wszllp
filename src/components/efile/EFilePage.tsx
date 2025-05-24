@@ -32,19 +32,21 @@ const EFilePage: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <EFileProvider>
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-3xl mx-auto">
-            <div className="flex flex-col items-center mb-8">
-              <h1 className="text-2xl font-bold text-center text-gray-800">Batch eFiling</h1>
+        <div className="page-container">
+          <div className="page-header">
+            <div>
+              <h1 className="page-title">Batch eFiling</h1>
               <a
                 href="https://api.wszllp.com/docs/efile"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-primary-600 hover:text-primary-800 mt-2"
+                className="page-subtitle text-primary-600 hover:text-primary-800"
               >
                 View eFile API Docs
               </a>
             </div>
+          </div>
+          <div className="max-w-3xl mx-auto">
             <EFileSubmissionForm />
             <EFileStatusList />
           </div>

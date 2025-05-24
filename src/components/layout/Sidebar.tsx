@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
   Briefcase, FileText, CreditCard, Users, Settings,
-  Home, LayoutDashboard, HelpCircle
+  LayoutDashboard, HelpCircle, Calendar
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -34,6 +34,12 @@ const createNavStructure = (): NavItem[] => [
     value: 'cases', 
     icon: <Briefcase size={20} />,
     description: 'Manage your legal cases'
+  },
+  { 
+    label: 'Hearings', 
+    value: 'hearings', 
+    icon: <Calendar size={20} />,
+    description: 'Manage court hearings and proceedings'
   },
   { 
     label: 'Documents', 
@@ -70,9 +76,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     if (activeSection === itemValue) return true;
     
     // Special handling for parent pages with child routes
-    if (itemValue === 'cases' && ['hearings'].includes(activeSection)) {
-      return true;
-    }
+    // Remove hearings from cases - now standalone
     if (itemValue === 'documents' && ['efile', 'service-logs'].includes(activeSection)) {
       return true;
     }
@@ -157,15 +161,18 @@ const Sidebar: React.FC<SidebarProps> = ({
         ${isCollapsed ? 'w-16' : 'w-64'}
       `}
     >
-      {/* Sidebar header with 24px horizontal padding */}
-      <div className="h-16 flex items-center px-6 border-b border-neutral-200">
-        {!isCollapsed ? (
-          <h2 className="text-lg font-semibold text-neutral-800">Navigation</h2>
-        ) : (
-          <div className="w-full flex">
-            <Home size={24} className="text-primary-600" />
-          </div>
-        )}
+      {/* Sidebar header with logo */}
+      <div className="h-16 flex items-center justify-center px-4">
+        <img 
+          src="/wszmainlogo.webp" 
+          alt={!isCollapsed ? "WSZLLP - Law Firm Management System" : "WSZLLP"}
+          className={`w-auto object-contain ${
+            !isCollapsed 
+              ? "h-12 max-w-[240px]" 
+              : "h-10 max-w-[56px]"
+          }`}
+          loading="eager"
+        />
       </div>
       
       {/* Sidebar content with 16px padding when expanded, 8px when collapsed */}

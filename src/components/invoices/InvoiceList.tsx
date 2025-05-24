@@ -2,12 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../../context/DataContext';
 import { format, parseISO, isValid } from 'date-fns';
-import { Plus, Filter, Search, DollarSign } from 'lucide-react';
-import Card from '../ui/Card';
-import Button from '../ui/Button';
-import Table from '../ui/Table';
-import Pagination from '../ui/Pagination';
-import Input from '../ui/Input';
+import { Plus, DollarSign } from 'lucide-react';
+import { Card, Button, Table, Pagination, FilterBar } from '../ui';
 import InvoiceForm from './InvoiceForm';
 import { formatCurrency } from '../../utils/utils';
 
@@ -169,57 +165,45 @@ const InvoiceList: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="page-container">
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Invoices</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="page-title">Invoices</h1>
+          <p className="page-subtitle">
             Manage billing and payment records
           </p>
         </div>
-        <Button onClick={openAddModal} icon={<Plus size={16} />}>
-          Add Invoice
-        </Button>
+        <div className="page-actions">
+          <FilterBar
+            searchValue={searchTerm}
+            onSearchChange={setSearchTerm}
+            searchPlaceholder="Search cases..."
+            primaryFilter={{
+              value: paidFilter,
+              onChange: setPaidFilter,
+              options: [
+                { value: '', label: 'All Status' },
+                { value: 'paid', label: 'Paid' },
+                { value: 'unpaid', label: 'Unpaid' }
+              ],
+              placeholder: "All Status"
+            }}
+            secondaryFilter={{
+              value: dateFilter,
+              onChange: setDateFilter,
+              options: getDateFilterOptions(),
+              placeholder: "All Dates",
+              icon: <DollarSign className="icon-standard text-neutral-400" />
+            }}
+          />
+          
+          <Button onClick={openAddModal} icon={<Plus size={16} />}>
+            Add Invoice
+          </Button>
+        </div>
       </div>
 
       <Card>
-        <div className="flex flex-col md:flex-row justify-between gap-4 mb-4">
-          <div className="relative w-full md:w-64">
-            <Input
-              placeholder="Search cases..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-          </div>
-          
-          <div className="flex items-center gap-2 flex-wrap">
-            <Filter size={16} className="text-gray-400" />
-            <select
-              value={paidFilter}
-              onChange={(e) => setPaidFilter(e.target.value)}
-              className="form-select rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-500 focus:ring-opacity-50"
-            >
-              <option value="">All Status</option>
-              <option value="paid">Paid</option>
-              <option value="unpaid">Unpaid</option>
-            </select>
-            
-            <DollarSign size={16} className="text-gray-400 ml-2" />
-            <select
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
-              className="form-select rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring focus:ring-primary-500 focus:ring-opacity-50"
-            >
-              {getDateFilterOptions().map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
 
         <Table 
           data={paginatedInvoices}

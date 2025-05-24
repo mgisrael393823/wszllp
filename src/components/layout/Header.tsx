@@ -59,10 +59,6 @@ const Header: React.FC<HeaderProps> = ({
             </Button>
           </div>
 
-          {/* Center section: Logo */}
-          <div className="flex-shrink-0 flex items-center">
-            <img src="/mainlogo.png" alt="Logo" className="h-10 w-auto" />
-          </div>
 
           {/* Right section: Search, notifications, user menu */}
           <div className="flex items-center space-x-1 sm:space-x-3">

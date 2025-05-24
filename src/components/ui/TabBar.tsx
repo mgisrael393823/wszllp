@@ -50,8 +50,8 @@ const TabBar: React.FC<TabBarProps> = ({ tabs, className = '' }) => {
   };
 
   return (
-    <div className={`border-b border-neutral-200 ${className}`}>
-      <nav className="-mb-px flex space-x-8 overflow-x-auto" aria-label="Tabs">
+    <div className={`bg-neutral-50 p-1 rounded-lg border border-neutral-200 shadow-sm ${className}`}>
+      <nav className="flex space-x-1 overflow-x-auto" aria-label="Tabs">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.value;
           const isDisabled = tab.disabled;
@@ -62,12 +62,14 @@ const TabBar: React.FC<TabBarProps> = ({ tabs, className = '' }) => {
               onClick={() => handleTabClick(tab)}
               disabled={isDisabled}
               className={`
-                whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-colors
-                ${isActive
-                  ? 'border-primary-500 text-primary-600'
-                  : isDisabled
-                  ? 'border-transparent text-neutral-400 cursor-not-allowed'
-                  : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300 cursor-pointer'
+                relative px-4 py-2.5 rounded-md font-medium text-sm transition-all duration-200
+                flex items-center space-x-2 min-w-0 flex-shrink-0 whitespace-nowrap
+                ${
+                  isActive
+                    ? 'bg-white text-primary-700 shadow-sm border border-neutral-200'
+                    : isDisabled
+                    ? 'text-neutral-400 cursor-not-allowed'
+                    : 'text-neutral-600 hover:text-neutral-900 hover:bg-white/50 cursor-pointer'
                 }
               `}
               aria-current={isActive ? 'page' : undefined}
@@ -77,10 +79,11 @@ const TabBar: React.FC<TabBarProps> = ({ tabs, className = '' }) => {
               {tab.count !== undefined && (
                 <span
                   className={`
-                    ml-2 py-0.5 px-2 rounded-full text-xs
-                    ${isActive
-                      ? 'bg-primary-100 text-primary-600'
-                      : 'bg-neutral-100 text-neutral-600'
+                    ml-2 py-0.5 px-2 rounded-full text-xs font-medium
+                    ${
+                      isActive
+                        ? 'bg-primary-100 text-primary-700'
+                        : 'bg-neutral-100 text-neutral-600'
                     }
                   `}
                 >
