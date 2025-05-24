@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { DataProvider } from './context/DataContext';
 import { EFileProvider } from './context/EFileContext';
@@ -13,6 +13,7 @@ const CaseList = React.lazy(() => import('./components/cases/CaseList'));
 import CaseDetail from './components/cases/CaseDetail';
 const NewCasePage = React.lazy(() => import('./components/cases/NewCasePage'));
 import CasesPage from './components/cases/CasesPage';
+import CaseSkeleton from './components/cases/CaseSkeleton';
 import HearingsPage from './components/hearings/HearingsPage';
 import DocumentList from './components/documents/DocumentList';
 import DocumentManagement from './components/documents/DocumentManagement';
@@ -87,8 +88,16 @@ const AppContent = () => {
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<DashboardHome />} />
         <Route path="/cases" element={<CasesPage />}>
-          <Route index element={<CaseList />} />
-          <Route path="new" element={<NewCasePage />} />
+          <Route index element={
+            <Suspense fallback={<CaseSkeleton />}>
+              <CaseList />
+            </Suspense>
+          } />
+          <Route path="new" element={
+            <Suspense fallback={<CaseSkeleton />}>
+              <NewCasePage />
+            </Suspense>
+          } />
           <Route path="hearings" element={<HearingsPage />} />
         </Route>
         <Route path="/cases/:id" element={<CaseDetail />} />

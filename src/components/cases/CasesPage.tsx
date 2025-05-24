@@ -1,18 +1,11 @@
-import React, { useState, useEffect, Suspense } from 'react';
+import React from 'react';
 import { useData } from '../../context/DataContext';
 import { Outlet } from 'react-router-dom';
 import TabBar, { TabItem } from '../ui/TabBar';
 import { Briefcase, Plus, Clock } from 'lucide-react';
-import CaseSkeleton from './CaseSkeleton';
 
 const CasesPage: React.FC = () => {
   const { state } = useData();
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const t = setTimeout(() => setIsLoading(false), 0);
-    return () => clearTimeout(t);
-  }, []);
 
   // Define tabs for the Cases section
   const tabs: TabItem[] = [
@@ -53,13 +46,7 @@ const CasesPage: React.FC = () => {
 
       {/* Tab Content */}
       <div className="min-h-96">
-        {isLoading ? (
-          <CaseSkeleton />
-        ) : (
-          <Suspense fallback={<CaseSkeleton />}>
-            <Outlet />
-          </Suspense>
-        )}
+        <Outlet />
       </div>
     </div>
   );
