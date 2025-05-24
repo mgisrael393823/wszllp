@@ -115,7 +115,6 @@ const DocumentList: React.FC<DocumentListProps> = ({ limit, caseId }) => {
         };
 
         const fileName = getDisplayFileName(item);
-        
         return (
           <div className="flex items-center">
             <FileText size={18} className="text-gray-400 mr-2" />
