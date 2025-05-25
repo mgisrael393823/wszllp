@@ -430,7 +430,7 @@ const Card: React.FC<CardProps> = ({
         <button
           onClick={activity.onClick}
           className={`
-            w-full flex items-start gap-4 p-4 rounded-xl border bg-white
+            w-full flex items-center gap-4 p-4 rounded-xl border bg-white
             ${styles.border} ${styles.hover}
             hover:shadow-sm hover:-translate-y-0.5
             active:translate-y-0 active:scale-[0.98]

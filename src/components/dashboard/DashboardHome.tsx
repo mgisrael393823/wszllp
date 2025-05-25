@@ -162,7 +162,7 @@ const DashboardHome: React.FC = () => {
   return (
     <div className="page-container">
       {/* Clean Header */}
-      <div className="page-header mb-8">
+      <div className="page-header">
         <h1 className="page-title flex items-center gap-3">
           <Scale className="w-8 h-8 text-primary-600" />
           Executive Dashboard
@@ -173,12 +173,12 @@ const DashboardHome: React.FC = () => {
       </div>
       
       {/* KPI Metrics Grid - Using Card variant system */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 lg:gap-8 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 lg:gap-8">
         <Card 
           variant="metric"
           elevation="medium"
           interactive
-          icon={<Briefcase className="text-primary-600" />}
+          icon={<Briefcase className="w-5 h-5 text-primary-600" />}
           title="Total Cases"
           metricData={kpiData.totalCases}
         />
@@ -187,7 +187,7 @@ const DashboardHome: React.FC = () => {
           variant="metric"
           elevation="medium"
           interactive
-          icon={<Calendar className="text-success-600" />}
+          icon={<Calendar className="w-5 h-5 text-success-600" />}
           title="Upcoming Hearings"
           metricData={kpiData.upcomingHearings}
         />
@@ -196,7 +196,7 @@ const DashboardHome: React.FC = () => {
           variant="metric"
           elevation="medium"
           interactive
-          icon={<FileText className="text-warning-600" />}
+          icon={<FileText className="w-5 h-5 text-warning-600" />}
           title="Document Status"
           badge={kpiData.documentsBadge}
           metricData={kpiData.documents}
@@ -206,7 +206,7 @@ const DashboardHome: React.FC = () => {
           variant="metric"
           elevation="medium"
           interactive
-          icon={<Activity className="text-accent-600" />}
+          icon={<Activity className="w-5 h-5 text-accent-600" />}
           title="System Activity"
           badge={kpiData.activityBadge}
           metricData={kpiData.activity}
@@ -219,7 +219,7 @@ const DashboardHome: React.FC = () => {
           variant="action-list"
           elevation="low"
           title="Quick Actions"
-          icon={<ArrowRight />}
+          icon={<ArrowRight className="w-5 h-5" />}
           actions={quickActions}
           className="lg:col-span-1"
         />
@@ -229,7 +229,7 @@ const DashboardHome: React.FC = () => {
           elevation="low"
           title="Recent Activity"
           subtitle="Click any item to view details"
-          icon={<Activity />}
+          icon={<Activity className="w-5 h-5" />}
           activities={activities}
           className="lg:col-span-2"
         />
