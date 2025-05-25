@@ -43,7 +43,7 @@ const DashboardHome: React.FC = () => {
     const upcomingHearingsData: MetricData = {
       value: upcomingHearings,
       trend: { 
-        icon: <TrendingUp />, 
+        icon: <TrendingUp size={16} />, 
         label: 'Next 30 days', 
         color: 'text-success-600' 
       },
@@ -63,7 +63,7 @@ const DashboardHome: React.FC = () => {
     const activityData: MetricData = {
       value: state.auditLogs.length,
       trend: { 
-        icon: <Clock />, 
+        icon: <Clock size={16} />, 
         label: 'Total actions', 
         color: 'text-accent-600' 
       },
@@ -77,11 +77,11 @@ const DashboardHome: React.FC = () => {
       activity: activityData,
       documentsBadge: pendingDocuments > 0 ? (
         <div className="flex items-center gap-1 px-2 py-1 bg-warning-100 text-warning-700 rounded-full text-xs font-medium">
-          <AlertCircle className="w-3 h-3" />
+          <AlertCircle size={12} />
           {pendingDocuments}
         </div>
       ) : (
-        <CheckCircle2 className="w-5 h-5 text-success-600" />
+        <CheckCircle2 size={20} className="text-success-600" />
       ),
       activityBadge: recentNotifications > 0 ? (
         <div className="flex items-center gap-1 px-2 py-1 bg-accent-100 text-accent-700 rounded-full text-xs font-medium">
@@ -94,25 +94,25 @@ const DashboardHome: React.FC = () => {
   // Prepare quick actions data - no manual icon sizing
   const quickActions: ActionItem[] = useMemo(() => [
     {
-      icon: <Briefcase />,
+      icon: <Briefcase size={20} />,
       label: 'New Case',
       onClick: () => console.log('Navigate to new case'),
       variant: 'primary'
     },
     {
-      icon: <Calendar />,
+      icon: <Calendar size={20} />,
       label: 'Schedule Hearing',
       onClick: () => console.log('Navigate to schedule hearing'),
       variant: 'success'
     },
     {
-      icon: <FileText />,
+      icon: <FileText size={20} />,
       label: 'Upload Document',
       onClick: () => console.log('Navigate to upload document'),
       variant: 'accent'
     },
     {
-      icon: <Users />,
+      icon: <Users size={20} />,
       label: 'Add Contact',
       onClick: () => console.log('Navigate to add contact'),
       variant: 'secondary'
@@ -129,11 +129,11 @@ const DashboardHome: React.FC = () => {
         
         const getActivityIcon = (entityType: string) => {
           switch (entityType) {
-            case 'Case': return <Briefcase />;
-            case 'Hearing': return <Calendar />;
-            case 'Document': return <FileText />;
-            case 'Contact': return <Users />;
-            default: return <Activity />;
+            case 'Case': return <Briefcase size={16} />;
+            case 'Hearing': return <Calendar size={16} />;
+            case 'Document': return <FileText size={16} />;
+            case 'Contact': return <Users size={16} />;
+            default: return <Activity size={16} />;
           }
         };
         
@@ -164,7 +164,7 @@ const DashboardHome: React.FC = () => {
       {/* Clean Header */}
       <div className="page-header mb-8">
         <h1 className="page-title flex items-center gap-3">
-          <Scale className="w-8 h-8 text-primary-600" />
+          <Scale size={32} className="text-primary-600" />
           Executive Dashboard
         </h1>
         <p className="page-subtitle">
@@ -178,7 +178,7 @@ const DashboardHome: React.FC = () => {
           variant="metric"
           elevation="medium"
           interactive
-          icon={<Briefcase className="text-primary-600" />}
+          icon={<Briefcase size={24} className="text-primary-600" />}
           title="Total Cases"
           metricData={kpiData.totalCases}
         />
@@ -187,7 +187,7 @@ const DashboardHome: React.FC = () => {
           variant="metric"
           elevation="medium"
           interactive
-          icon={<Calendar className="text-success-600" />}
+          icon={<Calendar size={24} className="text-success-600" />}
           title="Upcoming Hearings"
           metricData={kpiData.upcomingHearings}
         />
@@ -196,7 +196,7 @@ const DashboardHome: React.FC = () => {
           variant="metric"
           elevation="medium"
           interactive
-          icon={<FileText className="text-warning-600" />}
+          icon={<FileText size={24} className="text-warning-600" />}
           title="Document Status"
           badge={kpiData.documentsBadge}
           metricData={kpiData.documents}
@@ -206,7 +206,7 @@ const DashboardHome: React.FC = () => {
           variant="metric"
           elevation="medium"
           interactive
-          icon={<Activity className="text-accent-600" />}
+          icon={<Activity size={24} className="text-accent-600" />}
           title="System Activity"
           badge={kpiData.activityBadge}
           metricData={kpiData.activity}
@@ -219,7 +219,7 @@ const DashboardHome: React.FC = () => {
           variant="action-list"
           elevation="low"
           title="Quick Actions"
-          icon={<ArrowRight />}
+          icon={<ArrowRight size={20} />}
           actions={quickActions}
           className="lg:col-span-1"
         />
@@ -229,7 +229,7 @@ const DashboardHome: React.FC = () => {
           elevation="low"
           title="Recent Activity"
           subtitle="Click any item to view details"
-          icon={<Activity />}
+          icon={<Activity size={20} />}
           activities={activities}
           className="lg:col-span-2"
         />
