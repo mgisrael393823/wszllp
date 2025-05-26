@@ -1,14 +1,26 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 const DebugInvitationPage: React.FC = () => {
   const [searchParams] = useSearchParams();
+  const [hashParams, setHashParams] = useState<Record<string, string>>({});
   
-  // Get all URL parameters
+  // Get all URL parameters (query string)
   const allParams: Record<string, string> = {};
   searchParams.forEach((value, key) => {
     allParams[key] = value;
   });
+
+  // Get hash fragment parameters
+  useEffect(() => {
+    const hash = window.location.hash.substring(1); // Remove the #
+    const hashSearchParams = new URLSearchParams(hash);
+    const hashParamsObj: Record<string, string> = {};
+    hashSearchParams.forEach((value, key) => {
+      hashParamsObj[key] = value;
+    });
+    setHashParams(hashParamsObj);
+  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
@@ -25,7 +37,7 @@ const DebugInvitationPage: React.FC = () => {
             </div>
             
             <div>
-              <h2 className="text-lg font-semibold mb-2">URL Parameters:</h2>
+              <h2 className="text-lg font-semibold mb-2">URL Query Parameters:</h2>
               {Object.keys(allParams).length > 0 ? (
                 <div className="space-y-2">
                   {Object.entries(allParams).map(([key, value]) => (
@@ -35,7 +47,22 @@ const DebugInvitationPage: React.FC = () => {
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500 italic">No parameters found</p>
+                <p className="text-gray-500 italic">No query parameters found</p>
+              )}
+            </div>
+
+            <div>
+              <h2 className="text-lg font-semibold mb-2">Hash Fragment Parameters:</h2>
+              {Object.keys(hashParams).length > 0 ? (
+                <div className="space-y-2">
+                  {Object.entries(hashParams).map(([key, value]) => (
+                    <div key={key} className="bg-blue-100 p-2 rounded">
+                      <strong>{key}:</strong> <span className="break-all">{value}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 italic">No hash parameters found</p>
               )}
             </div>
             

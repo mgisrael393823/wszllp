@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 
 const AcceptInvitationPage: React.FC = () => {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [verifyingToken, setVerifyingToken] = useState(true);
@@ -21,14 +20,28 @@ const AcceptInvitationPage: React.FC = () => {
     confirmPassword: '',
   });
 
-  // Get token from URL parameters (Supabase sends these)
-  const accessToken = searchParams.get('access_token');
-  const refreshToken = searchParams.get('refresh_token');
-  const type = searchParams.get('type');
-  const tokenHash = searchParams.get('token_hash');
+  // Get token from URL hash fragment (Supabase sends these in the hash)
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [refreshToken, setRefreshToken] = useState<string | null>(null);
+  const [type, setType] = useState<string | null>(null);
+
+  // Parse hash fragment parameters
+  useEffect(() => {
+    const hash = window.location.hash.substring(1); // Remove the #
+    const hashParams = new URLSearchParams(hash);
+    
+    setAccessToken(hashParams.get('access_token'));
+    setRefreshToken(hashParams.get('refresh_token'));
+    setType(hashParams.get('type'));
+  }, []);
 
   useEffect(() => {
     const verifyInvitation = async () => {
+      // Wait a bit for hash parameters to be parsed
+      if (accessToken === null || refreshToken === null) {
+        return; // Still parsing
+      }
+
       // For Supabase invitations, we need access_token and refresh_token
       if (!accessToken || !refreshToken) {
         // Check if we're already authenticated (user might have clicked link while logged in)
@@ -71,7 +84,7 @@ const AcceptInvitationPage: React.FC = () => {
     };
 
     verifyInvitation();
-  }, [accessToken, refreshToken, type, tokenHash]);
+  }, [accessToken, refreshToken, type]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
