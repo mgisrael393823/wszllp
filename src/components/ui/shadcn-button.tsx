@@ -61,7 +61,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             </svg>
           </span>
         )}
-        {icon && <span className={`${children ? 'mr-2' : ''}`}>{icon}</span>}
+        {icon && <span className={`${children ? 'mr-2' : ''} inline-flex items-center justify-center`}>{icon}</span>}
         {children}
       </Comp>
     )
