@@ -8,7 +8,7 @@ import LoginPage from './components/auth/LoginPage';
 import RegisterPage from './components/auth/RegisterPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import MainLayout from './components/layout/MainLayout';
-import DashboardHome from './components/dashboard/DashboardHome';
+import EnhancedDashboardHome from './components/dashboard/EnhancedDashboardHome';
 const CaseList = React.lazy(() => import('./components/cases/CaseList'));
 import CaseDetail from './components/cases/CaseDetail';
 const NewCasePage = React.lazy(() => import('./components/cases/NewCasePage'));
@@ -35,8 +35,10 @@ import CalendarPage from './components/calendar/CalendarPage';
 import NotificationsPage from './components/notifications/NotificationsPage';
 import NotificationScheduler from './components/notifications/NotificationScheduler';
 import ContactsPage from './components/contacts/ContactsPage';
+import ActivityPage from './components/activity/ActivityPage';
 import ProfilePage from './components/user/ProfilePage';
 import SettingsPage from './components/user/SettingsPage';
+import ErrorBoundary from './components/ui/ErrorBoundary';
 
 // Placeholder for Design System - removed in MVP
 const DesignSystemPage = () => (
@@ -84,9 +86,10 @@ const AppContent = () => {
       onSectionChange={handleSectionChange}
     >
       <NotificationScheduler />
-      <Routes>
+      <ErrorBoundary>
+        <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/dashboard" element={<DashboardHome />} />
+        <Route path="/dashboard" element={<EnhancedDashboardHome />} />
         <Route path="/cases" element={<CasesPage />}>
           <Route index element={
             <Suspense fallback={<CaseSkeleton />}>
@@ -145,34 +148,38 @@ const AppContent = () => {
         <Route path="/document-generator" element={<DocumentGenerator />} />
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/activity" element={<ActivityPage />} />
         <Route path="/contacts/*" element={<ContactsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/settings" element={<SettingsPage />} />
-      </Routes>
+        </Routes>
+      </ErrorBoundary>
     </MainLayout>
   );
 };
 
 function App() {
   return (
-    <DataProvider>
-      <ToastProvider>
-        <AuthProvider>
-          <EFileProvider>
-            <BrowserRouter>
-              <Routes>
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegisterPage />} />
-                <Route path="/design-system" element={<DesignSystemPage />} />
-                <Route element={<ProtectedRoute />}>
-                  <Route path="/*" element={<AppContent />} />
-                </Route>
-              </Routes>
-            </BrowserRouter>
-          </EFileProvider>
-        </AuthProvider>
-      </ToastProvider>
-    </DataProvider>
+    <ErrorBoundary>
+      <DataProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <EFileProvider>
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/register" element={<RegisterPage />} />
+                  <Route path="/design-system" element={<DesignSystemPage />} />
+                  <Route element={<ProtectedRoute />}>
+                    <Route path="/*" element={<AppContent />} />
+                  </Route>
+                </Routes>
+              </BrowserRouter>
+            </EFileProvider>
+          </AuthProvider>
+        </ToastProvider>
+      </DataProvider>
+    </ErrorBoundary>
   );
 }
 

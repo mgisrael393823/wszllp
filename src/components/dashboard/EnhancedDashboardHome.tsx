@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Calendar, 
   FileText, 
@@ -24,6 +25,7 @@ import dashboardService, { type DashboardMetrics, type KPICard, type RecentActiv
  */
 const EnhancedDashboardHome: React.FC = () => {
   const { state } = useData();
+  const navigate = useNavigate();
   const [, setMetrics] = useState<DashboardMetrics | null>(null);
   const [kpiCards, setKpiCards] = useState<KPICard[]>([]);
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
@@ -45,8 +47,18 @@ const EnhancedDashboardHome: React.FC = () => {
       loadData();
     });
     
-    return unsubscribe;
-  }, []);
+    // Set up auto-refresh every 60 seconds for MVP requirement
+    const autoRefreshInterval = setInterval(() => {
+      if (!isRefreshing) {
+        loadData();
+      }
+    }, 60000); // 60 seconds
+    
+    return () => {
+      unsubscribe();
+      clearInterval(autoRefreshInterval);
+    };
+  }, [isRefreshing]);
   
   // Load dashboard data from service
   const loadDashboardData = async () => {
@@ -143,6 +155,25 @@ const EnhancedDashboardHome: React.FC = () => {
       }));
   };
   
+  // Navigation handlers for KPI cards
+  const getKPINavigationHandler = (kpiId: string) => {
+    const navigationMap: Record<string, string> = {
+      'total-cases': '/cases',
+      'upcoming-hearings': '/hearings',
+      'document-status': '/documents',
+      'system-activity': '/notifications', // Activity could link to notifications or a dedicated activity page
+      'contacts': '/contacts',
+      'case-efficiency': '/cases' // Could link to a reports page in the future
+    };
+    
+    return () => {
+      const targetPath = navigationMap[kpiId];
+      if (targetPath) {
+        navigate(targetPath);
+      }
+    };
+  };
+
   // Convert KPI cards to MetricData for Card component compatibility
   const convertToMetricData = (kpi: KPICard): MetricData => {
     return {
@@ -162,28 +193,28 @@ const EnhancedDashboardHome: React.FC = () => {
     {
       icon: <Briefcase size={20} />,
       label: 'New Case',
-      onClick: () => console.log('Navigate to new case'),
+      onClick: () => navigate('/cases/new'),
       variant: 'primary'
     },
     {
       icon: <Calendar size={20} />,
       label: 'Schedule Hearing',
-      onClick: () => console.log('Navigate to schedule hearing'),
+      onClick: () => navigate('/hearings/new'),
       variant: 'success'
     },
     {
       icon: <FileText size={20} />,
       label: 'Upload Document',
-      onClick: () => console.log('Navigate to upload document'),
+      onClick: () => navigate('/documents/new'),
       variant: 'accent'
     },
     {
       icon: <Users size={20} />,
       label: 'Add Contact',
-      onClick: () => console.log('Navigate to add contact'),
+      onClick: () => navigate('/contacts'),
       variant: 'secondary'
     }
-  ], []);
+  ], [navigate]);
 
   // Convert RecentActivity to ActivityItem for Card component
   const activities: ActivityItem[] = useMemo(() => {
@@ -216,7 +247,25 @@ const EnhancedDashboardHome: React.FC = () => {
         description: activity.description,
         timestamp: timeAgo,
         variant: getVariant(activity.action),
-        onClick: () => console.log('Navigate to:', activity)
+        onClick: () => {
+          // Navigate to appropriate detail page based on entity type
+          switch (activity.entityType) {
+            case 'Case':
+              navigate(`/cases/${activity.entityId}`);
+              break;
+            case 'Hearing':
+              navigate('/hearings');
+              break;
+            case 'Document':
+              navigate(`/documents/${activity.entityId}`);
+              break;
+            case 'Contact':
+              navigate('/contacts');
+              break;
+            default:
+              navigate('/notifications');
+          }
+        }
       };
     });
   }, [recentActivity]);
@@ -236,7 +285,7 @@ const EnhancedDashboardHome: React.FC = () => {
             </p>
             {lastRefreshed && (
               <p className="text-xs text-muted-foreground mt-1">
-                Last updated: {new Date(lastRefreshed).toLocaleString()}
+                Last updated: {new Date(lastRefreshed).toLocaleString()} • Auto-refresh: 60s
               </p>
             )}
           </div>
@@ -301,6 +350,7 @@ const EnhancedDashboardHome: React.FC = () => {
               elevation="medium"
               interactive
               loading={isLoading}
+              onClick={getKPINavigationHandler(kpi.id)}
               icon={iconMap[kpi.id] || <BarChart3 size={24} className="text-neutral-600" />}
               title={kpi.title}
               badge={getBadge(kpi)}
@@ -330,6 +380,18 @@ const EnhancedDashboardHome: React.FC = () => {
           icon={<Activity size={20} />}
           activities={activities}
           className="lg:col-span-2"
+          footer={
+            <div className="flex justify-center">
+              <button
+                onClick={() => navigate('/activity')}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-colors"
+              >
+                <Activity size={16} />
+                View All Activity
+                <ArrowRight size={16} />
+              </button>
+            </div>
+          }
         />
       </div>
     </div>
