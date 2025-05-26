@@ -272,10 +272,10 @@ const EnhancedDashboardHome: React.FC = () => {
   
   return (
     <div className="page-container">
-      {/* Enhanced Header with Refresh Controls */}
+      {/* Enhanced Header with Improved Refresh Controls */}
       <div className="page-header mb-8">
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div className="flex-1">
             <h1 className="page-title flex items-center gap-3">
               <Scale size={32} className="text-primary-600" />
               Executive Dashboard
@@ -284,20 +284,24 @@ const EnhancedDashboardHome: React.FC = () => {
               Comprehensive overview of your legal practice performance and key metrics
             </p>
             {lastRefreshed && (
-              <p className="text-xs text-muted-foreground mt-1">
-                Last updated: {new Date(lastRefreshed).toLocaleString()} • Auto-refresh: 60s
-              </p>
+              <div className="mt-2">
+                <p className="text-xs text-muted-foreground">
+                  Last updated: {new Date(lastRefreshed).toLocaleString()}
+                </p>
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <div className="w-2 h-2 bg-success-500 rounded-full animate-pulse"></div>
+                  <span>Auto-refresh: 60s</span>
+                  <button
+                    onClick={handleRefresh}
+                    disabled={isRefreshing}
+                    className="p-1 text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    title={isRefreshing ? 'Refreshing data...' : 'Refresh dashboard data'}
+                  >
+                    <RefreshCw size={12} className={isRefreshing ? 'animate-spin' : ''} />
+                  </button>
+                </div>
+              </div>
             )}
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              className="flex items-center gap-2 px-3 py-2 text-sm bg-white border border-neutral-200 rounded-lg hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
-              {isRefreshing ? 'Refreshing...' : 'Refresh'}
-            </button>
           </div>
         </div>
         
