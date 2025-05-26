@@ -141,9 +141,10 @@ export function useDocuments(limit?: number, filters?: DocumentFilters, page: nu
         console.error('❌ useDocuments error:', err);
         if (err instanceof Error) {
           console.error('   message:', err.message);
-          console.error('   details:', (err as any).details || 'no details');
-          console.error('   hint:', (err as any).hint || 'no hint');
-          console.error('   code:', (err as any).code || 'no code');
+          const supabaseError = err as Error & { details?: string; hint?: string; code?: string };
+          console.error('   details:', supabaseError.details || 'no details');
+          console.error('   hint:', supabaseError.hint || 'no hint');
+          console.error('   code:', supabaseError.code || 'no code');
         }
         setError(err instanceof Error ? err : new Error(String(err)));
       } finally {

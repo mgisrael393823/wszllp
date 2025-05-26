@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
-import { Users, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { ContactsProvider } from './ContactsProvider';
 import ContactList from './ContactList';
 import ContactDetail from './ContactDetail';

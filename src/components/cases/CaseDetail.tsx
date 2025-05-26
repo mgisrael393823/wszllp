@@ -4,7 +4,7 @@ import { useData } from '../../context/DataContext';
 import { format, parseISO, isValid } from 'date-fns';
 import { 
   ArrowLeft, Plus, Calendar, FileText, Edit, 
-  Clock, AlertCircle, User, CreditCard, Download,
+  Clock, User, CreditCard, Download,
   MapPin, Activity, MoreVertical, Printer, CalendarDays
 } from 'lucide-react';
 import Card from '../ui/Card';
@@ -12,7 +12,6 @@ import Button from '../ui/Button';
 import Table from '../ui/Table';
 import HearingForm from '../hearings/HearingForm';
 import DocumentForm from '../documents/DocumentForm';
-import Modal from '../ui/Modal';
 import CaseForm from './CaseForm';
 import Pagination from '../ui/Pagination';
 

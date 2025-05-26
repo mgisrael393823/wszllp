@@ -17,7 +17,7 @@ interface Column<T> {
   cellClassName?: string;
   align?: 'left' | 'center' | 'right';
   renderHeader?: (column: Column<T>) => React.ReactNode;
-  renderCell?: (value: any, item: T, index: number) => React.ReactNode;
+  renderCell?: (value: unknown, item: T, index: number) => React.ReactNode;
 }
 
 interface TableProps<T> {

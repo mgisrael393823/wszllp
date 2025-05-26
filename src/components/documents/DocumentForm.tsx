@@ -31,7 +31,7 @@ const DocumentForm: React.FC<DocumentFormProps> = ({
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const [cases, setCases] = useState<any[]>([]);
+  const [cases, setCases] = useState<Array<{id: string; plaintiff: string; defendant: string}>>([]);
   
   const emptyDocument = {
     docId: '',
@@ -136,14 +136,16 @@ const DocumentForm: React.FC<DocumentFormProps> = ({
       documentSchema.parse(validationCopy);
       setFormErrors({});
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       const newErrors: Record<string, string> = {};
-      error.errors.forEach((err: any) => {
-        if (err.path.length > 0) {
-          const field = err.path[0];
-          newErrors[field] = err.message;
-        }
-      });
+      if (error && typeof error === 'object' && 'errors' in error) {
+        (error as { errors: { path: string[]; message: string }[] }).errors.forEach((err) => {
+          if (err.path.length > 0) {
+            const field = err.path[0];
+            newErrors[field] = err.message;
+          }
+        });
+      }
       setFormErrors(newErrors);
       return false;
     }

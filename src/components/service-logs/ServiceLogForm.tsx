@@ -63,14 +63,16 @@ const ServiceLogForm: React.FC<ServiceLogFormProps> = ({ isOpen, onClose, logId 
       });
       setFormErrors({});
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       const newErrors: Record<string, string> = {};
-      error.errors.forEach((err: any) => {
-        if (err.path.length > 0) {
-          const field = err.path[0];
-          newErrors[field] = err.message;
-        }
-      });
+      if (error && typeof error === 'object' && 'errors' in error) {
+        (error as { errors: { path: string[]; message: string }[] }).errors.forEach((err) => {
+          if (err.path.length > 0) {
+            const field = err.path[0];
+            newErrors[field] = err.message;
+          }
+        });
+      }
       setFormErrors(newErrors);
       return false;
     }

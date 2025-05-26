@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, FileText, AlertCircle } from 'lucide-react';
-import { Card, Button, Table, Pagination, FilterBar, LoadingState, ErrorState } from '../ui';
+import { FileText, AlertCircle } from 'lucide-react';
+import { Card, Table, Pagination, FilterBar, ErrorState } from '../ui';
 // DEBUGGING: Switch between real and mock data
 import { useDocuments } from '../../hooks/useDocuments';
 import { useNavigate } from 'react-router-dom';

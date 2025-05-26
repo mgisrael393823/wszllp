@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useData } from '../../context/DataContext';
 import { format, parseISO, isValid } from 'date-fns';
-import { ArrowLeft, Plus, DollarSign, Calendar } from 'lucide-react';
+import { ArrowLeft, Plus } from 'lucide-react';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Table from '../ui/Table';
