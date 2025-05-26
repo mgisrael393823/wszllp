@@ -9,7 +9,7 @@ dotenv.config({ path: path.resolve(__dirname, '.env.local') });
 
 export default defineConfig({
   e2e: {
-    baseUrl: process.env.CI ? 'http://localhost:4173' : 'http://localhost:5173',
+    baseUrl: 'http://localhost:4173',
     setupNodeEvents(on, config) {
       // Create a task to read environment variables
       on('task', {
