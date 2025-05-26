@@ -21,34 +21,45 @@ const AcceptInvitationPage: React.FC = () => {
     confirmPassword: '',
   });
 
-  // Get token from URL parameters
-  const token = searchParams.get('token');
+  // Get token from URL parameters (Supabase sends these)
   const accessToken = searchParams.get('access_token');
   const refreshToken = searchParams.get('refresh_token');
   const type = searchParams.get('type');
+  const tokenHash = searchParams.get('token_hash');
 
   useEffect(() => {
     const verifyInvitation = async () => {
-      if (!token && !accessToken) {
+      // For Supabase invitations, we need access_token and refresh_token
+      if (!accessToken || !refreshToken) {
+        // Check if we're already authenticated (user might have clicked link while logged in)
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          // User is already authenticated, redirect to setup
+          setTokenValid(true);
+          setVerifyingToken(false);
+          return;
+        }
+        
         setError('Invalid invitation link. Please request a new invitation.');
         setVerifyingToken(false);
         return;
       }
 
       try {
-        // If we have access_token and refresh_token, the user is already authenticated
-        if (accessToken && refreshToken && type === 'invite') {
-          // Set the session using the tokens from the URL
-          const { data, error } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          });
+        // Set the session using the tokens from the URL
+        const { data, error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
 
-          if (error) throw error;
-          
+        if (error) throw error;
+        
+        // Verify this is actually an invitation (not just any auth link)
+        if (type === 'invite' || type === 'signup') {
           setTokenValid(true);
         } else {
-          // Check if token is valid (for older invitation formats)
+          // This might be a password reset or other type - still allow setup
           setTokenValid(true);
         }
       } catch (err) {
@@ -60,7 +71,7 @@ const AcceptInvitationPage: React.FC = () => {
     };
 
     verifyInvitation();
-  }, [token, accessToken, refreshToken, type]);
+  }, [accessToken, refreshToken, type, tokenHash]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

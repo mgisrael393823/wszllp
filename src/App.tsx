@@ -7,6 +7,7 @@ import { AuthProvider } from './context/AuthContext';
 import LoginPage from './components/auth/LoginPage';
 import RegisterPage from './components/auth/RegisterPage';
 import AcceptInvitationPage from './components/auth/AcceptInvitationPage';
+import DebugInvitationPage from './components/auth/DebugInvitationPage';
 import ForgotPasswordPage from './components/auth/ForgotPasswordPage';
 import ResetPasswordPage from './components/auth/ResetPasswordPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -175,6 +176,7 @@ function App() {
                   <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                   <Route path="/reset-password" element={<ResetPasswordPage />} />
                   <Route path="/accept-invitation" element={<AcceptInvitationPage />} />
+                  <Route path="/debug-invitation" element={<DebugInvitationPage />} />
                   <Route path="/design-system" element={<DesignSystemPage />} />
                   <Route element={<ProtectedRoute />}>
                     <Route path="/*" element={<AppContent />} />
