@@ -14,9 +14,9 @@ SELECT
     COUNT(*) FILTER (WHERE status = 'Active') as active_cases,
     COUNT(*) FILTER (WHERE status = 'Intake') as intake_cases,
     COUNT(*) FILTER (WHERE status = 'Closed') as closed_cases,
-    COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '30 days') as new_cases_last_30_days,
-    COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '7 days') as new_cases_last_7_days,
-    AVG(EXTRACT(EPOCH FROM (COALESCE(updated_at, created_at) - created_at))/86400) as avg_case_duration_days
+    COUNT(*) FILTER (WHERE createdat >= CURRENT_DATE - INTERVAL '30 days') as new_cases_last_30_days,
+    COUNT(*) FILTER (WHERE createdat >= CURRENT_DATE - INTERVAL '7 days') as new_cases_last_7_days,
+    AVG(EXTRACT(EPOCH FROM (COALESCE(updatedat, createdat) - createdat))/86400) as avg_case_duration_days
 FROM public.cases;
 
 -- 2. Hearings Summary Materialized View  
@@ -50,10 +50,11 @@ FROM public.documents;
 CREATE MATERIALIZED VIEW IF NOT EXISTS dashboard_contacts_summary AS
 SELECT 
     COUNT(*) as total_contacts,
-    COUNT(*) FILTER (WHERE type = 'Client') as client_contacts,
-    COUNT(*) FILTER (WHERE type = 'Opposing Party') as opposing_party_contacts,
-    COUNT(*) FILTER (WHERE type = 'Attorney') as attorney_contacts,
-    COUNT(*) FILTER (WHERE type = 'Court') as court_contacts,
+    COUNT(*) FILTER (WHERE role = 'Client') as client_contacts,
+    COUNT(*) FILTER (WHERE role = 'Attorney') as attorney_contacts,
+    COUNT(*) FILTER (WHERE role = 'Paralegal') as paralegal_contacts,
+    COUNT(*) FILTER (WHERE role = 'PM') as pm_contacts,
+    COUNT(*) FILTER (WHERE role = 'Other') as other_contacts,
     COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '30 days') as new_contacts_last_30_days,
     COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE - INTERVAL '7 days') as new_contacts_last_7_days
 FROM public.contacts;
@@ -62,8 +63,8 @@ FROM public.contacts;
 CREATE MATERIALIZED VIEW IF NOT EXISTS dashboard_activity_summary AS
 SELECT 
     -- Recent case activity
-    COUNT(*) FILTER (WHERE c.updated_at >= CURRENT_DATE - INTERVAL '24 hours') as cases_updated_last_24h,
-    COUNT(*) FILTER (WHERE c.updated_at >= CURRENT_DATE - INTERVAL '7 days') as cases_updated_last_7_days,
+    COUNT(*) FILTER (WHERE c.updatedat >= CURRENT_DATE - INTERVAL '24 hours') as cases_updated_last_24h,
+    COUNT(*) FILTER (WHERE c.updatedat >= CURRENT_DATE - INTERVAL '7 days') as cases_updated_last_7_days,
     
     -- Recent hearing activity
     (SELECT COUNT(*) FROM public.hearings WHERE updated_at >= CURRENT_DATE - INTERVAL '24 hours') as hearings_updated_last_24h,
@@ -75,7 +76,7 @@ SELECT
     
     -- Overall activity score
     (
-        COUNT(*) FILTER (WHERE c.updated_at >= CURRENT_DATE - INTERVAL '24 hours') +
+        COUNT(*) FILTER (WHERE c.updatedat >= CURRENT_DATE - INTERVAL '24 hours') +
         (SELECT COUNT(*) FROM public.hearings WHERE updated_at >= CURRENT_DATE - INTERVAL '24 hours') +
         (SELECT COUNT(*) FROM public.documents WHERE updated_at >= CURRENT_DATE - INTERVAL '24 hours')
     ) as total_activity_last_24h
@@ -117,9 +118,10 @@ SELECT
     -- Contacts metrics
     cos.total_contacts,
     cos.client_contacts,
-    cos.opposing_party_contacts,
     cos.attorney_contacts,
-    cos.court_contacts,
+    cos.paralegal_contacts,
+    cos.pm_contacts,
+    cos.other_contacts,
     cos.new_contacts_last_30_days,
     cos.new_contacts_last_7_days,
     
@@ -133,9 +135,9 @@ SELECT
     acts.total_activity_last_24h,
     
     -- Computed KPIs
-    ROUND((cs.active_cases::FLOAT / NULLIF(cs.total_cases, 0)) * 100, 1) as active_cases_percentage,
-    ROUND((ds.pending_documents::FLOAT / NULLIF(ds.total_documents, 0)) * 100, 1) as pending_documents_percentage,
-    ROUND((hs.hearings_next_30_days::FLOAT / NULLIF(hs.upcoming_hearings, 0)) * 100, 1) as hearings_next_30_days_percentage,
+    ROUND((cs.active_cases::NUMERIC / NULLIF(cs.total_cases, 0)) * 100, 1) as active_cases_percentage,
+    ROUND((ds.pending_documents::NUMERIC / NULLIF(ds.total_documents, 0)) * 100, 1) as pending_documents_percentage,
+    ROUND((hs.hearings_next_30_days::NUMERIC / NULLIF(hs.upcoming_hearings, 0)) * 100, 1) as hearings_next_30_days_percentage,
     
     -- Refresh timestamp
     NOW() as last_refreshed
@@ -145,12 +147,6 @@ CROSS JOIN dashboard_documents_summary ds
 CROSS JOIN dashboard_contacts_summary cos
 CROSS JOIN dashboard_activity_summary acts;
 
--- Create indexes for better performance
-CREATE INDEX IF NOT EXISTS dashboard_cases_summary_refresh_idx ON dashboard_cases_summary(1);
-CREATE INDEX IF NOT EXISTS dashboard_hearings_summary_refresh_idx ON dashboard_hearings_summary(1);
-CREATE INDEX IF NOT EXISTS dashboard_documents_summary_refresh_idx ON dashboard_documents_summary(1);
-CREATE INDEX IF NOT EXISTS dashboard_contacts_summary_refresh_idx ON dashboard_contacts_summary(1);
-CREATE INDEX IF NOT EXISTS dashboard_activity_summary_refresh_idx ON dashboard_activity_summary(1);
 
 -- Create function to refresh all dashboard materialized views
 CREATE OR REPLACE FUNCTION refresh_dashboard_materialized_views()

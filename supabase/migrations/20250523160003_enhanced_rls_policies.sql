@@ -12,12 +12,14 @@ DROP POLICY IF EXISTS "Users can insert case contacts" ON public.case_contacts;
 DROP POLICY IF EXISTS "Users can update case contacts" ON public.case_contacts;
 DROP POLICY IF EXISTS "Users can delete case contacts" ON public.case_contacts;
 
--- Add user_id column to contacts for ownership tracking
+-- Add user_id column to tables for ownership tracking
+ALTER TABLE public.cases ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
 ALTER TABLE public.contacts ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
 ALTER TABLE public.case_contacts ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
 ALTER TABLE public.contact_communications ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE;
 
 -- Create indexes for user-based queries
+CREATE INDEX IF NOT EXISTS idx_cases_user_id ON public.cases (user_id);
 CREATE INDEX IF NOT EXISTS idx_contacts_user_id ON public.contacts (user_id);
 CREATE INDEX IF NOT EXISTS idx_case_contacts_user_id ON public.case_contacts (user_id);
 CREATE INDEX IF NOT EXISTS idx_contact_communications_user_id ON public.contact_communications (user_id);

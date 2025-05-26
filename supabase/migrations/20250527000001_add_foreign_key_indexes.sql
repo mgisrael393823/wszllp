@@ -31,7 +31,7 @@ CREATE INDEX IF NOT EXISTS idx_documents_case_user ON public.documents(case_id, 
 CREATE INDEX IF NOT EXISTS idx_hearings_case_user ON public.hearings(case_id, user_id);
 
 -- Date-based queries with user filtering
-CREATE INDEX IF NOT EXISTS idx_cases_user_created ON public.cases(user_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_cases_user_created ON public.cases(user_id, createdat);
 CREATE INDEX IF NOT EXISTS idx_documents_user_created ON public.documents(user_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_hearings_user_date ON public.hearings(user_id, hearing_date);
 
@@ -41,18 +41,19 @@ CREATE INDEX IF NOT EXISTS idx_documents_user_status ON public.documents(user_id
 
 -- 7. Add covering indexes for dashboard materialized view performance
 -- These help with the aggregate queries in dashboard views
-CREATE INDEX IF NOT EXISTS idx_cases_status_created_at ON public.cases(status, created_at);
+CREATE INDEX IF NOT EXISTS idx_cases_status_created_at ON public.cases(status, createdat);
 CREATE INDEX IF NOT EXISTS idx_documents_status_created_at ON public.documents(status, created_at);
 CREATE INDEX IF NOT EXISTS idx_hearings_date_outcome ON public.hearings(hearing_date, outcome);
 
 -- 8. Add partial indexes for common filtered queries
 -- Index only active cases for faster active case queries
-CREATE INDEX IF NOT EXISTS idx_cases_active ON public.cases(user_id, created_at) 
+CREATE INDEX IF NOT EXISTS idx_cases_active ON public.cases(user_id, createdat) 
   WHERE status = 'Active';
 
 -- Index only upcoming hearings for faster dashboard queries
-CREATE INDEX IF NOT EXISTS idx_hearings_upcoming ON public.hearings(user_id, hearing_date) 
-  WHERE hearing_date > NOW();
+-- Note: Cannot use NOW() in index predicate as it's not immutable
+-- This index will include all hearings - filter at query time instead
+CREATE INDEX IF NOT EXISTS idx_hearings_upcoming ON public.hearings(user_id, hearing_date);
 
 -- Index only pending documents for faster pending document queries
 CREATE INDEX IF NOT EXISTS idx_documents_pending ON public.documents(user_id, created_at) 
