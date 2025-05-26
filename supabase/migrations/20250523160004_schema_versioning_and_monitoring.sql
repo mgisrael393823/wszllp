@@ -51,6 +51,21 @@ CREATE TABLE IF NOT EXISTS public.system_health (
 CREATE INDEX idx_system_health_metric ON public.system_health (metric_name);
 CREATE INDEX idx_system_health_recorded_at ON public.system_health (recorded_at);
 
+-- Create schema_monitoring table for tracking database operations
+CREATE TABLE IF NOT EXISTS public.schema_monitoring (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  operation TEXT NOT NULL,
+  table_name TEXT NOT NULL,
+  status TEXT NOT NULL CHECK (status IN ('SUCCESS', 'ERROR', 'WARNING')),
+  details TEXT,
+  performed_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_schema_monitoring_operation ON public.schema_monitoring (operation);
+CREATE INDEX idx_schema_monitoring_table ON public.schema_monitoring (table_name);
+CREATE INDEX idx_schema_monitoring_status ON public.schema_monitoring (status);
+CREATE INDEX idx_schema_monitoring_performed_at ON public.schema_monitoring (performed_at);
+
 -- Function to log migration events
 CREATE OR REPLACE FUNCTION log_migration_event(
   p_version TEXT,
@@ -186,7 +201,7 @@ SELECT log_migration_event(
   '20250523160004_schema_versioning_and_monitoring',
   'INFO',
   'Schema versioning and monitoring system initialized',
-  '{"tables_created": ["schema_versions", "migration_logs", "system_health"], "functions_created": ["log_migration_event", "record_metric", "get_current_schema_version", "validate_schema_integrity"]}'::jsonb
+  '{"tables_created": ["schema_versions", "migration_logs", "system_health", "schema_monitoring"], "functions_created": ["log_migration_event", "record_metric", "get_current_schema_version", "validate_schema_integrity"]}'::jsonb
 );
 
 -- Record initial system metrics
@@ -226,6 +241,7 @@ ORDER BY last_recorded DESC;
 COMMENT ON TABLE public.schema_versions IS 'Tracks all database schema migrations and their status';
 COMMENT ON TABLE public.migration_logs IS 'Detailed logs for migration operations and events';
 COMMENT ON TABLE public.system_health IS 'System performance and health metrics';
+COMMENT ON TABLE public.schema_monitoring IS 'Tracks database operations and maintenance tasks';
 COMMENT ON FUNCTION log_migration_event IS 'Log events during migration operations';
 COMMENT ON FUNCTION record_metric IS 'Record system performance metrics';
 COMMENT ON FUNCTION validate_schema_integrity IS 'Validate database schema for common issues';
