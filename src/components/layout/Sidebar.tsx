@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   Briefcase, FileText, Users, Settings,
-  LayoutDashboard, HelpCircle, Calendar
+  LayoutDashboard, HelpCircle, Calendar, Activity
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -52,6 +52,12 @@ const createNavStructure = (): NavItem[] => [
     value: 'contacts', 
     icon: <Users size={20} />,
     description: 'Clients and other contacts'
+  },
+  { 
+    label: 'Activity', 
+    value: 'activity', 
+    icon: <Activity size={20} />,
+    description: 'Recent actions and activity feed'
   },
   { 
     label: 'Admin', 
