@@ -14,15 +14,19 @@ import Card from '../ui/Card';
 interface FormData {
   jurisdiction: string;
   county: string;
-  caseNumber: string;
+  caseType: string;
+  filingType: 'initial' | 'subsequent';
+  existingCaseNumber?: string;
   attorneyId: string;
   files: FileList | null;
+  referenceId: string;
 }
 
 interface FormErrors {
   jurisdiction?: string;
   county?: string;
-  caseNumber?: string;
+  caseType?: string;
+  existingCaseNumber?: string;
   attorneyId?: string;
   files?: string;
 }
@@ -31,9 +35,12 @@ const EFileSubmissionForm: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     jurisdiction: 'il',
     county: 'cook',
-    caseNumber: '',
+    caseType: '',
+    filingType: 'initial',
+    existingCaseNumber: '',
     attorneyId: '',
     files: null,
+    referenceId: `WSZ-${Date.now()}`,
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -64,7 +71,7 @@ const EFileSubmissionForm: React.FC = () => {
     mutationFn: ({ payload, token }: { payload: EFileSubmission; token: string }) => 
       submitFiling(payload, token),
     onSuccess: data => {
-      dispatch({ type: 'ADD_ENVELOPE', caseId: formData.caseNumber, envelopeId: data.item.id });
+      dispatch({ type: 'ADD_ENVELOPE', caseId: data.item.case_number || formData.referenceId, envelopeId: data.item.id });
       
       // Add to system notifications
       dataDispatch({
@@ -92,7 +99,16 @@ const EFileSubmissionForm: React.FC = () => {
       });
       
       // Reset form
-      setFormData({ jurisdiction: 'il', county: 'cook', caseNumber: '', attorneyId: '', files: null });
+      setFormData({ 
+        jurisdiction: 'il', 
+        county: 'cook', 
+        caseType: '', 
+        filingType: 'initial',
+        existingCaseNumber: '',
+        attorneyId: '', 
+        files: null,
+        referenceId: `WSZ-${Date.now()}`
+      });
     },
     onError: err => {
       console.error(err);
@@ -108,7 +124,7 @@ const EFileSubmissionForm: React.FC = () => {
           priority: 'High',
           isRead: false,
           entityType: 'Filing',
-          entityId: formData.caseNumber,
+          entityId: formData.existingCaseNumber || formData.referenceId,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },
@@ -167,6 +183,19 @@ const EFileSubmissionForm: React.FC = () => {
     ],
   } as const;
 
+  const caseTypes = [
+    { value: '174140', label: 'Eviction - Residential' },
+    { value: '174141', label: 'Eviction - Commercial' },
+    { value: '174142', label: 'Eviction - Joint Action' },
+    { value: '174143', label: 'Civil Action' },
+    { value: '174144', label: 'Small Claims' },
+  ];
+
+  const filingTypes = [
+    { value: 'initial', label: 'Initial Filing (New Case)' },
+    { value: 'subsequent', label: 'Subsequent Filing (Existing Case)' },
+  ];
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     if (name === 'jurisdiction') {
@@ -221,8 +250,12 @@ const EFileSubmissionForm: React.FC = () => {
       newErrors.county = 'Please select a county';
       isValid = false;
     }
-    if (!formData.caseNumber) {
-      newErrors.caseNumber = 'Please enter a case number';
+    if (!formData.caseType) {
+      newErrors.caseType = 'Please select a case type';
+      isValid = false;
+    }
+    if (formData.filingType === 'subsequent' && !formData.existingCaseNumber) {
+      newErrors.existingCaseNumber = 'Please enter the existing case number';
       isValid = false;
     }
     if (!formData.attorneyId) {
@@ -251,7 +284,7 @@ const EFileSubmissionForm: React.FC = () => {
       const draftData = {
         jurisdiction: formData.jurisdiction,
         county: formData.county,
-        caseNumber: formData.caseNumber,
+        caseNumber: formData.existingCaseNumber || 'NEW',
         attorneyId: formData.attorneyId,
         files: Array.from(formData.files as FileList).map(file => ({
           id: uuidv4(),
@@ -268,7 +301,7 @@ const EFileSubmissionForm: React.FC = () => {
           draftId,
           formData: draftData,
           savedAt: new Date().toISOString(),
-          caseId: formData.caseNumber,
+          caseId: formData.existingCaseNumber || formData.referenceId,
           autoSaved: true
         }
       });
@@ -295,15 +328,18 @@ const EFileSubmissionForm: React.FC = () => {
         
         // Create a properly typed submission payload
         const payload: EFileSubmission = {
-          reference_id: draftId,
+          reference_id: formData.referenceId,
           jurisdiction: `${formData.county}:cvd1`,
           case_category: '7', // Category code for evictions
-          case_type: formData.caseNumber,
+          case_type: formData.caseType,
           filings: files,
           payment_account_id: 'demo',
           filing_attorney_id: formData.attorneyId,
           filing_party_id: 'Party_25694092',
-          is_initial_filing: true,
+          is_initial_filing: formData.filingType === 'initial',
+          ...(formData.filingType === 'subsequent' && {
+            cross_references: [{ type: 'CASE_NUMBER', number: formData.existingCaseNumber }]
+          })
         };
         
         // Add audit log entry for submission attempt
@@ -327,7 +363,7 @@ const EFileSubmissionForm: React.FC = () => {
             priority: 'High',
             isRead: false,
             entityType: 'Filing',
-            entityId: formData.caseNumber,
+            entityId: formData.existingCaseNumber || formData.referenceId,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
           },
@@ -363,7 +399,7 @@ const EFileSubmissionForm: React.FC = () => {
           priority: 'High',
           isRead: false,
           entityType: 'Filing',
-          entityId: formData.caseNumber,
+          entityId: formData.existingCaseNumber || formData.referenceId,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },
@@ -402,16 +438,36 @@ const EFileSubmissionForm: React.FC = () => {
           required
           error={errors.county}
         />
-        <Input
-          name="caseNumber"
-          label="Case Number"
-          type="text"
-          value={formData.caseNumber}
+        <Select
+          name="filingType"
+          label="Filing Type"
+          options={filingTypes}
+          value={formData.filingType}
           onChange={handleInputChange}
-          placeholder="Enter case number"
           required
-          error={errors.caseNumber}
+          error={errors.filingType}
         />
+        <Select
+          name="caseType"
+          label="Case Type"
+          options={caseTypes}
+          value={formData.caseType}
+          onChange={handleInputChange}
+          required
+          error={errors.caseType}
+        />
+        {formData.filingType === 'subsequent' && (
+          <Input
+            name="existingCaseNumber"
+            label="Existing Case Number"
+            type="text"
+            value={formData.existingCaseNumber}
+            onChange={handleInputChange}
+            placeholder="Enter existing case number"
+            required
+            error={errors.existingCaseNumber}
+          />
+        )}
         <Input
           name="attorneyId"
           label="Attorney ID"
