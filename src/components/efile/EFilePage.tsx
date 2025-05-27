@@ -30,15 +30,15 @@ const EFilePage: React.FC = () => {
   // console.log('🔥 EFilePage mounted, env flags:', import.meta.env);
   // return <h1 data-testid="efile-page-test">E-Filing Page Loaded</h1>;
 
-  const documentationButton = (
+  const healthCheckButton = (
     <a
-      href="https://api.wszllp.com/docs/efile"
+      href="/api/health-check.html"
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex items-center px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 rounded-lg font-medium transition-colors border border-blue-200 text-sm"
-      aria-label="View E-Filing API Documentation in a new tab"
+      className="inline-flex items-center px-4 py-2 bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-800 rounded-lg font-medium transition-colors border border-green-200 text-sm"
+      aria-label="Check E-Filing Health Status in a new tab"
     >
-      View API Docs →
+      Check E-filing Health Status
     </a>
   );
 
@@ -51,7 +51,7 @@ const EFilePage: React.FC = () => {
             data-cy="efile-form"
             title="WSZ Direct E-Filing Integration"
             subtitle="Submit legal documents directly to the court through Tyler Technologies API"
-            primaryAction={documentationButton}
+            primaryAction={healthCheckButton}
             maxWidth="4xl"
           >
             <EFileSubmissionForm />
