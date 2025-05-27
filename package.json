@@ -17,7 +17,8 @@
     "contacts:migrate": "npx tsx scripts/contacts-migration.ts",
     "migration:validate": "npx tsx scripts/migration-validator.ts",
     "contacts:seed": "npm run contacts:migrate seed",
-    "contacts:validate": "npm run migration:validate post-validate"
+    "contacts:validate": "npm run migration:validate post-validate",
+    "verify:tyler": "node scripts/verify-tyler-credentials.js"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.13",
@@ -68,6 +69,7 @@
     "glob": "^10.3.10",
     "globals": "^15.9.0",
     "jsdom": "^26.1.0",
+    "node-fetch": "^3.3.2",
     "postcss": "^8.4.35",
     "shadcn-ui": "^0.9.5",
     "start-server-and-test": "^2.0.12",
