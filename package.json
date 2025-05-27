@@ -12,7 +12,7 @@
     "audit:a11y": "node scripts/accessibility-audit.js",
     "audit": "npm run audit:components && npm run audit:a11y",
     "docs:generate": "mkdir -p docs/components && node scripts/generate-component-docs.js",
-    "cypress:run": "xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24' cypress run --headless --browser chrome --no-tty",
+    "cypress:run": "cypress run --headless --browser chrome",
     "test:e2e:ci": "start-server-and-test dev http-get://localhost:5175 cypress:run",
     "test:efile": "cypress run --spec \"cypress/e2e/*{efile,efile-offline}.cy.js\"",
     "test:efile:real": "node --loader ts-node/esm scripts/test-real-api.js",
