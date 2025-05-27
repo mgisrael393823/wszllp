@@ -1,14 +1,9 @@
 describe('E-Filing Flows', () => {
   beforeEach(() => {
-    // Mock Supabase auth for protected routes
-    cy.window().then((win) => {
-      win.localStorage.setItem('supabase.auth.token', JSON.stringify({
-        access_token: 'mock-access-token',
-        refresh_token: 'mock-refresh-token',
-        expires_at: Date.now() + 3600000,
-        user: { id: 'mock-user-id', email: 'test@example.com' }
-      }));
-    });
+    cy.clearLocalStorage();
+
+    // Perform real Supabase authentication
+    cy.loginSupabase();
     
     // Mock authentication
     cy.intercept('POST', '**/v4/il/user/authenticate', {
