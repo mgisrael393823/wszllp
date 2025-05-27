@@ -15,7 +15,7 @@
     "cy:open": "cypress open",
     "cy:run": "cypress run",
     "cy:run:headless": "xvfb-run -a cypress run",
-    "cypress:run": "cypress run --headless --browser chrome --no-tty",
+    "cypress:run": "cypress run --headless --browser chrome",
     "test:e2e": "cypress run",
     "test:e2e:headless": "xvfb-run -a cypress run",
     "test:e2e:ci": "start-server-and-test dev http-get://localhost:5175 cypress:run",

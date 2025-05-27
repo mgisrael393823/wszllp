@@ -31,10 +31,17 @@ Cypress.Commands.add('mockEfileToken', () => {
 
 // Perform real Supabase login using environment credentials
 Cypress.Commands.add('loginSupabase', () => {
-  cy.request('POST', `${Cypress.env('SUPABASE_URL')}/auth/v1/token`, {
-    grant_type: 'password',
-    email: Cypress.env('TEST_USER_EMAIL'),
-    password: Cypress.env('TEST_USER_PASSWORD'),
+  cy.request({
+    method: 'POST',
+    url: `${Cypress.env('SUPABASE_URL')}/auth/v1/token?grant_type=password`,
+    headers: {
+      'apikey': Cypress.env('SUPABASE_ANON_KEY'),
+      'Content-Type': 'application/json'
+    },
+    body: {
+      email: Cypress.env('TEST_USER_EMAIL'),
+      password: Cypress.env('TEST_USER_PASSWORD')
+    }
   }).then(({ body }) => {
     window.localStorage.setItem('@supabase.auth.token', JSON.stringify(body));
   });
