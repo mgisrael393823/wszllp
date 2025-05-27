@@ -33,31 +33,38 @@ Cypress.Commands.add('mockEfileToken', () => {
 Cypress.Commands.add('loginSupabase', () => {
   cy.request({
     method: 'POST',
-    url: `${Cypress.env('SUPABASE_URL')}/auth/v1/token?grant_type=password`,
+    url: `${Cypress.env('SUPABASE_URL')}/auth/v1/token`,
     headers: {
       apikey: Cypress.env('SUPABASE_ANON_KEY'),
       'Content-Type': 'application/json',
     },
     body: {
+      grant_type: 'password',
       email: Cypress.env('TEST_USER_EMAIL'),
       password: Cypress.env('TEST_USER_PASSWORD'),
     },
   }).then(({ body }) => {
-    const projectRef = Cypress.env('SUPABASE_URL')
-      .replace(/^https?:\/\/(.*?)\.supabase\.co.*$/, '$1');
-    const expiresAt = Math.floor(Date.now() / 1000) + body.expires_in;
-    const session = {
-      access_token: body.access_token,
-      refresh_token: body.refresh_token,
-      token_type: body.token_type,
-      expires_in: body.expires_in,
-      expires_at: expiresAt,
-      user: body.user,
-    };
+    const projectRef = new URL(Cypress.env('SUPABASE_URL')).hostname.split('.')[0];
+    const expiresAt = Date.now() + body.expires_in * 1000;
     window.localStorage.setItem(
       `sb-${projectRef}-auth-token`,
-      JSON.stringify({ currentSession: session, expiresAt }),
+      JSON.stringify({ currentSession: body, expiresAt }),
     );
+
+    cy.request({
+      method: 'GET',
+      url: `${Cypress.env('SUPABASE_URL')}/auth/v1/user`,
+      headers: {
+        apikey: Cypress.env('SUPABASE_ANON_KEY'),
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${body.access_token}`,
+      },
+    }).then(({ body: user }) => {
+      window.localStorage.setItem(
+        `sb-${projectRef}-auth-token`,
+        JSON.stringify({ currentSession: { ...body, user }, expiresAt }),
+      );
+    });
   });
 });
 
