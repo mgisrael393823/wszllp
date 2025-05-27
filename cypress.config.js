@@ -9,7 +9,7 @@ dotenv.config({ path: path.resolve(__dirname, '.env.local') });
 
 export default defineConfig({
   e2e: {
-    baseUrl: 'http://localhost:5175',
+    baseUrl: 'http://localhost:5178',
   },
   env: {
     apiUrl: 'http://localhost:3000/api', // Mock API URL

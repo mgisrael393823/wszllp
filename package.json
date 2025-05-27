@@ -13,7 +13,7 @@
     "docs:generate": "mkdir -p docs/components && node scripts/generate-component-docs.js",
     "dev": "vite --port 5175",
     "cypress:run": "cypress run --headless --browser chrome",
-    "test:e2e:ci": "start-server-and-test dev http-get://localhost:5175 cypress:run",
+    "test:e2e:ci": "start-server-and-test dev http-get://localhost:5178 cypress:run",
     "contacts:migrate": "npx tsx scripts/contacts-migration.ts",
     "migration:validate": "npx tsx scripts/migration-validator.ts",
     "contacts:seed": "npm run contacts:migrate seed",
