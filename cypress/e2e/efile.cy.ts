@@ -1,5 +1,15 @@
 describe('E-Filing Flows', () => {
   beforeEach(() => {
+    // Mock Supabase auth for protected routes
+    cy.window().then((win) => {
+      win.localStorage.setItem('supabase.auth.token', JSON.stringify({
+        access_token: 'mock-access-token',
+        refresh_token: 'mock-refresh-token',
+        expires_at: Date.now() + 3600000,
+        user: { id: 'mock-user-id', email: 'test@example.com' }
+      }));
+    });
+    
     // Mock authentication
     cy.intercept('POST', '**/v4/il/user/authenticate', {
       statusCode: 200,
@@ -52,7 +62,7 @@ describe('E-Filing Flows', () => {
     }).as('submitInitialFiling');
 
     // Visit e-filing page
-    cy.visit('/efile');
+    cy.visit('/dashboard/efile');
 
     // Fill out the form for initial filing
     cy.get('select[name="jurisdiction"]').select('il');
@@ -131,7 +141,7 @@ describe('E-Filing Flows', () => {
     }).as('submitSubsequentFiling');
 
     // Visit e-filing page
-    cy.visit('/efile');
+    cy.visit('/dashboard/efile');
 
     // Fill out the form for subsequent filing
     cy.get('select[name="jurisdiction"]').select('il');
@@ -198,7 +208,7 @@ describe('E-Filing Flows', () => {
   });
 
   it('should conditionally show/hide existing case number input based on filing type', () => {
-    cy.visit('/efile');
+    cy.visit('/dashboard/efile');
 
     // Initially set to "initial" - should not show existing case number input
     cy.get('select[name="filingType"]').select('initial');
