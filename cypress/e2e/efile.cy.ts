@@ -2,12 +2,8 @@ describe('E-Filing Flows', () => {
   beforeEach(() => {
     cy.clearLocalStorage();
 
-    // Perform real Supabase authentication and wait for it to complete
+    // Perform real Supabase authentication
     cy.loginSupabase();
-    
-    // Visit the app to ensure the auth session is picked up
-    cy.visit('/');
-    cy.wait(1000); // Give the app time to recognize the auth session
     
     // Mock authentication
     cy.intercept('POST', '**/v4/il/user/authenticate', {
@@ -41,23 +37,27 @@ describe('E-Filing Flows', () => {
 
   it('should complete initial filing flow with correct payload structure', () => {
     // Intercept the e-filing submission
-    cy.intercept('POST', '**/v4/il/efile', {
-      statusCode: 200,
-      body: {
-        message_code: 0,
-        item: {
-          id: 'envelope-12345',
-          case_number: 'IL-2025-CV-001234',
-          case_tracking_id: 'track-12345',
-          filings: [
-            {
-              code: 'document',
-              id: 'filing-67890',
-              status: 'submitted'
-            }
-          ]
+    let initialPayload;
+    cy.intercept('POST', '**/v4/il/efile', (req) => {
+      initialPayload = req.body.data;
+      req.reply({
+        statusCode: 200,
+        body: {
+          message_code: 0,
+          item: {
+            id: 'envelope-12345',
+            case_number: 'IL-2025-CV-001234',
+            case_tracking_id: 'track-12345',
+            filings: [
+              {
+                code: 'document',
+                id: 'filing-67890',
+                status: 'submitted'
+              }
+            ]
+          }
         }
-      }
+      });
     }).as('submitInitialFiling');
 
     // Visit e-filing page
@@ -91,8 +91,8 @@ describe('E-Filing Flows', () => {
     cy.get('button[type="submit"]').click();
 
     // Assert the payload structure for initial filing
-    cy.wait('@submitInitialFiling').then((interception) => {
-      const payload = interception.request.body.data;
+    cy.then(() => {
+      const payload = initialPayload;
       
       // Should contain required fields
       expect(payload).to.have.property('reference_id');
@@ -121,23 +121,27 @@ describe('E-Filing Flows', () => {
 
   it('should complete subsequent filing flow with cross_references', () => {
     // Intercept the e-filing submission for subsequent filing
-    cy.intercept('POST', '**/v4/il/efile', {
-      statusCode: 200,
-      body: {
-        message_code: 0,
-        item: {
-          id: 'envelope-67890',
-          case_number: 'ABC123',
-          case_tracking_id: 'track-67890',
-          filings: [
-            {
-              code: 'document',
-              id: 'filing-54321',
-              status: 'submitted'
-            }
-          ]
+    let subsequentPayload;
+    cy.intercept('POST', '**/v4/il/efile', (req) => {
+      subsequentPayload = req.body.data;
+      req.reply({
+        statusCode: 200,
+        body: {
+          message_code: 0,
+          item: {
+            id: 'envelope-67890',
+            case_number: 'ABC123',
+            case_tracking_id: 'track-67890',
+            filings: [
+              {
+                code: 'document',
+                id: 'filing-54321',
+                status: 'submitted'
+              }
+            ]
+          }
         }
-      }
+      });
     }).as('submitSubsequentFiling');
 
     // Visit e-filing page
@@ -175,8 +179,8 @@ describe('E-Filing Flows', () => {
     cy.get('button[type="submit"]').click();
 
     // Assert the payload structure for subsequent filing
-    cy.wait('@submitSubsequentFiling').then((interception) => {
-      const payload = interception.request.body.data;
+    cy.then(() => {
+      const payload = subsequentPayload;
       
       // Should contain required fields
       expect(payload).to.have.property('reference_id');
