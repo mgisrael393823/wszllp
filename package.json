@@ -11,7 +11,7 @@
     "audit:a11y": "node scripts/accessibility-audit.js",
     "audit": "npm run audit:components && npm run audit:a11y",
     "docs:generate": "mkdir -p docs/components && node scripts/generate-component-docs.js",
-    "dev": "vite --port 5175",
+    "dev": "vite --port 5178",
     "cypress:run": "cypress run --headless --browser chrome",
     "test:e2e:ci": "start-server-and-test dev http-get://localhost:5178 cypress:run",
     "contacts:migrate": "npx tsx scripts/contacts-migration.ts",

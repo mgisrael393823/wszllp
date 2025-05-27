@@ -45,9 +45,10 @@ const EFilePage: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <EFileProvider>
-        <div className="space-y-6">
+        <div data-cy="efile-page" className="space-y-6">
           {/* Main E-Filing Card */}
           <PageCard
+            data-cy="efile-form"
             title="WSZ Direct E-Filing Integration"
             subtitle="Submit legal documents directly to the court through Tyler Technologies API"
             primaryAction={documentationButton}
@@ -58,6 +59,7 @@ const EFilePage: React.FC = () => {
 
           {/* Status List Card */}
           <PageCard
+            data-cy="efile-status"
             title="Filing Status"
             subtitle="Track the status of your submitted e-filings"
             maxWidth="4xl"
