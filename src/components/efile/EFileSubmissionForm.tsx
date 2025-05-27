@@ -212,6 +212,21 @@ const EFileSubmissionForm: React.FC = () => {
     }
   };
 
+  const handleSelectChange = (name: string) => (value: string) => {
+    if (name === 'jurisdiction') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        county: counties[value as keyof typeof counties]?.[0]?.value || '',
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
+    if (errors[name as keyof FormErrors]) {
+      setErrors(prev => ({ ...prev, [name]: undefined }));
+    }
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     
@@ -425,7 +440,7 @@ const EFileSubmissionForm: React.FC = () => {
           label="State or Jurisdiction"
           options={jurisdictions}
           value={formData.jurisdiction}
-          onChange={handleInputChange}
+          onChange={handleSelectChange('jurisdiction')}
           required
           error={errors.jurisdiction}
         />
@@ -434,7 +449,7 @@ const EFileSubmissionForm: React.FC = () => {
           label="County"
           options={counties[formData.jurisdiction as keyof typeof counties] || []}
           value={formData.county}
-          onChange={handleInputChange}
+          onChange={handleSelectChange('county')}
           required
           error={errors.county}
         />
@@ -443,7 +458,7 @@ const EFileSubmissionForm: React.FC = () => {
           label="Filing Type"
           options={filingTypes}
           value={formData.filingType}
-          onChange={handleInputChange}
+          onChange={handleSelectChange('filingType')}
           required
           error={errors.filingType}
         />
@@ -452,7 +467,7 @@ const EFileSubmissionForm: React.FC = () => {
           label="Case Type"
           options={caseTypes}
           value={formData.caseType}
-          onChange={handleInputChange}
+          onChange={handleSelectChange('caseType')}
           required
           error={errors.caseType}
         />

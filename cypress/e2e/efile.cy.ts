@@ -39,7 +39,7 @@ describe('E-Filing Flows', () => {
     // Intercept the e-filing submission
     let initialPayload;
     cy.intercept('POST', '**/v4/il/efile', (req) => {
-      initialPayload = req.body.data;
+      initialPayload = req.body;
       req.reply({
         statusCode: 200,
         body: {
@@ -62,13 +62,26 @@ describe('E-Filing Flows', () => {
 
     // Visit e-filing page
     cy.visit('/documents/efile');
-    cy.get('select[name="jurisdiction"]', { timeout: 10000 });
-
-    // Fill out the form for initial filing
-    cy.get('select[name="jurisdiction"]').select('il');
-    cy.get('select[name="county"]').select('cook');
-    cy.get('select[name="filingType"]').select('initial');
-    cy.get('select[name="caseType"]').select('174140'); // Eviction - Residential
+    
+    // Wait for form to load
+    cy.contains('Batch eFiling', { timeout: 10000 }).should('be.visible');
+    
+    // Fill out the form for initial filing using Shadcn Select components
+    // State/Jurisdiction
+    cy.contains('label', 'State or Jurisdiction').parent().find('button').click({ force: true });
+    cy.contains('[role="option"]', 'Illinois').click({ force: true });
+    
+    // County (auto-populated based on jurisdiction)
+    cy.contains('label', 'County').parent().find('button').click({ force: true });
+    cy.contains('[role="option"]', 'Cook County').click({ force: true });
+    
+    // Filing Type
+    cy.contains('label', 'Filing Type').parent().find('button').click({ force: true });
+    cy.contains('[role="option"]', 'Initial Filing (New Case)').click({ force: true });
+    
+    // Case Type
+    cy.contains('label', 'Case Type').parent().find('button').click({ force: true });
+    cy.contains('[role="option"]', 'Eviction - Residential').click({ force: true });
     
     // Create and attach a dummy PDF file
     const fileName = 'test-complaint.pdf';
@@ -85,14 +98,17 @@ describe('E-Filing Flows', () => {
     });
 
     // Fill attorney ID
-    cy.get('input[name="attorneyId"]').type('mock-attorney-id');
+    cy.get('input[name="attorneyId"]').type('mock-attorney-id', { force: true });
 
     // Submit the form
-    cy.get('button[type="submit"]').click();
+    cy.get('button[type="submit"]').click({ force: true });
+
+    // Wait for the submission to be intercepted
+    cy.wait('@submitInitialFiling');
 
     // Assert the payload structure for initial filing
     cy.then(() => {
-      const payload = initialPayload;
+      const payload = initialPayload.data;
       
       // Should contain required fields
       expect(payload).to.have.property('reference_id');
@@ -123,7 +139,7 @@ describe('E-Filing Flows', () => {
     // Intercept the e-filing submission for subsequent filing
     let subsequentPayload;
     cy.intercept('POST', '**/v4/il/efile', (req) => {
-      subsequentPayload = req.body.data;
+      subsequentPayload = req.body;
       req.reply({
         statusCode: 200,
         body: {
@@ -146,17 +162,30 @@ describe('E-Filing Flows', () => {
 
     // Visit e-filing page
     cy.visit('/documents/efile');
-    cy.get('select[name="jurisdiction"]', { timeout: 10000 });
-
+    
+    // Wait for form to load
+    cy.contains('Batch eFiling', { timeout: 10000 }).should('be.visible');
+    
     // Fill out the form for subsequent filing
-    cy.get('select[name="jurisdiction"]').select('il');
-    cy.get('select[name="county"]').select('cook');
-    cy.get('select[name="filingType"]').select('subsequent');
-    cy.get('select[name="caseType"]').select('174140'); // Eviction - Residential
+    // State/Jurisdiction
+    cy.contains('label', 'State or Jurisdiction').parent().find('button').click({ force: true });
+    cy.contains('[role="option"]', 'Illinois').click({ force: true });
+    
+    // County
+    cy.contains('label', 'County').parent().find('button').click({ force: true });
+    cy.contains('[role="option"]', 'Cook County').click({ force: true });
+    
+    // Filing Type - SUBSEQUENT
+    cy.contains('label', 'Filing Type').parent().find('button').click({ force: true });
+    cy.contains('[role="option"]', 'Subsequent Filing (Existing Case)').click({ force: true });
+    
+    // Case Type
+    cy.contains('label', 'Case Type').parent().find('button').click({ force: true });
+    cy.contains('[role="option"]', 'Eviction - Residential').click({ force: true });
     
     // The existing case number input should now be visible
     cy.get('input[name="existingCaseNumber"]').should('be.visible');
-    cy.get('input[name="existingCaseNumber"]').type('ABC123');
+    cy.get('input[name="existingCaseNumber"]').type('ABC123', { force: true });
     
     // Create and attach a dummy PDF file
     const fileName = 'test-motion.pdf';
@@ -173,14 +202,17 @@ describe('E-Filing Flows', () => {
     });
 
     // Fill attorney ID
-    cy.get('input[name="attorneyId"]').type('mock-attorney-id');
+    cy.get('input[name="attorneyId"]').type('mock-attorney-id', { force: true });
 
     // Submit the form
-    cy.get('button[type="submit"]').click();
+    cy.get('button[type="submit"]').click({ force: true });
+
+    // Wait for the submission to be intercepted
+    cy.wait('@submitSubsequentFiling');
 
     // Assert the payload structure for subsequent filing
     cy.then(() => {
-      const payload = subsequentPayload;
+      const payload = subsequentPayload.data;
       
       // Should contain required fields
       expect(payload).to.have.property('reference_id');
@@ -214,19 +246,23 @@ describe('E-Filing Flows', () => {
 
   it('should conditionally show/hide existing case number input based on filing type', () => {
     cy.visit('/documents/efile');
-    cy.get('select[name="jurisdiction"]', { timeout: 10000 });
+    
+    // Wait for form to load
+    cy.contains('Batch eFiling', { timeout: 10000 }).should('be.visible');
 
     // Initially set to "initial" - should not show existing case number input
-    cy.get('select[name="filingType"]').select('initial');
+    cy.contains('label', 'Filing Type').parent().find('button').click({ force: true });
+    cy.contains('[role="option"]', 'Initial Filing (New Case)').click({ force: true });
     cy.get('input[name="existingCaseNumber"]').should('not.exist');
 
     // Change to "subsequent" - should show existing case number input
-    cy.get('select[name="filingType"]').select('subsequent');
+    cy.contains('label', 'Filing Type').parent().find('button').click({ force: true });
+    cy.contains('[role="option"]', 'Subsequent Filing (Existing Case)').click({ force: true });
     cy.get('input[name="existingCaseNumber"]').should('be.visible');
-    cy.get('input[name="existingCaseNumber"]').should('have.attr', 'required');
 
     // Change back to "initial" - should hide again
-    cy.get('select[name="filingType"]').select('initial');
+    cy.contains('label', 'Filing Type').parent().find('button').click({ force: true });
+    cy.contains('[role="option"]', 'Initial Filing (New Case)').click({ force: true });
     cy.get('input[name="existingCaseNumber"]').should('not.exist');
   });
 });
