@@ -64,7 +64,7 @@ describe('E-Filing Flows', () => {
     cy.visit('/documents/efile');
     
     // Wait for form to load
-    cy.contains('Batch eFiling', { timeout: 10000 }).should('be.visible');
+    cy.contains('WSZ Direct E-Filing Integration', { timeout: 10000 }).should('be.visible');
     
     // Fill out the form for initial filing using Shadcn Select components
     // State/Jurisdiction
@@ -164,7 +164,7 @@ describe('E-Filing Flows', () => {
     cy.visit('/documents/efile');
     
     // Wait for form to load
-    cy.contains('Batch eFiling', { timeout: 10000 }).should('be.visible');
+    cy.contains('WSZ Direct E-Filing Integration', { timeout: 10000 }).should('be.visible');
     
     // Fill out the form for subsequent filing
     // State/Jurisdiction
@@ -248,7 +248,7 @@ describe('E-Filing Flows', () => {
     cy.visit('/documents/efile');
     
     // Wait for form to load
-    cy.contains('Batch eFiling', { timeout: 10000 }).should('be.visible');
+    cy.contains('WSZ Direct E-Filing Integration', { timeout: 10000 }).should('be.visible');
 
     // Initially set to "initial" - should not show existing case number input
     cy.contains('label', 'Filing Type').parent().find('button').click({ force: true });
