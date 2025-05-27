@@ -35,15 +35,29 @@ Cypress.Commands.add('loginSupabase', () => {
     method: 'POST',
     url: `${Cypress.env('SUPABASE_URL')}/auth/v1/token?grant_type=password`,
     headers: {
-      'apikey': Cypress.env('SUPABASE_ANON_KEY'),
-      'Content-Type': 'application/json'
+      apikey: Cypress.env('SUPABASE_ANON_KEY'),
+      'Content-Type': 'application/json',
     },
     body: {
       email: Cypress.env('TEST_USER_EMAIL'),
-      password: Cypress.env('TEST_USER_PASSWORD')
-    }
+      password: Cypress.env('TEST_USER_PASSWORD'),
+    },
   }).then(({ body }) => {
-    window.localStorage.setItem('@supabase.auth.token', JSON.stringify(body));
+    const projectRef = Cypress.env('SUPABASE_URL')
+      .replace(/^https?:\/\/(.*?)\.supabase\.co.*$/, '$1');
+    const expiresAt = Math.floor(Date.now() / 1000) + body.expires_in;
+    const session = {
+      access_token: body.access_token,
+      refresh_token: body.refresh_token,
+      token_type: body.token_type,
+      expires_in: body.expires_in,
+      expires_at: expiresAt,
+      user: body.user,
+    };
+    window.localStorage.setItem(
+      `sb-${projectRef}-auth-token`,
+      JSON.stringify({ currentSession: session, expiresAt }),
+    );
   });
 });
 
