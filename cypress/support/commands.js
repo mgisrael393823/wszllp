@@ -31,30 +31,12 @@ Cypress.Commands.add('mockEfileToken', () => {
 
 // Perform real Supabase login using environment credentials
 Cypress.Commands.add('loginSupabase', () => {
-  const url = Cypress.env('SUPABASE_URL');
-  const anonKey = Cypress.env('SUPABASE_ANON_KEY');
-  const email = Cypress.env('TEST_USER_EMAIL');
-  const password = Cypress.env('TEST_USER_PASSWORD');
-
-  if (!url || !email || !password) {
-    throw new Error('Missing Supabase login environment variables');
-  }
-
-  const projectRef = url.replace(/^https?:\/\//, '').split('.')[0];
-  const storageKey = `sb-${projectRef}-auth-token`;
-
-  cy.request({
-    method: 'POST',
-    url: `${url}/auth/v1/token?grant_type=password`,
-    body: { email, password },
-    headers: {
-      apikey: anonKey,
-      'Content-Type': 'application/json'
-    }
-  }).then((response) => {
-    cy.window().then((win) => {
-      win.localStorage.setItem(storageKey, JSON.stringify(response.body));
-    });
+  cy.request('POST', `${Cypress.env('SUPABASE_URL')}/auth/v1/token`, {
+    grant_type: 'password',
+    email: Cypress.env('TEST_USER_EMAIL'),
+    password: Cypress.env('TEST_USER_PASSWORD'),
+  }).then(({ body }) => {
+    window.localStorage.setItem('@supabase.auth.token', JSON.stringify(body));
   });
 });
 
