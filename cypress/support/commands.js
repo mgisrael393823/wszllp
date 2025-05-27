@@ -20,8 +20,6 @@
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 
-// Import auth helpers
-import { loginToSupabase, verifyAuthentication } from './auth/supabase-auth-enhanced';
 
 // Mock authentication tokens
 Cypress.Commands.add('mockEfileToken', () => {
@@ -34,10 +32,67 @@ Cypress.Commands.add('mockEfileToken', () => {
 
 // Perform real Supabase login using environment credentials
 Cypress.Commands.add('loginSupabase', () => {
-  return loginToSupabase().then(() => {
-    // Verify the authentication was successful
-    return verifyAuthentication();
-  });
+  const supabaseUrl = Cypress.env('SUPABASE_URL');
+  const supabaseKey = Cypress.env('SUPABASE_ANON_KEY');
+  const email = Cypress.env('TEST_USER_EMAIL');
+  const password = Cypress.env('TEST_USER_PASSWORD');
+
+  const projectRef = new URL(supabaseUrl).hostname.split('.')[0];
+  const storageKey = `sb-${projectRef}-auth-token`;
+
+  const maxAttempts = 3;
+
+  const attemptLogin = (attempt = 1) => {
+    return cy
+      .request({
+        method: 'POST',
+        url: `${supabaseUrl}/auth/v1/token?grant_type=password`,
+        headers: {
+          apikey: supabaseKey,
+          'Content-Type': 'application/json',
+        },
+        body: {
+          email,
+          password,
+        },
+        failOnStatusCode: false,
+      })
+      .then((response) => {
+        if (response.status === 200) {
+          cy.log('✅ Supabase auth successful');
+          return cy.window().then((win) => {
+            win.localStorage.setItem(
+              storageKey,
+              JSON.stringify({
+                access_token: response.body.access_token,
+                token_type: response.body.token_type || 'bearer',
+                expires_in: response.body.expires_in || 3600,
+                expires_at:
+                  response.body.expires_at || Math.floor(Date.now() / 1000) + 3600,
+                refresh_token: response.body.refresh_token,
+                user: response.body.user,
+              })
+            );
+          });
+        }
+
+        if ((response.status >= 500 || response.status === 0) && attempt < maxAttempts) {
+          const delay = 1000 * Math.pow(2, attempt - 1);
+          cy.log(`⚠️ Auth attempt ${attempt} failed. Retrying in ${delay}ms`);
+          return cy
+            .wait(delay)
+            .then(() => attemptLogin(attempt + 1));
+        }
+
+        if (response.status === 400 || response.status === 401) {
+          throw new Error(`Supabase auth failed: ${JSON.stringify(response.body)}`);
+        }
+
+        throw new Error(`Supabase auth failed with status ${response.status}`);
+      });
+  };
+
+  return attemptLogin();
 });
 
 // Command to setup authenticated session without API call (for faster tests)
