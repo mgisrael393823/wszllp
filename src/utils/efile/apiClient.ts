@@ -13,15 +13,9 @@ export const apiClient = axios.create({
   maxBodyLength: MAX_CONTENT_SIZE,
 });
 
-// Add a unique request ID to each request for tracking
-let requestCounter = 0;
+// Add request interceptor for timeout and logging
 apiClient.interceptors.request.use(
   config => {
-    // Add a request ID and timestamp for logging
-    config.headers = config.headers || {};
-    config.headers['x-request-id'] = `req-${Date.now()}-${++requestCounter}`;
-    config.headers['x-request-start'] = Date.now();
-    
     // Set longer timeout for submission endpoints
     if (config.url?.includes('/efile')) {
       config.timeout = UPLOAD_TIMEOUT;
@@ -50,14 +44,10 @@ apiClient.interceptors.response.use(
   response => {
     // Log the response if in development
     if (import.meta.env.DEV) {
-      const requestTime = response.config.headers['x-request-start'];
-      const duration = requestTime ? Date.now() - Number(requestTime) : 0;
-      
       console.info(
         '[E-File API Response]',
         response.config.method?.toUpperCase(),
         response.config.url,
-        `(${duration}ms)`,
         response.status
       );
     }
