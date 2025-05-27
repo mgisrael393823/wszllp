@@ -58,6 +58,7 @@ describe('E-Filing Flows', () => {
 
     // Visit e-filing page
     cy.visit('/documents/efile');
+    cy.get('select[name="jurisdiction"]', { timeout: 10000 });
 
     // Fill out the form for initial filing
     cy.get('select[name="jurisdiction"]').select('il');
@@ -137,6 +138,7 @@ describe('E-Filing Flows', () => {
 
     // Visit e-filing page
     cy.visit('/documents/efile');
+    cy.get('select[name="jurisdiction"]', { timeout: 10000 });
 
     // Fill out the form for subsequent filing
     cy.get('select[name="jurisdiction"]').select('il');
@@ -204,6 +206,7 @@ describe('E-Filing Flows', () => {
 
   it('should conditionally show/hide existing case number input based on filing type', () => {
     cy.visit('/documents/efile');
+    cy.get('select[name="jurisdiction"]', { timeout: 10000 });
 
     // Initially set to "initial" - should not show existing case number input
     cy.get('select[name="filingType"]').select('initial');
