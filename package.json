@@ -18,7 +18,8 @@
     "migration:validate": "npx tsx scripts/migration-validator.ts",
     "contacts:seed": "npm run contacts:migrate seed",
     "contacts:validate": "npm run migration:validate post-validate",
-    "verify:tyler": "node scripts/verify-tyler-credentials.js"
+    "verify:tyler": "node scripts/verify-tyler-credentials.js",
+    "test:production": "node scripts/production-efile-test.js"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.13",
