@@ -20,6 +20,9 @@
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 
+// Import auth helpers
+import { loginToSupabase, verifyAuthentication } from './auth/supabase-auth-enhanced';
+
 // Mock authentication tokens
 Cypress.Commands.add('mockEfileToken', () => {
   // Mock auth token in localStorage
@@ -31,23 +34,41 @@ Cypress.Commands.add('mockEfileToken', () => {
 
 // Perform real Supabase login using environment credentials
 Cypress.Commands.add('loginSupabase', () => {
-  cy.request({
-    method: 'POST',
-    url: `${Cypress.env('SUPABASE_URL')}/auth/v1/token`,
-    headers: {
-      apikey: Cypress.env('SUPABASE_ANON_KEY'),
-      'Content-Type': 'application/json',
-    },
-    body: {
-      grant_type: 'password',
-      email: Cypress.env('TEST_USER_EMAIL'),
-      password: Cypress.env('TEST_USER_PASSWORD'),
-    },
-  }).then(({ body }) => {
-    const projectRef = new URL(Cypress.env('SUPABASE_URL')).hostname.split('.')[0];
-    window.localStorage.setItem(`sb-${projectRef}-auth-token`, JSON.stringify(body));
+  return loginToSupabase().then(() => {
+    // Verify the authentication was successful
+    return verifyAuthentication();
   });
 });
+
+// Command to setup authenticated session without API call (for faster tests)
+Cypress.Commands.add('setupSupabaseSession', (userData = {}) => {
+  const supabaseUrl = Cypress.env('SUPABASE_URL');
+  const projectRef = new URL(supabaseUrl).hostname.split('.')[0];
+  
+  // Create a mock session
+  const mockSession = {
+    access_token: 'mock-access-token-' + Date.now(),
+    token_type: 'bearer',
+    expires_in: 3600,
+    expires_at: Math.floor(Date.now() / 1000) + 3600,
+    refresh_token: 'mock-refresh-token',
+    user: {
+      id: userData.id || 'test-user-id',
+      email: userData.email || Cypress.env('TEST_USER_EMAIL'),
+      role: 'authenticated',
+      ...userData
+    }
+  };
+  
+  cy.window().then((win) => {
+    win.localStorage.setItem(
+      `sb-${projectRef}-auth-token`,
+      JSON.stringify(mockSession)
+    );
+  });
+});
+
+
 
 // Mock a file upload by setting the files property
 Cypress.Commands.add('mockFileUpload', (selector, fixture) => {

@@ -16,6 +16,25 @@ export default defineConfig({
         getEnvVariable(varName) {
           return process.env[varName] || null;
         },
+        // Task to create mock session for CI environments
+        createMockSession({ email }) {
+          return {
+            access_token: `mock-token-${Date.now()}`,
+            token_type: 'bearer',
+            expires_in: 3600,
+            expires_at: Math.floor(Date.now() / 1000) + 3600,
+            refresh_token: `mock-refresh-${Date.now()}`,
+            user: {
+              id: 'mock-user-id',
+              email: email,
+              role: 'authenticated',
+              app_metadata: {},
+              user_metadata: {},
+              aud: 'authenticated',
+              created_at: new Date().toISOString()
+            }
+          };
+        },
       });
       
       // Set environment variables from .env.local

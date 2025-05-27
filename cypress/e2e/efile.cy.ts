@@ -2,8 +2,12 @@ describe('E-Filing Flows', () => {
   beforeEach(() => {
     cy.clearLocalStorage();
 
-    // Perform real Supabase authentication
+    // Perform real Supabase authentication and wait for it to complete
     cy.loginSupabase();
+    
+    // Visit the app to ensure the auth session is picked up
+    cy.visit('/');
+    cy.wait(1000); // Give the app time to recognize the auth session
     
     // Mock authentication
     cy.intercept('POST', '**/v4/il/user/authenticate', {
