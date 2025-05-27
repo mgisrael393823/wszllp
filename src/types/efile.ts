@@ -15,11 +15,16 @@ export interface EFileDocument {
   doc_type: string;
 }
 
+export interface CrossReference {
+  type: string;                   // Reference type (e.g., "CASE_NUMBER")
+  number: string;                 // Reference number/value
+}
+
 export interface EFileSubmission {
   reference_id: string;           // Client-generated unique ID
   jurisdiction: string;           // Format: "{county}:cvd1"
   case_category: string;          // Category code (e.g., "7" for evictions)
-  case_type: string;              // Case number
+  case_type: string;              // Case type code (not case number)
   filings: EFileDocument[];       // Array of documents to file
   payment_account_id: string;     // Payment account ID
   filing_attorney_id: string;     // Attorney ID
@@ -27,6 +32,7 @@ export interface EFileSubmission {
   service_contacts?: string[];    // Optional service contacts
   service_type?: string;          // Optional service type
   is_initial_filing?: boolean;    // Whether this is an initial filing
+  cross_references?: CrossReference[]; // For subsequent filings - references to existing cases
 }
 
 export interface EFileDocumentStatus {
