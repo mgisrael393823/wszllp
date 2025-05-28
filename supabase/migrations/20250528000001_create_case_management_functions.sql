@@ -23,21 +23,17 @@ DECLARE
 BEGIN
   -- Insert new case and return the ID
   INSERT INTO public.cases (
-    user_id,
-    client_name,
-    case_number,
-    type,
-    status,
-    created_at,
-    updated_at
+    id,
+    plaintiff,
+    defendant,
+    address,
+    status
   ) VALUES (
-    p_user_id,
-    CONCAT(p_jurisdiction, ' - ', p_county, ' County'),
-    p_reference_id,
-    p_case_type,
-    p_status,
-    now(),
-    now()
+    gen_random_uuid(),
+    CONCAT(p_jurisdiction, ' County Court'),
+    CONCAT('Case ', p_reference_id, ' - ', p_case_type),
+    CONCAT(p_county, ' County, ', UPPER(p_jurisdiction)),
+    p_status
   )
   RETURNING id INTO v_case_id;
 
@@ -91,9 +87,7 @@ BEGIN
     file_url,
     status,
     efile_status,
-    efile_timestamp,
-    created_at,
-    updated_at
+    efile_timestamp
   ) VALUES (
     p_case_id,
     p_envelope_id,
