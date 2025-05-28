@@ -35,6 +35,9 @@ const Header: React.FC<HeaderProps> = ({
 
   // Professional demo indicator component
   const DemoIndicator = () => {
+    // Debug logging
+    console.log('DemoIndicator - isLoading:', isLoading, 'isSandbox:', isSandbox, 'userEmail:', user?.email);
+    
     if (isLoading || !isSandbox) return null;
     
     return (

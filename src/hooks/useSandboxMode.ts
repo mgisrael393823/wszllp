@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import { isSandboxUser } from '@/utils/sandbox';
+import { useAuth } from '../context/AuthContext';
+import { isSandboxUser } from '../utils/sandbox';
 
 /**
  * Hook to check if current user is in sandbox mode
