@@ -37,5 +37,20 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': 'off',
       'react-hooks/exhaustive-deps': 'off',
     },
+  },
+  {
+    files: ['cypress/**/*.{ts,tsx,js,jsx}'],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        cy: 'readonly',
+        Cypress: 'readonly',
+        expect: 'readonly',
+        assert: 'readonly',
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-unused-expressions': 'off',
+    },
   }
 );
