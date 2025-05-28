@@ -156,6 +156,21 @@ export function useSandboxDocuments(caseId?: string) {
 }
 
 // Combined dashboard data hook for sandbox - only fetches if user is sandbox user
+const DASHBOARD_CACHE_KEY = 'sandbox-dashboard-cache';
+let dashboardCache: {
+  cases: Case[];
+  contacts: Contact[];
+  hearings: Hearing[];
+  documents: Document[];
+  loading: boolean;
+} | null = null;
+
+// Cache invalidation utility
+export function clearSandboxCache() {
+  dashboardCache = null;
+  sessionStorage.removeItem(DASHBOARD_CACHE_KEY);
+}
+
 export function useSandboxDashboard() {
   const { user } = useAuth();
   const [data, setData] = useState({
