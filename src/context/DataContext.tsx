@@ -1,10 +1,178 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import { useAuth } from './AuthContext';
+import { isSandboxUser } from '../utils/sandbox';
 import { 
   Case, Hearing, Document, ServiceLog, Invoice, PaymentPlan, Contact, ZoomLink, AuditLog,
   Workflow, WorkflowTask, DocumentTemplate, DocumentGeneration, CalendarEvent, CalendarIntegration,
   Notification, NotificationSettings
 } from '../types/schema';
+
+// Sandbox demo data
+const SANDBOX_DEMO_DATA = {
+  cases: [
+    {
+      caseId: 'demo-case-1',
+      caseNumber: 'CV2024-001234',
+      title: 'Eviction - 123 Main Street Apartment 2B',
+      description: 'Non-payment of rent for 3 months. Tenant has not responded to notices.',
+      status: 'Active',
+      caseType: 'Eviction',
+      plaintiff: 'Property Management Partners',
+      defendant: 'John Smith',
+      propertyAddress: '123 Main Street, Apt 2B, Chicago, IL 60601',
+      rentAmount: 1500.00,
+      pastDueAmount: 4500.00,
+      filingDate: '2024-05-15',
+      courtDate: '2024-06-15T09:00:00',
+      courtLocation: 'Cook County Circuit Court - Room 302',
+      notes: 'Tenant has been responsive to initial contact but missed payment deadlines.',
+      createdAt: '2024-05-15T10:00:00',
+      updatedAt: '2024-05-27T16:00:00'
+    },
+    {
+      caseId: 'demo-case-2', 
+      caseNumber: 'CV2024-001235',
+      title: 'Commercial Lease Dispute - ABC Store',
+      description: 'Tenant disputing lease terms and requesting rent reduction.',
+      status: 'Pending',
+      caseType: 'Commercial Dispute',
+      plaintiff: 'Property Management Partners',
+      defendant: 'ABC Store Inc.',
+      propertyAddress: '456 Commerce Street, Chicago, IL 60602',
+      rentAmount: 3500.00,
+      pastDueAmount: 0.00,
+      filingDate: '2024-05-10',
+      courtDate: '2024-06-20T14:00:00',
+      courtLocation: 'Cook County Circuit Court - Mediation Room A',
+      notes: 'Commercial tenant citing business impact from nearby construction.',
+      createdAt: '2024-05-10T10:00:00',
+      updatedAt: '2024-05-27T16:00:00'
+    },
+    {
+      caseId: 'demo-case-3',
+      caseNumber: 'CV2024-001236', 
+      title: 'Eviction - 789 Oak Avenue Unit 5',
+      description: 'Lease violation - unauthorized pets and subletting.',
+      status: 'Filed',
+      caseType: 'Eviction',
+      plaintiff: 'Property Management Partners',
+      defendant: 'Sarah Johnson',
+      propertyAddress: '789 Oak Avenue, Unit 5, Chicago, IL 60603',
+      rentAmount: 1200.00,
+      pastDueAmount: 1200.00,
+      filingDate: '2024-05-20',
+      courtDate: '2024-06-25T10:30:00',
+      courtLocation: 'Cook County Circuit Court - Room 205',
+      notes: 'Multiple lease violations documented. Tenant has been uncooperative.',
+      createdAt: '2024-05-20T10:00:00',
+      updatedAt: '2024-05-27T16:00:00'
+    }
+  ],
+  contacts: [
+    {
+      contactId: 'demo-contact-1',
+      name: 'John Smith',
+      role: 'Client',
+      email: 'john.smith.demo@email.com',
+      phone: '(555) 123-4567',
+      company: '',
+      address: '123 Main Street, Apt 2B, Chicago, IL 60601',
+      notes: 'Responsive tenant, financial hardship due to job loss.',
+      createdAt: '2024-05-15T10:00:00',
+      updatedAt: '2024-05-27T16:00:00'
+    },
+    {
+      contactId: 'demo-contact-2',
+      name: 'ABC Store Inc.',
+      role: 'Client',
+      email: 'legal@abcstore-demo.com',
+      phone: '(555) 987-6543',
+      company: 'ABC Store Inc.',
+      address: '456 Commerce Street, Chicago, IL 60602',
+      notes: 'Commercial tenant, been in good standing for 3 years until recent dispute.',
+      createdAt: '2024-05-10T10:00:00',
+      updatedAt: '2024-05-27T16:00:00'
+    },
+    {
+      contactId: 'demo-contact-3',
+      name: 'Sarah Johnson',
+      role: 'Client', 
+      email: 'sarah.johnson.demo@email.com',
+      phone: '(555) 555-0123',
+      company: '',
+      address: '789 Oak Avenue, Unit 5, Chicago, IL 60603',
+      notes: 'Problematic tenant with multiple violations. Consider for eviction.',
+      createdAt: '2024-05-20T10:00:00',
+      updatedAt: '2024-05-27T16:00:00'
+    },
+    {
+      contactId: 'demo-contact-4',
+      name: 'Property Management Partners',
+      role: 'PM',
+      email: 'contact@pmp-demo.com',
+      phone: '(555) 111-2222',
+      company: 'Property Management Partners',
+      address: '100 Property Lane, Chicago, IL 60604',
+      notes: 'Reliable property management company handling multiple properties.',
+      createdAt: '2024-05-01T10:00:00',
+      updatedAt: '2024-05-27T16:00:00'
+    },
+    {
+      contactId: 'demo-contact-5',
+      name: 'Cook County Sheriff Department',
+      role: 'Other',
+      email: 'evictions@sheriff-demo.gov', 
+      phone: '(555) 311-9999',
+      company: 'Cook County Sheriff Department',
+      address: '69 W Washington St, Chicago, IL 60602',
+      notes: 'Primary contact for eviction enforcement and service of process.',
+      createdAt: '2024-05-01T10:00:00',
+      updatedAt: '2024-05-27T16:00:00'
+    }
+  ],
+  hearings: [
+    {
+      hearingId: 'demo-hearing-1',
+      caseId: 'demo-case-1',
+      title: 'Eviction Hearing - 123 Main Street',
+      description: 'Initial hearing for non-payment eviction case',
+      hearingDate: '2024-06-15T09:00:00',
+      location: 'Cook County Circuit Court - Room 302',
+      hearingType: 'Eviction Hearing',
+      status: 'Scheduled',
+      notes: 'Tenant has right to appear and contest. Bring all payment records.',
+      createdAt: '2024-05-15T10:00:00',
+      updatedAt: '2024-05-27T16:00:00'
+    },
+    {
+      hearingId: 'demo-hearing-2',
+      caseId: 'demo-case-2',
+      title: 'Commercial Dispute Mediation',
+      description: 'Court-ordered mediation for lease dispute resolution',
+      hearingDate: '2024-06-20T14:00:00',
+      location: 'Cook County Circuit Court - Mediation Room A',
+      hearingType: 'Mediation',
+      status: 'Scheduled',
+      notes: 'Both parties required to attend. Bring lease agreement and financial records.',
+      createdAt: '2024-05-10T10:00:00',
+      updatedAt: '2024-05-27T16:00:00'
+    },
+    {
+      hearingId: 'demo-hearing-3',
+      caseId: 'demo-case-3',
+      title: 'Eviction Hearing - 789 Oak Avenue',
+      description: 'Hearing for lease violation eviction case',
+      hearingDate: '2024-06-25T10:30:00',
+      location: 'Cook County Circuit Court - Room 205',
+      hearingType: 'Eviction Hearing',
+      status: 'Scheduled',
+      notes: 'Evidence of lease violations documented. Photos and witness statements ready.',
+      createdAt: '2024-05-20T10:00:00',
+      updatedAt: '2024-05-27T16:00:00'
+    }
+  ]
+};
 
 // Define the shape of our application state
 interface AppState {
