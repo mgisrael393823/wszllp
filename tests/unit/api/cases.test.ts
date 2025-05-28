@@ -50,16 +50,19 @@ describe('/api/cases endpoint', () => {
         message: 'Case created successfully',
       });
 
-      expect(mockSupabaseRpc).toHaveBeenCalledWith('create_case_with_transaction', {
-        p_user_id: 'user-uuid-123',
-        p_jurisdiction: 'il',
-        p_county: 'cook',
-        p_case_type: 'eviction',
-        p_attorney_id: 'ATT123',
-        p_reference_id: 'WSZ-1234567890',
-        p_status: 'Open',
-        p_case_category: '7',
-      });
+      expect(mockSupabaseRpc).toHaveBeenCalledWith(
+        'create_case_with_transaction',
+        expect.objectContaining({
+          p_user_id: 'user-uuid-123',
+          p_jurisdiction: 'il',
+          p_county: 'cook',
+          p_case_type: 'eviction',
+          p_attorney_id: 'ATT123',
+          p_reference_id: 'WSZ-1234567890',
+          p_status: 'Open',
+          p_case_category: '7'
+        })
+      );
     });
 
     it('should return 400 for missing required fields', async () => {
@@ -78,7 +81,7 @@ describe('/api/cases endpoint', () => {
       expect(res.statusCode).toBe(400);
       expect(JSON.parse(res._getData())).toEqual({
         error: 'Missing required fields',
-        required: ['userId', 'jurisdiction', 'county', 'caseType', 'attorneyId', 'referenceId'],
+        required: ['jurisdiction', 'county', 'caseType', 'attorneyId', 'referenceId'],
       });
 
       expect(mockSupabaseRpc).not.toHaveBeenCalled();

@@ -11,6 +11,38 @@ import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
+import { ENHANCED_EFILING_PHASE_A } from '@/config/features';
+
+interface PaymentAccount { id: string; name: string }
+
+export function usePaymentAccounts() {
+  const [accounts, setAccounts] = useState<PaymentAccount[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchAccounts() {
+      try {
+        const res = await fetch('/api/tyler/payment-accounts');
+        const data = await res.json();
+        if (res.ok) {
+          setAccounts(data.accounts || []);
+          setError(data.error || null);
+        } else {
+          setAccounts(data.accounts || []);
+          setError(data.error || 'Failed to load accounts');
+        }
+      } catch (err) {
+        setError((err as Error).message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchAccounts();
+  }, []);
+
+  return { accounts, loading, error };
+}
 
 interface FormData {
   jurisdiction: string;
@@ -19,6 +51,27 @@ interface FormData {
   filingType: 'initial' | 'subsequent';
   existingCaseNumber?: string;
   attorneyId: string;
+  paymentAccountId?: string;
+  amountInControversy?: string;
+  showAmountInControversy?: boolean;
+  petitioner?: {
+    type: 'business' | 'individual';
+    businessName?: string;
+    firstName?: string;
+    lastName?: string;
+    addressLine1: string;
+    city: string;
+    state: string;
+    zipCode: string;
+  };
+  defendant?: {
+    firstName: string;
+    lastName: string;
+    addressLine1: string;
+    city: string;
+    state: string;
+    zipCode: string;
+  };
   files: FileList | null;
   referenceId: string;
 }
@@ -29,6 +82,10 @@ interface FormErrors {
   caseType?: string;
   existingCaseNumber?: string;
   attorneyId?: string;
+  paymentAccountId?: string;
+  amountInControversy?: string;
+  petitioner?: string;
+  defendant?: string;
   files?: string;
 }
 
@@ -40,6 +97,25 @@ const EFileSubmissionForm: React.FC = () => {
     filingType: 'initial',
     existingCaseNumber: '',
     attorneyId: '',
+    paymentAccountId: '',
+    amountInControversy: '',
+    showAmountInControversy: false,
+    petitioner: {
+      type: 'business',
+      businessName: '',
+      addressLine1: '',
+      city: '',
+      state: '',
+      zipCode: ''
+    },
+    defendant: {
+      firstName: '',
+      lastName: '',
+      addressLine1: '',
+      city: '',
+      state: '',
+      zipCode: ''
+    },
     files: null,
     referenceId: `WSZ-${Date.now()}`,
   });
@@ -50,6 +126,7 @@ const EFileSubmissionForm: React.FC = () => {
   const { dispatch: dataDispatch } = useData();
   const { addToast } = useToast();
   const { user } = useAuth();
+  const { accounts, loading: accountsLoading, error } = usePaymentAccounts();
 
   // Case management integration functions
   const createCaseRecord = async (tylerData: any) => {
@@ -70,7 +147,12 @@ const EFileSubmissionForm: React.FC = () => {
           county: formData.county,
           caseType: formData.caseType,
           attorneyId: formData.attorneyId,
-          referenceId: formData.referenceId
+          referenceId: formData.referenceId,
+          paymentAccountId: formData.paymentAccountId || undefined,
+          amountInControversy: formData.amountInControversy || undefined,
+          showAmountInControversy: formData.showAmountInControversy,
+          petitioner: formData.petitioner,
+          defendants: formData.defendant ? [formData.defendant] : []
         }),
       });
 
@@ -201,13 +283,18 @@ const EFileSubmissionForm: React.FC = () => {
       });
       
       // Reset form
-      setFormData({ 
-        jurisdiction: 'il', 
-        county: 'cook', 
-        caseType: '', 
+      setFormData({
+        jurisdiction: 'il',
+        county: 'cook',
+        caseType: '',
         filingType: 'initial',
         existingCaseNumber: '',
-        attorneyId: '', 
+        attorneyId: '',
+        paymentAccountId: '',
+        amountInControversy: '',
+        showAmountInControversy: false,
+        petitioner: { type: 'business', businessName: '', addressLine1: '', city: '', state: '', zipCode: '' },
+        defendant: { firstName: '', lastName: '', addressLine1: '', city: '', state: '', zipCode: '' },
         files: null,
         referenceId: `WSZ-${Date.now()}`
       });
@@ -314,6 +401,26 @@ const EFileSubmissionForm: React.FC = () => {
     }
   };
 
+  const handlePartyChange = (section: 'petitioner' | 'defendant', field: string) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const { value } = e.target;
+      setFormData(prev => ({
+        ...prev,
+        [section]: { ...prev[section], [field]: value }
+      }));
+      if (errors[section as keyof FormErrors]) {
+        setErrors(prev => ({ ...prev, [section]: undefined }));
+      }
+    };
+
+  const handlePetitionerTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value as 'business' | 'individual';
+    setFormData(prev => ({
+      ...prev,
+      petitioner: { ...prev.petitioner!, type: value }
+    }));
+  };
+
   const handleSelectChange = (name: string) => (value: string) => {
     if (name === 'jurisdiction') {
       setFormData(prev => ({
@@ -378,6 +485,24 @@ const EFileSubmissionForm: React.FC = () => {
     if (!formData.attorneyId) {
       newErrors.attorneyId = 'Please enter an attorney ID';
       isValid = false;
+    }
+    if (ENHANCED_EFILING_PHASE_A) {
+      if (!formData.paymentAccountId) {
+        newErrors.paymentAccountId = 'Select a payment account';
+        isValid = false;
+      }
+      if (['174140','174141','174143'].includes(formData.caseType) && !formData.amountInControversy) {
+        newErrors.amountInControversy = 'Enter amount in controversy';
+        isValid = false;
+      }
+      if (!formData.petitioner?.addressLine1 || !formData.petitioner?.city) {
+        newErrors.petitioner = 'Complete petitioner address';
+        isValid = false;
+      }
+      if (!formData.defendant?.firstName) {
+        newErrors.defendant = 'Enter defendant information';
+        isValid = false;
+      }
     }
     if (!formData.files || formData.files.length === 0) {
       newErrors.files = 'Please upload at least one document';
@@ -595,6 +720,174 @@ const EFileSubmissionForm: React.FC = () => {
           required
           error={errors.attorneyId}
         />
+        {ENHANCED_EFILING_PHASE_A && (
+          <>
+            <Select
+              name="paymentAccountId"
+              label="Payment Account"
+              options={accounts.map(a => ({ value: a.id, label: a.name }))}
+              value={formData.paymentAccountId}
+              onChange={handleSelectChange('paymentAccountId')}
+              required
+              error={errors.paymentAccountId}
+              className="w-full mb-4"
+            />
+            {error && (
+              <div className="mb-2 p-2 text-sm bg-yellow-100 text-yellow-800 rounded">
+                Unable to load payment accounts. Using fallback.
+              </div>
+            )}
+
+            <Card className="p-4 mb-4" data-cy="petitioner-card">
+              <div className="mb-2">
+                <label className="mr-4">
+                  <input
+                    type="radio"
+                    name="petitionerType"
+                    value="business"
+                    checked={formData.petitioner?.type === 'business'}
+                    onChange={handlePetitionerTypeChange}
+                  /> Business
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="petitionerType"
+                    value="individual"
+                    checked={formData.petitioner?.type === 'individual'}
+                    onChange={handlePetitionerTypeChange}
+                  /> Individual
+                </label>
+              </div>
+              {formData.petitioner?.type === 'business' ? (
+                <Input
+                  name="businessName"
+                  label="Business Name"
+                  value={formData.petitioner?.businessName || ''}
+                  onChange={handlePartyChange('petitioner','businessName')}
+                  data-cy="petitioner-business-name"
+                  required
+                />
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Input
+                    name="firstName"
+                    label="First Name"
+                    value={formData.petitioner?.firstName || ''}
+                    onChange={handlePartyChange('petitioner','firstName')}
+                    data-cy="petitioner-first-name"
+                    required
+                  />
+                  <Input
+                    name="lastName"
+                    label="Last Name"
+                    value={formData.petitioner?.lastName || ''}
+                    onChange={handlePartyChange('petitioner','lastName')}
+                    data-cy="petitioner-last-name"
+                    required
+                  />
+                </div>
+              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+                <Input
+                  name="addressLine1"
+                  label="Address Line 1"
+                  value={formData.petitioner?.addressLine1 || ''}
+                  onChange={handlePartyChange('petitioner','addressLine1')}
+                  required
+                />
+                <Input
+                  name="city"
+                  label="City"
+                  value={formData.petitioner?.city || ''}
+                  onChange={handlePartyChange('petitioner','city')}
+                  required
+                />
+                <Input
+                  name="state"
+                  label="State"
+                  value={formData.petitioner?.state || ''}
+                  onChange={handlePartyChange('petitioner','state')}
+                  required
+                />
+                <Input
+                  name="zipCode"
+                  label="Zip Code"
+                  value={formData.petitioner?.zipCode || ''}
+                  onChange={handlePartyChange('petitioner','zipCode')}
+                  required
+                />
+              </div>
+            </Card>
+
+            <Card className="p-4 mb-4" data-cy="defendant-card">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Input
+                  name="defendantFirstName"
+                  label="Defendant First Name"
+                  value={formData.defendant?.firstName || ''}
+                  onChange={handlePartyChange('defendant','firstName')}
+                  required
+                />
+                <Input
+                  name="defendantLastName"
+                  label="Defendant Last Name"
+                  value={formData.defendant?.lastName || ''}
+                  onChange={handlePartyChange('defendant','lastName')}
+                  required
+                />
+                <Input
+                  name="defendantAddressLine1"
+                  label="Address Line 1"
+                  value={formData.defendant?.addressLine1 || ''}
+                  onChange={handlePartyChange('defendant','addressLine1')}
+                  required
+                />
+                <Input
+                  name="defendantCity"
+                  label="City"
+                  value={formData.defendant?.city || ''}
+                  onChange={handlePartyChange('defendant','city')}
+                  required
+                />
+                <Input
+                  name="defendantState"
+                  label="State"
+                  value={formData.defendant?.state || ''}
+                  onChange={handlePartyChange('defendant','state')}
+                  required
+                />
+                <Input
+                  name="defendantZipCode"
+                  label="Zip Code"
+                  value={formData.defendant?.zipCode || ''}
+                  onChange={handlePartyChange('defendant','zipCode')}
+                  required
+                />
+              </div>
+            </Card>
+
+            {['174140','174141','174143'].includes(formData.caseType) && (
+              <Input
+                type="number"
+                name="amountInControversy"
+                label="Amount in Controversy"
+                value={formData.amountInControversy}
+                onChange={handleInputChange}
+                error={errors.amountInControversy}
+              />
+            )}
+            <div className="flex items-center mb-4">
+              <input
+                id="showAmount"
+                type="checkbox"
+                checked={formData.showAmountInControversy}
+                onChange={e => setFormData(prev => ({ ...prev, showAmountInControversy: e.target.checked }))}
+              />
+              <label htmlFor="showAmount" className="ml-2">Show amount on filing</label>
+            </div>
+          </>
+        )}
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Documents <span className="text-error-600">*</span>

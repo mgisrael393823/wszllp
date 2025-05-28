@@ -154,3 +154,10 @@ For detailed documentation, see:
 - [UI Component Task Tracker](../docs/UI_COMPONENT_TASK_TRACKER.md) - Tracks status, priority, and implementation phases of all UI components
 - [E-Filing Integration Guide](../docs/api/e-filing/API-INTEGRATION-GUIDE.md) - Details on integrating with the Illinois e-filing system
 - [E-Filing Implementation Strategy](../docs/api/e-filing/IMPLEMENTATION-STRATEGY.md) - Technical implementation plan for e-filing integration
+
+### E-Filing UI
+
+The E-Filing page includes optional Phase A features such as payment account
+selection and party information capture. These features are gated behind the
+`ENHANCED_EFILING_PHASE_A` flag which is automatically enabled in staging
+environments.

@@ -26,21 +26,55 @@ export default async function handler(req, res) {
 
   try {
     // Validate required fields
-    const { 
-      caseId, 
-      envelopeId, 
-      filingId, 
-      fileName, 
-      docType, 
-      status, 
-      timestamp 
+    const {
+      caseId,
+      envelopeId,
+      filingId,
+      fileName,
+      docType,
+      status,
+      timestamp,
+      paymentAccountId,
+      amountInControversy,
+      showAmountInControversy,
+      petitioner,
+      defendants
     } = req.body;
 
     if (!caseId || !envelopeId || !filingId || !fileName || !docType || !status || !timestamp) {
-      return res.status(400).json({ 
-        error: 'Missing required fields', 
+      return res.status(400).json({
+        error: 'Missing required fields',
         required: ['caseId', 'envelopeId', 'filingId', 'fileName', 'docType', 'status', 'timestamp']
       });
+    }
+
+    if (amountInControversy && isNaN(parseFloat(amountInControversy))) {
+      return res.status(400).json({ error: 'amountInControversy must be numeric' });
+    }
+
+    if (showAmountInControversy !== undefined && typeof showAmountInControversy !== 'boolean') {
+      return res.status(400).json({ error: 'showAmountInControversy must be boolean' });
+    }
+
+    const validateAddress = (p) => {
+      const fields = ['addressLine1', 'city', 'state', 'zipCode'];
+      for (const f of fields) if (!p?.[f]) return `Missing ${f}`;
+      if (p.type === 'business' && !p.businessName) return 'Missing businessName';
+      if (p.type === 'individual' && (!p.firstName || !p.lastName)) return 'Missing name';
+      return null;
+    };
+
+    if (petitioner) {
+      const petErr = validateAddress(petitioner);
+      if (petErr) return res.status(400).json({ error: `Petitioner: ${petErr}` });
+    }
+
+    if (defendants) {
+      if (!Array.isArray(defendants)) return res.status(400).json({ error: 'defendants must be an array' });
+      for (const d of defendants) {
+        const defErr = validateAddress({ ...d, type: 'individual' });
+        if (defErr) return res.status(400).json({ error: `Defendant: ${defErr}` });
+      }
     }
 
     // Validate UUID format for caseId

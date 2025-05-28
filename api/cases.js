@@ -25,14 +25,66 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Validate required fields
-    const { userId, jurisdiction, county, caseType, attorneyId, referenceId } = req.body;
+    const {
+      userId,
+      jurisdiction,
+      county,
+      caseType,
+      attorneyId,
+      referenceId,
+      paymentAccountId,
+      amountInControversy,
+      showAmountInControversy,
+      petitioner,
+      defendants
+    } = req.body;
 
-    if (!userId || !jurisdiction || !county || !caseType || !attorneyId || !referenceId) {
-      return res.status(400).json({ 
-        error: 'Missing required fields', 
-        required: ['userId', 'jurisdiction', 'county', 'caseType', 'attorneyId', 'referenceId']
+    const missing = [];
+    if (!userId) missing.push('userId');
+    if (!jurisdiction) missing.push('jurisdiction');
+    if (!county) missing.push('county');
+    if (!caseType) missing.push('caseType');
+    if (!attorneyId) missing.push('attorneyId');
+    if (!referenceId) missing.push('referenceId');
+
+    if (missing.length) {
+      return res.status(400).json({
+        error: 'Missing required fields',
+        required: missing
       });
+    }
+
+    if (amountInControversy && isNaN(parseFloat(amountInControversy))) {
+      return res.status(400).json({ error: 'amountInControversy must be numeric' });
+    }
+
+    if (showAmountInControversy !== undefined && typeof showAmountInControversy !== 'boolean') {
+      return res.status(400).json({ error: 'showAmountInControversy must be boolean' });
+    }
+
+    const validateAddress = (p) => {
+      const addrFields = ['addressLine1', 'city', 'state', 'zipCode'];
+      for (const f of addrFields) {
+        if (!p?.[f]) return `Missing ${f}`;
+      }
+      if (p.type === 'business' && !p.businessName) return 'Missing businessName';
+      if (p.type === 'individual' && (!p.firstName || !p.lastName)) return 'Missing name';
+      return null;
+    };
+
+    if (petitioner) {
+      const petErr = validateAddress(petitioner);
+      if (petErr) return res.status(400).json({ error: `Petitioner: ${petErr}` });
+    }
+
+    if (defendants) {
+      if (!Array.isArray(defendants)) {
+        return res.status(400).json({ error: 'defendants must be an array' });
+      }
+      for (const d of defendants) {
+        const defErr = validateAddress({ ...d, type: 'individual' });
+        if (defErr) return res.status(400).json({ error: `Defendant: ${defErr}` });
+      }
     }
 
     // Begin atomic transaction
@@ -43,8 +95,13 @@ export default async function handler(req, res) {
       p_case_type: caseType,
       p_attorney_id: attorneyId,
       p_reference_id: referenceId,
+      p_payment_account_id: paymentAccountId || null,
+      p_amount_in_controversy: amountInControversy || null,
+      p_show_amount_in_controversy: showAmountInControversy || false,
+      p_petitioner: petitioner ? JSON.stringify(petitioner) : null,
+      p_defendants: defendants ? JSON.stringify(defendants) : JSON.stringify([]),
       p_status: 'Open',
-      p_case_category: '7' // Hardcoded for evictions as per existing logic
+      p_case_category: '7'
     });
 
     if (error) {

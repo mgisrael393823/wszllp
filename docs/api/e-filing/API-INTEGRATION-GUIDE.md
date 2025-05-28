@@ -287,6 +287,38 @@ The e-filing request is a JSON payload with the following key components:
    - Validate all input data before submission
    - Implement proper error handling for API responses
 
+
+## Phase A Enhanced Payload
+
+The Phase A release adds optional fields to support payment accounts and party
+information capture.
+
+```json
+{
+  "paymentAccountId": "PA123",
+  "amountInControversy": "1000.00",
+  "showAmountInControversy": true,
+  "petitioner": {
+    "type": "business",
+    "businessName": "ACME Corp",
+    "addressLine1": "1 Main",
+    "city": "Chicago",
+    "state": "IL",
+    "zipCode": "60601"
+  },
+  "defendants": [
+    {
+      "firstName": "John",
+      "lastName": "Doe",
+      "addressLine1": "2 Main",
+      "city": "Chicago",
+      "state": "IL",
+      "zipCode": "60602"
+    }
+  ]
+}
+```
+
 3. **Access Control**:
    - Implement appropriate access controls for e-filing functionality
    - Log all e-filing activities for audit purposes

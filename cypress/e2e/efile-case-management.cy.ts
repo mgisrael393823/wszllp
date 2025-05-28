@@ -242,7 +242,33 @@ describe('E-Filing Case Management Integration', () => {
     
     // Attorney ID - use label-based selector for the Input component
     cy.contains('label', 'Attorney ID').parent().find('input').type('ATT123');
-    
+
+    // Payment Account
+    cy.contains('label', 'Payment Account').parent().find('button').click({ force: true });
+    cy.contains('[role="option"]', 'Demo Account').click({ force: true });
+
+    // Petitioner business
+    cy.get('[data-cy=petitioner-card]').within(() => {
+      cy.get('input[value="business"]').check({ force: true });
+      cy.get('[data-cy=petitioner-business-name]').type('ACME Corp');
+      cy.contains('label', 'Address Line 1').parent().find('input').first().type('1 Main');
+      cy.contains('label', 'City').parent().find('input').first().type('Chicago');
+      cy.contains('label', 'State').parent().find('input').first().type('IL');
+      cy.contains('label', 'Zip Code').parent().find('input').first().type('60601');
+    });
+
+    cy.get('[data-cy=defendant-card]').within(() => {
+      cy.contains('label', 'Defendant First Name').parent().find('input').type('John');
+      cy.contains('label', 'Defendant Last Name').parent().find('input').type('Doe');
+      cy.contains('label', 'Address Line 1').parent().find('input').first().type('2 Main');
+      cy.contains('label', 'City').parent().find('input').first().type('Chicago');
+      cy.contains('label', 'State').parent().find('input').first().type('IL');
+      cy.contains('label', 'Zip Code').parent().find('input').first().type('60602');
+    });
+
+    cy.contains('label', 'Amount in Controversy').parent().find('input').type('1000');
+    cy.get('#showAmount').check({ force: true });
+
     // Upload test document
     cy.get('input[id="file-upload"]').selectFile('cypress/fixtures/eviction_complaint_template.pdf', { force: true });
   }
