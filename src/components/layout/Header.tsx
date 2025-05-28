@@ -4,6 +4,7 @@ import { Menu, ChevronLeft, ChevronRight, Search, User, HelpCircle, Settings } f
 import Button from '../ui/Button';
 import NotificationBell from '../notifications/NotificationBell';
 import { useAuth } from '../../context/AuthContext';
+import { useSandboxMode } from '../../hooks/useSandboxMode';
 
 interface HeaderProps {
   toggleSidebar: () => void;
@@ -20,6 +21,7 @@ const Header: React.FC<HeaderProps> = ({
 }) => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const { user, signOut } = useAuth();
+  const { isSandbox, isLoading } = useSandboxMode();
 
   const toggleUserMenu = () => {
     setUserMenuOpen(!userMenuOpen);
@@ -29,6 +31,20 @@ const Header: React.FC<HeaderProps> = ({
   const getUserInitials = () => {
     if (!user || !user.email) return 'U';
     return user.email.charAt(0).toUpperCase();
+  };
+
+  // Professional demo indicator component
+  const DemoIndicator = () => {
+    if (isLoading || !isSandbox) return null;
+    
+    return (
+      <div className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-3 py-1.5 rounded-lg shadow-sm mr-3">
+        <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+        <span className="text-sm font-semibold">DEMO</span>
+        <span className="text-blue-100 text-xs hidden lg:inline">|</span>
+        <span className="text-blue-100 text-xs hidden lg:inline">Sample Data</span>
+      </div>
+    );
   };
 
   return (
@@ -59,9 +75,9 @@ const Header: React.FC<HeaderProps> = ({
             </Button>
           </div>
 
-
-          {/* Right section: Search, notifications, user menu */}
+          {/* Right section: Demo indicator, Search, notifications, user menu */}
           <div className="flex items-center space-x-1 sm:space-x-3">
+            <DemoIndicator />
             {/* Search button (mobile) - expand to search bar on larger screens */}
             <div className="hidden sm:flex relative w-64">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

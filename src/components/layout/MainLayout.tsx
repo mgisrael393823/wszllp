@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Header from './Header';
 import Sidebar from './Sidebar';
-import SandboxIndicator from '../ui/SandboxIndicator';
 import { useData } from '../../context/DataContext';
 
 interface MainLayoutProps {
@@ -70,7 +69,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({
 
   return (
     <div className="min-h-screen bg-neutral-50">
-      <SandboxIndicator />
       <div className="flex flex-col min-h-screen">
         <Header 
           toggleSidebar={toggleSidebar} 
