@@ -2,6 +2,9 @@
 
 BEGIN;
 
+-- Drop existing function to avoid signature conflicts
+DROP FUNCTION IF EXISTS public.create_case_with_transaction;
+
 -- Update create_case_with_transaction function to accept Phase A parameters
 CREATE OR REPLACE FUNCTION public.create_case_with_transaction(
   p_user_id UUID,
