@@ -522,4 +522,4 @@ const EnhancedDashboardHome: React.FC = () => {
   );
 };
 
-export default EnhancedDashboardHome;
+export default React.memo(EnhancedDashboardHome);
