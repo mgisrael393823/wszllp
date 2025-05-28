@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { EFileContext } from '@/context/EFileContext';
 import { useData } from '@/context/DataContext';
 import { useToast } from '@/context/ToastContext';
+import { useAuth } from '@/context/AuthContext';
 import { ensureAuth, fileToBase64, submitFiling, validateFile } from '@/utils/efile';
 import { EFileSubmission, EFileDocument } from '@/types/efile';
 import Input from '../ui/Input';
@@ -44,9 +45,92 @@ const EFileSubmissionForm: React.FC = () => {
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSavingCase, setIsSavingCase] = useState(false);
   const { state, dispatch } = useContext(EFileContext);
   const { dispatch: dataDispatch } = useData();
   const { addToast } = useToast();
+  const { user } = useAuth();
+
+  // Case management integration functions
+  const createCaseRecord = async (tylerData: any) => {
+    if (!user?.id) {
+      console.warn('User not authenticated, skipping case creation');
+      return null;
+    }
+
+    try {
+      const response = await fetch('/api/cases', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          jurisdiction: formData.jurisdiction,
+          county: formData.county,
+          caseType: formData.caseType,
+          attorneyId: formData.attorneyId,
+          referenceId: formData.referenceId
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(`Case creation failed: ${error.error}`);
+      }
+
+      const result = await response.json();
+      return result.caseId;
+    } catch (error) {
+      console.error('Error creating case record:', error);
+      // Show warning but don't fail the Tyler submission
+      addToast({
+        type: 'warning',
+        title: 'Case Management Warning',
+        message: 'E-filing succeeded but case record creation failed. Contact support if needed.',
+        duration: 8000
+      });
+      return null;
+    }
+  };
+
+  const createDocumentRecords = async (caseId: string, tylerData: any) => {
+    if (!caseId || !formData.files) return;
+
+    try {
+      // Create document records for each filed document
+      const documentPromises = Array.from(formData.files).map(async (file, index) => {
+        const filing = tylerData.item.filings?.[index];
+        if (!filing) return;
+
+        const response = await fetch('/api/documents', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            caseId: caseId,
+            envelopeId: tylerData.item.id,
+            filingId: filing.id,
+            fileName: file.name,
+            docType: filing.code || 'document',
+            status: filing.status || 'submitted',
+            timestamp: new Date().toISOString()
+          }),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          console.error(`Document creation failed for ${file.name}:`, error);
+        }
+      });
+
+      await Promise.allSettled(documentPromises);
+    } catch (error) {
+      console.error('Error creating document records:', error);
+      // Log but don't notify user - this is background processing
+    }
+  };
   
   // Check for saved drafts when component mounts
   useEffect(() => {
@@ -70,8 +154,26 @@ const EFileSubmissionForm: React.FC = () => {
   const mutation = useMutation({
     mutationFn: ({ payload, token }: { payload: EFileSubmission; token: string }) => 
       submitFiling(payload, token),
-    onSuccess: data => {
+    onSuccess: async data => {
       dispatch({ type: 'ADD_ENVELOPE', caseId: data.item.case_number || formData.referenceId, envelopeId: data.item.id });
+      
+      // Case management integration - create case and document records
+      try {
+        setIsSavingCase(true);
+        
+        // Step 1: Create case record
+        const caseId = await createCaseRecord(data);
+        
+        // Step 2: Create document records (if case creation succeeded)
+        if (caseId) {
+          await createDocumentRecords(caseId, data);
+        }
+      } catch (error) {
+        console.error('Case management integration error:', error);
+        // Don't fail the overall submission - Tyler filing already succeeded
+      } finally {
+        setIsSavingCase(false);
+      }
       
       // Add to system notifications
       dataDispatch({
@@ -525,14 +627,22 @@ const EFileSubmissionForm: React.FC = () => {
           )}
         </div>
         <div className="mt-6">
-          <Button type="submit" variant="primary" fullWidth disabled={isSubmitting}>
+          <Button type="submit" variant="primary" fullWidth disabled={isSubmitting || isSavingCase}>
             {isSubmitting ? (
               <span className="inline-flex items-center">
                 <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Submitting...
+                Submitting to Court...
+              </span>
+            ) : isSavingCase ? (
+              <span className="inline-flex items-center">
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Saving Case Record...
               </span>
             ) : (
               'Submit eFile Batch'
