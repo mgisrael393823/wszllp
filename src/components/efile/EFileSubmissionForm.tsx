@@ -11,6 +11,42 @@ import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
+import { ENHANCED_EFILING_PHASE_A } from '@/config/features';
+
+interface PaymentAccount { 
+  id: string; 
+  name: string; 
+}
+
+export function usePaymentAccounts() {
+  const [accounts, setAccounts] = useState<PaymentAccount[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchAccounts() {
+      try {
+        const res = await fetch('/api/tyler/payment-accounts');
+        const data = await res.json();
+        if (res.ok) {
+          setAccounts(data.accounts || []);
+          setError(data.error || null);
+        } else {
+          setAccounts(data.accounts || []);
+          setError(data.error || 'Failed to load accounts');
+        }
+      } catch (err) {
+        setError((err as Error).message);
+        setAccounts([{ id: 'demo', name: 'Demo Account (Fallback)' }]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchAccounts();
+  }, []);
+
+  return { accounts, loading, error };
+}
 
 interface FormData {
   jurisdiction: string;
@@ -19,6 +55,29 @@ interface FormData {
   filingType: 'initial' | 'subsequent';
   existingCaseNumber?: string;
   attorneyId: string;
+  // Phase A: Enhanced fields
+  paymentAccountId?: string;
+  amountInControversy?: string;
+  showAmountInControversy?: boolean;
+  petitioner?: {
+    type: 'business' | 'individual';
+    businessName?: string;
+    firstName?: string;
+    lastName?: string;
+    addressLine1: string;
+    city: string;
+    state: string;
+    zipCode: string;
+  };
+  // FIXED: Use defendants array instead of single defendant
+  defendants: Array<{
+    firstName: string;
+    lastName: string;
+    addressLine1: string;
+    city: string;
+    state: string;
+    zipCode: string;
+  }>;
   files: FileList | null;
   referenceId: string;
 }
@@ -29,6 +88,15 @@ interface FormErrors {
   caseType?: string;
   existingCaseNumber?: string;
   attorneyId?: string;
+  paymentAccountId?: string;
+  amountInControversy?: string;
+  'petitioner.businessName'?: string;
+  'petitioner.firstName'?: string;
+  'petitioner.lastName'?: string;
+  'petitioner.zipCode'?: string;
+  'defendants.0.firstName'?: string;
+  'defendants.0.lastName'?: string;
+  'defendants.0.zipCode'?: string;
   files?: string;
 }
 
@@ -40,6 +108,29 @@ const EFileSubmissionForm: React.FC = () => {
     filingType: 'initial',
     existingCaseNumber: '',
     attorneyId: '',
+    // Phase A: Initialize enhanced fields
+    paymentAccountId: '',
+    amountInControversy: '',
+    showAmountInControversy: false,
+    petitioner: {
+      type: 'business',
+      businessName: '',
+      firstName: '',
+      lastName: '',
+      addressLine1: '',
+      city: '',
+      state: 'IL',
+      zipCode: ''
+    },
+    // FIXED: Initialize defendants as array
+    defendants: [{
+      firstName: '',
+      lastName: '',
+      addressLine1: '',
+      city: '',
+      state: 'IL',
+      zipCode: ''
+    }],
     files: null,
     referenceId: `WSZ-${Date.now()}`,
   });
@@ -50,6 +141,7 @@ const EFileSubmissionForm: React.FC = () => {
   const { dispatch: dataDispatch } = useData();
   const { addToast } = useToast();
   const { user } = useAuth();
+  const { accounts, loading: accountsLoading, error: accountsError } = usePaymentAccounts();
 
   // Case management integration functions
   const createCaseRecord = async (tylerData: any) => {
@@ -70,7 +162,16 @@ const EFileSubmissionForm: React.FC = () => {
           county: formData.county,
           caseType: formData.caseType,
           attorneyId: formData.attorneyId,
-          referenceId: formData.referenceId
+          referenceId: formData.referenceId,
+          // Phase A: Send enhanced payload
+          ...(ENHANCED_EFILING_PHASE_A && {
+            paymentAccountId: formData.paymentAccountId,
+            amountInControversy: formData.amountInControversy,
+            showAmountInControversy: formData.showAmountInControversy,
+            petitioner: formData.petitioner,
+            // FIXED: Send defendants array instead of single defendant
+            defendants: formData.defendants
+          })
         }),
       });
 
@@ -359,6 +460,8 @@ const EFileSubmissionForm: React.FC = () => {
   const validateForm = () => {
     const newErrors: FormErrors = {};
     let isValid = true;
+    
+    // Existing validations
     if (!formData.jurisdiction) {
       newErrors.jurisdiction = 'Please select a jurisdiction';
       isValid = false;
@@ -383,6 +486,66 @@ const EFileSubmissionForm: React.FC = () => {
       newErrors.files = 'Please upload at least one document';
       isValid = false;
     }
+
+    // Phase A: Enhanced validations
+    if (ENHANCED_EFILING_PHASE_A) {
+      // Payment account validation
+      if (!formData.paymentAccountId || formData.paymentAccountId === 'demo') {
+        newErrors.paymentAccountId = 'Please select a valid payment account';
+        isValid = false;
+      }
+
+      // Petitioner validation
+      if (formData.petitioner) {
+        if (formData.petitioner.type === 'business') {
+          if (!formData.petitioner.businessName?.trim()) {
+            newErrors['petitioner.businessName'] = 'Business name is required';
+            isValid = false;
+          }
+        } else {
+          if (!formData.petitioner.firstName?.trim()) {
+            newErrors['petitioner.firstName'] = 'First name is required';
+            isValid = false;
+          }
+          if (!formData.petitioner.lastName?.trim()) {
+            newErrors['petitioner.lastName'] = 'Last name is required';
+            isValid = false;
+          }
+        }
+
+        // ZIP code validation
+        if (formData.petitioner.zipCode && !/^\d{5}(-\d{4})?$/.test(formData.petitioner.zipCode)) {
+          newErrors['petitioner.zipCode'] = 'Valid ZIP code required';
+          isValid = false;
+        }
+      }
+
+      // Defendants validation
+      if (formData.defendants?.length > 0) {
+        const defendant = formData.defendants[0];
+        if (!defendant.firstName?.trim()) {
+          newErrors['defendants.0.firstName'] = 'First name is required';
+          isValid = false;
+        }
+        if (!defendant.lastName?.trim()) {
+          newErrors['defendants.0.lastName'] = 'Last name is required';
+          isValid = false;
+        }
+        // ZIP code validation for defendant
+        if (defendant.zipCode && !/^\d{5}(-\d{4})?$/.test(defendant.zipCode)) {
+          newErrors['defendants.0.zipCode'] = 'Valid ZIP code required';
+          isValid = false;
+        }
+      }
+
+      // Amount in controversy validation (required for certain case types)
+      const requiresAmount = ['174140', '174141', '174143'].includes(formData.caseType);
+      if (requiresAmount && (!formData.amountInControversy || parseFloat(formData.amountInControversy) <= 0)) {
+        newErrors.amountInControversy = 'Amount in controversy is required for this case type';
+        isValid = false;
+      }
+    }
+
     setErrors(newErrors);
     return isValid;
   };
