@@ -19,7 +19,14 @@
     "contacts:seed": "npm run contacts:migrate seed",
     "contacts:validate": "npm run migration:validate post-validate",
     "verify:tyler": "node scripts/verify-tyler-credentials.js",
-    "test:production": "node scripts/production-efile-test.js"
+    "test:production": "node scripts/production-efile-test.js",
+    "test": "vitest",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration --config vitest.integration.config.ts",
+    "test:api": "vitest run tests/unit/api",
+    "test:e2e": "cypress run",
+    "test:e2e:open": "cypress open",
+    "test:all": "npm run test:unit && npm run test:integration && npm run test:e2e"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.13",
@@ -71,6 +78,7 @@
     "globals": "^15.9.0",
     "jsdom": "^26.1.0",
     "node-fetch": "^3.3.2",
+    "node-mocks-http": "^1.17.2",
     "postcss": "^8.4.35",
     "shadcn-ui": "^0.9.5",
     "start-server-and-test": "^2.0.12",
