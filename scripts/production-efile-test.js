@@ -10,7 +10,7 @@
 import fetch from 'node-fetch';
 import chalk from 'chalk';
 
-const PRODUCTION_URL = 'https://wszllp-b8l1b9esv-m-learsicos-projects.vercel.app';
+const PRODUCTION_URL = 'https://www.wszevictions.com';
 
 console.log(chalk.blue('🚀 Production E-Filing Functionality Test\n'));
 console.log(chalk.gray(`Testing: ${PRODUCTION_URL}\n`));
@@ -44,7 +44,7 @@ async function testEFilingPageAccess() {
       const html = await response.text();
       
       // Check for key e-filing elements
-      const hasForm = html.includes('eFiling') || html.includes('Batch eFiling');
+      const hasForm = html.includes('E-Filing') || html.includes('eFiling') || html.includes('WSZ Direct E-Filing');
       const hasFileUpload = html.includes('file') && html.includes('upload');
       
       if (hasForm && hasFileUpload) {
