@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { FileText, AlertCircle } from 'lucide-react';
 import { Card, Table, Pagination, FilterBar, ErrorState } from '../ui';
-// DEBUGGING: Switch between real and mock data
-import { useDocuments } from '../../hooks/useDocuments';
+import { useData } from '../../context/DataContext';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
 
@@ -14,6 +13,7 @@ interface DocumentListProps {
 const DocumentList: React.FC<DocumentListProps> = ({ limit, caseId }) => {
   const navigate = useNavigate();
   const { addToast } = useToast();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [typeFilter, setTypeFilter] = useState<string>('');
@@ -29,18 +29,69 @@ const DocumentList: React.FC<DocumentListProps> = ({ limit, caseId }) => {
     caseId: caseId
   }), [typeFilter, statusFilter, searchTerm, caseId]);
 
-  // Use the Supabase hook for documents
-  const { 
-    documents, 
-    isLoading, 
-    error, 
-    totalCount 
-  } = useDocuments(
-    limit, 
-    filters,
-    currentPage,
-    itemsPerPage
-  );
+  // Use DataContext for documents (handles sandbox routing)
+  const { state } = useData();
+  const [filteredDocuments, setFilteredDocuments] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  // Process documents from DataContext
+  useEffect(() => {
+    setIsLoading(true);
+    try {
+      let docs = state.documents;
+
+      // Apply case filter if specified
+      if (caseId) {
+        docs = docs.filter(doc => doc.caseId === caseId);
+      }
+
+      // Apply type filter
+      if (typeFilter) {
+        docs = docs.filter(doc => doc.type === typeFilter);
+      }
+
+      // Apply status filter  
+      if (statusFilter) {
+        docs = docs.filter(doc => doc.status === statusFilter);
+      }
+
+      // Apply search filter
+      if (searchTerm) {
+        docs = docs.filter(doc => 
+          doc.fileURL?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          doc.type?.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      }
+
+      // Add case information to documents
+      const docsWithCases = docs.map(doc => {
+        const caseInfo = state.cases.find(c => c.caseId === doc.caseId);
+        return {
+          ...doc,
+          case: caseInfo ? {
+            plaintiff: caseInfo.plaintiff,
+            defendant: caseInfo.defendant
+          } : {
+            plaintiff: 'Unknown',
+            defendant: 'Unknown'
+          }
+        };
+      });
+
+      setFilteredDocuments(docsWithCases);
+      setError(null);
+      
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Unknown error'));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [state.documents, state.cases, caseId, typeFilter, statusFilter, searchTerm]);
+
+  // Calculate pagination
+  const totalCount = filteredDocuments.length;
+  const documents = limit ? filteredDocuments.slice(0, limit) : filteredDocuments;
   
   // Show error toast if data fetching fails
   useEffect(() => {

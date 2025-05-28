@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Calendar } from 'lucide-react';
 import { Card, Table, Pagination, FilterBar, LoadingState } from '../ui';
 import { useData } from '../../context/DataContext';
-import { supabase } from '../../lib/supabaseClient';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 
@@ -25,47 +24,28 @@ const HearingList: React.FC = () => {
   
   const itemsPerPage = 10;
 
-  // Fetch hearings from Supabase
+  // Use DataContext data (which handles sandbox routing)
   useEffect(() => {
-    const fetchHearings = async () => {
+    const processHearings = () => {
       setIsLoading(true);
       try {
-        // Fetch hearings from Supabase
-        const { data: hearingsData, error } = await supabase
-          .from('hearings')
-          .select(`
-            id,
-            case_id,
-            court_name,
-            hearing_date,
-            participants,
-            outcome,
-            created_at,
-            updated_at
-          `);
-          
-        if (error) throw error;
-        
-        // Fetch cases for joining data
-        const { data: casesData, error: casesError } = await supabase
-          .from('cases')
-          .select('id, plaintiff, defendant');
-          
-        if (casesError) throw casesError;
+        // Use data from DataContext (already sandbox-routed)
+        const hearingsData = state.hearings;
+        const casesData = state.cases;
         
         // Map the data to our display format
         const displayData: HearingDisplay[] = hearingsData.map(hearing => {
-          // Find the case for this hearing
-          const caseItem = casesData.find(c => c.id === hearing.case_id);
+          // Find the case for this hearing using caseId from DataContext schema
+          const caseItem = casesData.find(c => c.caseId === hearing.caseId);
           const caseTitle = caseItem 
             ? `${caseItem.plaintiff} v. ${caseItem.defendant}` 
             : 'Unknown Case';
           
           return {
-            hearingId: hearing.id,
+            hearingId: hearing.hearingId,
             caseTitle,
-            courtName: hearing.court_name || 'Not specified',
-            hearingDate: hearing.hearing_date,
+            courtName: hearing.courtName || 'Not specified',
+            hearingDate: hearing.hearingDate,
             outcome: hearing.outcome || 'Pending'
           };
         });
@@ -73,35 +53,15 @@ const HearingList: React.FC = () => {
         // Update the hearings state
         setHearings(displayData);
         
-        // Also update the global state (this is optional, depending on your architecture)
-        const hearingsForDataContext = hearingsData.map(h => ({
-          hearingId: h.id,
-          caseId: h.case_id,
-          courtName: h.court_name || '',
-          hearingDate: h.hearing_date,
-          outcome: h.outcome || '',
-          createdAt: h.created_at,
-          updatedAt: h.updated_at
-        }));
-        
-        // Update the data context with the hearings
-        // You might want to add a batch update action to your reducer
-        hearingsForDataContext.forEach(hearing => {
-          dispatch({
-            type: 'ADD_HEARING',
-            payload: hearing
-          });
-        });
-        
       } catch (error) {
-        console.error('Error fetching hearings:', error);
+        console.error('Error processing hearings:', error);
       } finally {
         setIsLoading(false);
       }
     };
     
-    fetchHearings();
-  }, [dispatch]);
+    processHearings();
+  }, [state.hearings, state.cases]);
 
   // Filter hearings
   const filteredHearings = hearings.filter(h => {

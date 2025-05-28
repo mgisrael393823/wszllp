@@ -2,7 +2,7 @@ import React from 'react';
 import { Refine } from '@refinedev/core';
 import { useNavigate, useLocation } from 'react-router-dom';
 import routerProvider from '@refinedev/react-router-v6';
-import { createSupabaseDataProvider } from '../../utils/refine/supabaseDataProvider';
+import { createSandboxDataProvider } from '../../utils/refine/sandboxDataProvider';
 
 /**
  * Provider component that wraps the Contacts module with Refine
@@ -15,8 +15,8 @@ export const ContactsProvider: React.FC<{ children: React.ReactNode }> = ({
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Create a data provider that uses Supabase
-  const dataProvider = createSupabaseDataProvider();
+  // Create a data provider that uses Supabase with sandbox support
+  const dataProvider = createSandboxDataProvider();
 
   return (
     <Refine

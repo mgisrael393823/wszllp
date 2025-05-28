@@ -1,27 +1,18 @@
 -- Create sandbox environment for demo purposes
 -- This migration sets up isolated demo data for evictionsandbox@gmail.com
 
--- Create sandbox tables (same structure as production tables)
+-- Create sandbox tables (matching frontend schema)
 CREATE TABLE IF NOT EXISTS sandbox_cases (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES auth.users(id),
-  title TEXT NOT NULL,
-  description TEXT,
-  case_number TEXT,
-  status TEXT DEFAULT 'open',
-  case_type TEXT DEFAULT 'eviction',
-  court_jurisdiction TEXT,
-  filing_date DATE,
-  hearing_date TIMESTAMP WITH TIME ZONE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  client_name TEXT,
-  client_email TEXT,
-  client_phone TEXT,
-  property_address TEXT,
-  rent_amount DECIMAL(10,2),
-  past_due_amount DECIMAL(10,2),
-  notes TEXT
+  caseId TEXT UNIQUE NOT NULL DEFAULT gen_random_uuid()::text,
+  plaintiff TEXT NOT NULL,
+  defendant TEXT NOT NULL,
+  address TEXT NOT NULL,
+  status TEXT DEFAULT 'Intake',
+  intakeDate TEXT NOT NULL DEFAULT TO_CHAR(NOW(), 'YYYY-MM-DD'),
+  createdAt TEXT NOT NULL DEFAULT TO_CHAR(NOW(), 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
+  updatedAt TEXT NOT NULL DEFAULT TO_CHAR(NOW(), 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
 );
 
 CREATE TABLE IF NOT EXISTS sandbox_contacts (

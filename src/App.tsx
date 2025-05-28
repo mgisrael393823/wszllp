@@ -165,9 +165,9 @@ const AppContent = () => {
 function App() {
   return (
     <ErrorBoundary>
-      <DataProvider>
-        <ToastProvider>
-          <AuthProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <DataProvider>
             <EFileProvider>
               <BrowserRouter>
                 <Routes>
@@ -184,9 +184,9 @@ function App() {
                 </Routes>
               </BrowserRouter>
             </EFileProvider>
-          </AuthProvider>
-        </ToastProvider>
-      </DataProvider>
+          </DataProvider>
+        </AuthProvider>
+      </ToastProvider>
     </ErrorBoundary>
   );
 }

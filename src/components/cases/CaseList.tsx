@@ -60,15 +60,16 @@ const CaseList: React.FC = () => {
   // Filter cases based on search and status
   const filteredCases = state.cases.filter(c => {
     const matchesSearch = 
-      c.plaintiff.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.defendant.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.address.toLowerCase().includes(searchTerm.toLowerCase());
+      (c.plaintiff || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (c.defendant || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (c.address || '').toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter ? c.status === statusFilter : true;
     const matchesDate = dateFilter ? c.intakeDate.startsWith(dateFilter) : true;
     
     return matchesSearch && matchesStatus && matchesDate;
   });
+
 
   // Sort by newest first
   const sortedCases = [...filteredCases].sort(

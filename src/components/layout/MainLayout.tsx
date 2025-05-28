@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import SandboxIndicator from '../ui/SandboxIndicator';
+import { useData } from '../../context/DataContext';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -25,6 +26,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const { state } = useData();
+
 
   // Handle sidebar toggle for mobile
   const toggleSidebar = () => {

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useAuth } from './AuthContext';
 import { isSandboxUser } from '../utils/sandbox';
+import { useSandboxDashboard } from '../hooks/useSandboxData';
 import { 
   Case, Hearing, Document, ServiceLog, Invoice, PaymentPlan, Contact, ZoomLink, AuditLog,
   Workflow, WorkflowTask, DocumentTemplate, DocumentGeneration, CalendarEvent, CalendarIntegration,
@@ -1248,10 +1249,38 @@ const DataContext = createContext<{
 // Create a provider component
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(dataReducer, initialState);
+  const { user } = useAuth();
 
-  // Load initial data from localStorage
+  // Get sandbox data (hook handles conditional logic internally)
+  const { cases: sandboxCases, contacts: sandboxContacts, hearings: sandboxHearings, documents: sandboxDocuments, loading: sandboxLoading } = useSandboxDashboard();
+  
   useEffect(() => {
-    const loadData = () => {
+    if (user && isSandboxUser(user.email)) {
+      // For sandbox users, load data from Supabase when available
+      if (!sandboxLoading) {
+        const sandboxData = {
+          cases: sandboxCases,
+          contacts: sandboxContacts,
+          hearings: sandboxHearings,
+          documents: sandboxDocuments,
+          serviceLogs: [],
+          invoices: [],
+          paymentPlans: [],
+          zoomLinks: [],
+          auditLogs: [],
+          workflows: [],
+          workflowTasks: [],
+          documentTemplates: [],
+          documentGenerations: [],
+          calendarEvents: [],
+          calendarIntegrations: [],
+          notifications: [],
+          notificationSettings: []
+        };
+        dispatch({ type: 'LOAD_DATA', payload: sandboxData });
+      }
+    } else {
+      // For regular users, load from localStorage
       const savedData = localStorage.getItem('legalCaseData');
       if (savedData) {
         try {
@@ -1261,15 +1290,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.error('Failed to parse saved data:', error);
         }
       }
-    };
+    }
+  }, [user, sandboxLoading, sandboxCases, sandboxContacts, sandboxHearings, sandboxDocuments]);
 
-    loadData();
-  }, []);
-
-  // Save data to localStorage whenever it changes
+  // Save data to localStorage whenever it changes (but not for sandbox users)
   useEffect(() => {
-    localStorage.setItem('legalCaseData', JSON.stringify(state));
-  }, [state]);
+    if (!user || !isSandboxUser(user.email)) {
+      localStorage.setItem('legalCaseData', JSON.stringify(state));
+    }
+  }, [state, user]);
 
   return (
     <DataContext.Provider value={{ state, dispatch }}>
