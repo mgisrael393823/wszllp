@@ -5,7 +5,11 @@ import { useSandboxMode } from '@/hooks/useSandboxMode';
  * Visual indicator when user is in sandbox/demo mode
  * Shows at top of application to clearly indicate demo environment
  */
-export const SandboxIndicator: React.FC = () => {
+interface SandboxIndicatorProps {
+  sidebarCollapsed?: boolean;
+}
+
+export const SandboxIndicator: React.FC<SandboxIndicatorProps> = ({ sidebarCollapsed = false }) => {
   const { isSandbox, isLoading } = useSandboxMode();
 
   if (isLoading || !isSandbox) {
@@ -13,8 +17,10 @@ export const SandboxIndicator: React.FC = () => {
   }
 
   return (
-    <div className="bg-amber-500 text-white font-medium shadow-md w-full">
-      <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-2 text-center">
+    <div
+      className={`bg-amber-500 text-white font-medium shadow-md w-full md:transition-all md:duration-300 ${sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'}`}
+    >
+      <div className="container-custom py-2 text-center">
         <span>DEMO MODE - Sample Data for Demonstration Purposes</span>
       </div>
     </div>

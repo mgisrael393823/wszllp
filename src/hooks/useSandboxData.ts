@@ -156,6 +156,15 @@ export function useSandboxDocuments(caseId?: string) {
 }
 
 // Combined dashboard data hook for sandbox - only fetches if user is sandbox user
+const DASHBOARD_CACHE_KEY = 'sandbox-dashboard-cache';
+let dashboardCache: {
+  cases: Case[];
+  contacts: Contact[];
+  hearings: Hearing[];
+  documents: Document[];
+  loading: boolean;
+} | null = null;
+
 export function useSandboxDashboard() {
   const { user } = useAuth();
   const [data, setData] = useState({
@@ -169,6 +178,22 @@ export function useSandboxDashboard() {
   useEffect(() => {
     if (!user || !isSandboxUser(user.email)) {
       return;
+    }
+
+    if (dashboardCache) {
+      setData(dashboardCache);
+      return;
+    }
+
+    const cached = sessionStorage.getItem(DASHBOARD_CACHE_KEY);
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        setData(parsed);
+        dashboardCache = parsed;
+      } catch {
+        /* ignore parse errors */
+      }
     }
 
     const fetchAllData = async () => {
@@ -282,23 +307,29 @@ export function useSandboxDashboard() {
             }
           ];
 
-          setData({
+          const finalData = {
             cases: mappedCases,
             contacts: mappedContacts,
             hearings: hearingsRes.error ? fallbackHearings : mappedHearings,
             documents: (documentsRes.error || !documentsRes.data || documentsRes.data.length === 0) ? fallbackDocuments : mappedDocuments,
             loading: false
-          });
+          };
+          setData(finalData);
+          dashboardCache = finalData;
+          sessionStorage.setItem(DASHBOARD_CACHE_KEY, JSON.stringify(finalData));
           return;
         }
 
-        setData({
+        const finalData = {
           cases: mappedCases,
           contacts: mappedContacts,
           hearings: mappedHearings,
           documents: mappedDocuments,
           loading: false
-        });
+        };
+        setData(finalData);
+        dashboardCache = finalData;
+        sessionStorage.setItem(DASHBOARD_CACHE_KEY, JSON.stringify(finalData));
       } catch (error) {
         console.error('Error fetching sandbox data:', error);
         
@@ -385,6 +416,8 @@ export function useSandboxDashboard() {
         
         console.log('Using fallback demo data due to Supabase error');
         setData(fallbackData);
+        dashboardCache = fallbackData;
+        sessionStorage.setItem(DASHBOARD_CACHE_KEY, JSON.stringify(fallbackData));
       }
     };
 

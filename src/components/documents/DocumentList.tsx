@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { FileText, AlertCircle } from 'lucide-react';
 import { Card, Table, Pagination, FilterBar, ErrorState } from '../ui';
 import { useData } from '../../context/DataContext';
@@ -21,18 +21,8 @@ const DocumentList: React.FC<DocumentListProps> = ({ limit, caseId }) => {
   
   const itemsPerPage = 10;
 
-  // Memoize filters to prevent infinite re-renders
-  const filters = useMemo(() => ({
-    type: typeFilter,
-    status: statusFilter,
-    searchTerm: searchTerm,
-    caseId: caseId
-  }), [typeFilter, statusFilter, searchTerm, caseId]);
-
   // Use DataContext for documents (handles sandbox routing)
   const { state } = useData();
-  const [filteredDocuments, setFilteredDocuments] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true); // Start with loading true
   const [error, setError] = useState<Error | null>(null);
 
   // Process documents from DataContext with useMemo for performance
@@ -77,17 +67,15 @@ const DocumentList: React.FC<DocumentListProps> = ({ limit, caseId }) => {
       };
     });
   }, [state.documents, state.cases, caseId, typeFilter, statusFilter, searchTerm]);
+  const isLoading = state.documents.length === 0 && state.cases.length === 0;
 
-  // Update filtered documents when processed documents change
-  useEffect(() => {
-    setFilteredDocuments(processedDocuments);
-    setIsLoading(false);
-    setError(null);
-  }, [processedDocuments]);
-
-  // Calculate pagination
-  const totalCount = filteredDocuments.length;
-  const documents = limit ? filteredDocuments.slice(0, limit) : filteredDocuments;
+  // Pagination and limiting
+  const totalCount = processedDocuments.length;
+  const documents = useMemo(() => {
+    if (limit) return processedDocuments.slice(0, limit);
+    const start = (currentPage - 1) * itemsPerPage;
+    return processedDocuments.slice(start, start + itemsPerPage);
+  }, [processedDocuments, limit, currentPage]);
   
   // Show error toast if data fetching fails
   useEffect(() => {
@@ -125,7 +113,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ limit, caseId }) => {
   ];
 
   // Table columns definition
-  const columns = [
+  const columns = useMemo(() => [
     {
       header: 'Document',
       accessor: (item: any) => {
@@ -208,7 +196,7 @@ const DocumentList: React.FC<DocumentListProps> = ({ limit, caseId }) => {
         item.serviceDate ? new Date(item.serviceDate).toLocaleDateString() : 'Not served',
       sortable: false,
     },
-  ];
+  ], []);
 
   // Error display component
   const ErrorMessage = () => (
@@ -334,4 +322,4 @@ const DocumentList: React.FC<DocumentListProps> = ({ limit, caseId }) => {
   );
 };
 
-export default DocumentList;
+export default React.memo(DocumentList);
