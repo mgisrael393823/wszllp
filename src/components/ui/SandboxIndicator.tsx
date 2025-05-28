@@ -13,11 +13,9 @@ export const SandboxIndicator: React.FC = () => {
   }
 
   return (
-    <div className="bg-amber-500 text-white px-4 py-2 text-center font-medium shadow-md">
-      <div className="flex items-center justify-center gap-2">
-        <span className="text-lg">🧪</span>
+    <div className="bg-amber-500 text-white font-medium shadow-md w-full">
+      <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-2 text-center">
         <span>DEMO MODE - Sample Data for Demonstration Purposes</span>
-        <span className="text-lg">🧪</span>
       </div>
     </div>
   );

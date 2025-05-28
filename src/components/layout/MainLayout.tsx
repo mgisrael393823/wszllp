@@ -69,16 +69,17 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-neutral-50">
+    <div className="min-h-screen bg-neutral-50">
       <SandboxIndicator />
-      <Header 
-        toggleSidebar={toggleSidebar} 
-        toggleSidebarCollapse={toggleSidebarCollapse}
-        isSidebarCollapsed={isSidebarCollapsed}
-        isScrolled={isScrolled}
-      />
-      
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-col min-h-screen">
+        <Header 
+          toggleSidebar={toggleSidebar} 
+          toggleSidebarCollapse={toggleSidebarCollapse}
+          isSidebarCollapsed={isSidebarCollapsed}
+          isScrolled={isScrolled}
+        />
+        
+        <div className="flex flex-1 overflow-hidden">
         <Sidebar 
           isOpen={isSidebarOpen} 
           isCollapsed={isSidebarCollapsed}
@@ -107,6 +108,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
             {children}
           </div>
         </main>
+        </div>
       </div>
     </div>
   );

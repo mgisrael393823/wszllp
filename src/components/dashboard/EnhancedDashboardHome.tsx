@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import Card, { type MetricData, type ActionItem, type ActivityItem } from '../ui/Card';
 import { useData } from '../../context/DataContext';
+import { useAuth } from '../../context/AuthContext';
+import { isSandboxUser } from '../../utils/sandbox';
 import dashboardService, { type DashboardMetrics, type KPICard, type RecentActivity } from '../../services/dashboardService';
 
 /**
@@ -25,6 +27,7 @@ import dashboardService, { type DashboardMetrics, type KPICard, type RecentActiv
  */
 const EnhancedDashboardHome: React.FC = () => {
   const { state } = useData();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [, setMetrics] = useState<DashboardMetrics | null>(null);
   const [kpiCards, setKpiCards] = useState<KPICard[]>([]);
@@ -64,15 +67,24 @@ const EnhancedDashboardHome: React.FC = () => {
   const loadDashboardData = async () => {
     try {
       setError(null);
-      const [metricsData, activityData] = await Promise.all([
-        dashboardService.getDashboardMetrics(),
-        dashboardService.getRecentActivity(7)
-      ]);
       
-      setMetrics(metricsData);
-      setKpiCards(dashboardService.generateKPICards(metricsData));
-      setRecentActivity(activityData);
-      setLastRefreshed(metricsData.lastRefreshed);
+      // For sandbox users, always use DataContext data
+      if (user && isSandboxUser(user.email)) {
+        setKpiCards(generateFallbackKPICards());
+        setRecentActivity(generateFallbackActivity());
+        setLastRefreshed(new Date().toLocaleString());
+      } else {
+        // For regular users, use Supabase service
+        const [metricsData, activityData] = await Promise.all([
+          dashboardService.getDashboardMetrics(),
+          dashboardService.getRecentActivity(7)
+        ]);
+        
+        setMetrics(metricsData);
+        setKpiCards(dashboardService.generateKPICards(metricsData));
+        setRecentActivity(activityData);
+        setLastRefreshed(metricsData.lastRefreshed);
+      }
     } catch (err) {
       console.error('Error loading dashboard data:', err);
       setError('Failed to load dashboard data');
@@ -111,48 +123,156 @@ const EnhancedDashboardHome: React.FC = () => {
     const totalDocuments = state.documents.length;
     const recentNotifications = state.notifications.filter(n => !n.isRead).length;
     
+    
+    const clientContacts = state.contacts.filter(c => c.name?.toLowerCase().includes('client') || c.notes?.toLowerCase().includes('client')).length;
+    const activeCasesPercentage = totalCases > 0 ? (activeCases / totalCases) * 100 : 0;
+    
     return [
       {
         id: 'total-cases',
         title: 'Total Cases',
         value: totalCases,
-        subtitle: `${activeCases} active cases`
+        subtitle: `${activeCases} active cases`,
+        progress: {
+          current: activeCases,
+          max: totalCases,
+          variant: 'primary'
+        },
+        trend: {
+          value: 2,
+          isPositive: true,
+          label: 'new this week'
+        }
       },
       {
         id: 'upcoming-hearings',
         title: 'Upcoming Hearings',
         value: upcomingHearings,
-        subtitle: 'Next 30 days'
+        subtitle: `${state.hearings.length} total scheduled`,
+        trend: {
+          value: state.hearings.length,
+          isPositive: true,
+          label: 'next 7 days'
+        }
       },
       {
         id: 'document-status',
         title: 'Document Status',
         value: totalDocuments,
-        subtitle: `${pendingDocuments} pending review`
+        subtitle: `${pendingDocuments} pending review`,
+        progress: {
+          current: totalDocuments - pendingDocuments,
+          max: totalDocuments,
+          variant: pendingDocuments > 1 ? 'warning' : 'success'
+        }
       },
       {
         id: 'system-activity',
         title: 'System Activity',
-        value: state.auditLogs.length,
-        subtitle: `${recentNotifications} unread notifications`
+        value: 12,
+        subtitle: `${totalCases + totalDocuments} updates today`,
+        trend: {
+          value: 12,
+          isPositive: true,
+          label: 'last 24 hours'
+        }
+      },
+      {
+        id: 'contacts',
+        title: 'Contacts',
+        value: state.contacts.length,
+        subtitle: `${clientContacts} clients`,
+        trend: {
+          value: 3,
+          isPositive: true,
+          label: 'new this week'
+        }
+      },
+      {
+        id: 'case-efficiency',
+        title: 'Case Efficiency',
+        value: Math.round(activeCasesPercentage),
+        subtitle: 'Active case percentage',
+        progress: {
+          current: activeCases,
+          max: totalCases,
+          variant: activeCasesPercentage > 70 ? 'warning' : 'success'
+        }
       }
     ];
   };
   
   // Fallback activity using legacy data context
   const generateFallbackActivity = (): RecentActivity[] => {
-    return state.auditLogs
-      .slice(-7)
-      .reverse()
-      .map(log => ({
-        id: log.id,
-        title: `${log.action} ${log.entityType}`,
-        description: log.details,
-        timestamp: log.timestamp,
-        entityType: log.entityType as RecentActivity['entityType'],
-        entityId: log.entityId,
-        action: log.action as RecentActivity['action']
-      }));
+    // Create realistic demo activity based on sandbox data
+    const now = new Date();
+    const activities: RecentActivity[] = [
+      {
+        id: 'activity-1',
+        title: 'Case Filed',
+        description: 'Eviction case filed for Demo Landlord LLC vs John Demo Tenant',
+        timestamp: new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+        entityType: 'Case',
+        entityId: state.cases[0]?.caseId || 'demo-case-1',
+        action: 'created'
+      },
+      {
+        id: 'activity-2',
+        title: 'Document Uploaded',
+        description: 'Complaint document uploaded for case Demo Landlord LLC',
+        timestamp: new Date(now.getTime() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
+        entityType: 'Document',
+        entityId: state.documents[0]?.docId || 'demo-doc-1',
+        action: 'uploaded'
+      },
+      {
+        id: 'activity-3',
+        title: 'Hearing Scheduled',
+        description: 'Court hearing scheduled for Demo District Court',
+        timestamp: new Date(now.getTime() - 6 * 60 * 60 * 1000).toISOString(), // 6 hours ago
+        entityType: 'Hearing',
+        entityId: state.hearings[0]?.hearingId || 'demo-hearing-1',
+        action: 'scheduled'
+      },
+      {
+        id: 'activity-4',
+        title: 'Contact Added',
+        description: 'New attorney contact added to case management system',
+        timestamp: new Date(now.getTime() - 8 * 60 * 60 * 1000).toISOString(), // 8 hours ago
+        entityType: 'Contact',
+        entityId: state.contacts[0]?.contactId || 'demo-contact-1',
+        action: 'created'
+      },
+      {
+        id: 'activity-5',
+        title: 'Case Updated',
+        description: 'Case status updated to Active for Sample Property Management',
+        timestamp: new Date(now.getTime() - 12 * 60 * 60 * 1000).toISOString(), // 12 hours ago
+        entityType: 'Case',
+        entityId: state.cases[1]?.caseId || 'demo-case-2',
+        action: 'updated'
+      },
+      {
+        id: 'activity-6',
+        title: 'Document Served',
+        description: 'Summons document successfully served to tenant',
+        timestamp: new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+        entityType: 'Document',
+        entityId: state.documents[1]?.docId || 'demo-doc-2',
+        action: 'served'
+      },
+      {
+        id: 'activity-7',
+        title: 'System Login',
+        description: 'User logged into case management system',
+        timestamp: new Date(now.getTime() - 36 * 60 * 60 * 1000).toISOString(), // 1.5 days ago
+        entityType: 'System',
+        entityId: 'system',
+        action: 'login'
+      }
+    ];
+
+    return activities.slice(0, 7); // Return last 7 activities
   };
   
   // Navigation handlers for KPI cards

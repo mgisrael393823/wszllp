@@ -32,62 +32,58 @@ const DocumentList: React.FC<DocumentListProps> = ({ limit, caseId }) => {
   // Use DataContext for documents (handles sandbox routing)
   const { state } = useData();
   const [filteredDocuments, setFilteredDocuments] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Start with loading true
   const [error, setError] = useState<Error | null>(null);
 
-  // Process documents from DataContext
-  useEffect(() => {
-    setIsLoading(true);
-    try {
-      let docs = state.documents;
+  // Process documents from DataContext with useMemo for performance
+  const processedDocuments = useMemo(() => {
+    let docs = state.documents;
 
-      // Apply case filter if specified
-      if (caseId) {
-        docs = docs.filter(doc => doc.caseId === caseId);
-      }
-
-      // Apply type filter
-      if (typeFilter) {
-        docs = docs.filter(doc => doc.type === typeFilter);
-      }
-
-      // Apply status filter  
-      if (statusFilter) {
-        docs = docs.filter(doc => doc.status === statusFilter);
-      }
-
-      // Apply search filter
-      if (searchTerm) {
-        docs = docs.filter(doc => 
-          doc.fileURL?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          doc.type?.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-      }
-
-      // Add case information to documents
-      const docsWithCases = docs.map(doc => {
-        const caseInfo = state.cases.find(c => c.caseId === doc.caseId);
-        return {
-          ...doc,
-          case: caseInfo ? {
-            plaintiff: caseInfo.plaintiff,
-            defendant: caseInfo.defendant
-          } : {
-            plaintiff: 'Unknown',
-            defendant: 'Unknown'
-          }
-        };
-      });
-
-      setFilteredDocuments(docsWithCases);
-      setError(null);
-      
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Unknown error'));
-    } finally {
-      setIsLoading(false);
+    // Apply case filter if specified
+    if (caseId) {
+      docs = docs.filter(doc => doc.caseId === caseId);
     }
+
+    // Apply type filter
+    if (typeFilter) {
+      docs = docs.filter(doc => doc.type === typeFilter);
+    }
+
+    // Apply status filter  
+    if (statusFilter) {
+      docs = docs.filter(doc => doc.status === statusFilter);
+    }
+
+    // Apply search filter
+    if (searchTerm) {
+      docs = docs.filter(doc => 
+        doc.fileURL?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        doc.type?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Add case information to documents
+    return docs.map(doc => {
+      const caseInfo = state.cases.find(c => c.caseId === doc.caseId);
+      return {
+        ...doc,
+        case: caseInfo ? {
+          plaintiff: caseInfo.plaintiff,
+          defendant: caseInfo.defendant
+        } : {
+          plaintiff: 'Unknown',
+          defendant: 'Unknown'
+        }
+      };
+    });
   }, [state.documents, state.cases, caseId, typeFilter, statusFilter, searchTerm]);
+
+  // Update filtered documents when processed documents change
+  useEffect(() => {
+    setFilteredDocuments(processedDocuments);
+    setIsLoading(false);
+    setError(null);
+  }, [processedDocuments]);
 
   // Calculate pagination
   const totalCount = filteredDocuments.length;
@@ -249,7 +245,19 @@ const DocumentList: React.FC<DocumentListProps> = ({ limit, caseId }) => {
         )}
         
         {isLoading ? (
-          <LoadingState message="Loading documents..." />
+          <div className="animate-pulse">
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-gray-50 px-4 py-3 border-b">
+                <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+              </div>
+              {[1, 2].map(i => (
+                <div key={i} className="px-4 py-3 border-b">
+                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              ))}
+            </div>
+          </div>
         ) : (
           <Table 
             data={documents}
@@ -293,7 +301,19 @@ const DocumentList: React.FC<DocumentListProps> = ({ limit, caseId }) => {
       )}
       
       {isLoading ? (
-        <LoadingState message="Loading documents..." />
+        <div className="animate-pulse">
+          <div className="border rounded-lg overflow-hidden">
+            <div className="bg-gray-50 px-4 py-3 border-b">
+              <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+            </div>
+            {[1, 2, 3].map(i => (
+              <div key={i} className="px-4 py-3 border-b">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+              </div>
+            ))}
+          </div>
+        </div>
       ) : (
         <Table 
           data={documents}
