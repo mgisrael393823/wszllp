@@ -95,7 +95,7 @@ const EFileSubmissionForm: React.FC = () => {
   };
 
   const createDocumentRecords = async (caseId: string, tylerData: any) => {
-    if (!caseId || !formData.files) return;
+    if (!caseId || !formData.files || !tylerData?.item) return;
 
     try {
       // Create document records for each filed document

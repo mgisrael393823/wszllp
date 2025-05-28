@@ -19,6 +19,8 @@
     "contacts:seed": "npm run contacts:migrate seed",
     "contacts:validate": "npm run migration:validate post-validate",
     "verify:tyler": "node scripts/verify-tyler-credentials.js",
+    "verify:case-management": "node scripts/verify-case-management-integration.js",
+    "verify:efile-schema": "node scripts/verify-efile-schema.js",
     "test:production": "node scripts/production-efile-test.js",
     "test": "vitest",
     "test:unit": "vitest run tests/unit",
