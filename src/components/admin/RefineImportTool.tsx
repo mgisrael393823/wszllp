@@ -206,7 +206,7 @@ const RefineImportTool: React.FC = () => {
         // Use our existing importers based on the file type
         if (fileImportType === 'excel') {
           console.log("Using Excel importer with file:", file);
-          result = await importFromExcel(file);
+          result = await importFromExcel(Array.isArray(file) ? file : [file]);
         } else {
           // For CSV, we need to handle multiple files
           // First, ensure we have an array of files

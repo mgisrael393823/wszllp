@@ -119,16 +119,22 @@ export function parseClients(pmData: any[]): Contact[] {
         }
       }
       
-      // Format email
+      // Format additional fields
       const email = formatStringValue(row['E-mail Address'] || '');
-      
+      const contactName = formatStringValue(row['Contact Name'] || companyName);
+      const address = formatStringValue(row['Address'] || '');
+      const notes = formatStringValue(row['Notes'] || '');
+
       // Create contact object
       const contact: Contact = {
         contactId: uuidv4(),
-        name: companyName,
+        name: contactName,
         role: role,
         email: email,
         phone: phone,
+        company: companyName,
+        address: address,
+        notes: notes,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
