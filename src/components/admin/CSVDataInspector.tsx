@@ -28,25 +28,47 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
 
   // Column mapping options based on expected data
   const fieldOptions = [
-    { value: "caseId", label: "Case ID / File Number" },
-    { value: "plaintiff", label: "Plaintiff / Owner" },
-    { value: "defendant", label: "Defendant / Tenant" },
+    // Case fields (from caseSchema)
+    { value: "caseId", label: "Case ID" },
+    { value: "plaintiff", label: "Plaintiff" },
+    { value: "defendant", label: "Defendant" },
     { value: "address", label: "Property Address" },
-    { value: "filingDate", label: "Filing Date" },
-    { value: "status", label: "Case Status" },
-    { value: "costs", label: "Costs / Fees" },
-    { value: "courtDate", label: "Court Date" },
-    { value: "judgmentAmount", label: "Judgment Amount" },
-    { value: "file", label: "File" },
-    { value: "fileId", label: "File ID" },
-    { value: "client", label: "Client" },
-    { value: "caseName", label: "Case Name" },
-    { value: "propertyAddress", label: "Property Address" },
-    { value: "balance", label: "Balance" },
+    { value: "status", label: "Case Status (Intake/Active/Closed)" },
+    { value: "intakeDate", label: "Intake Date" },
+    
+    // Contact fields (from contactSchema)
+    { value: "name", label: "Contact Name" },
+    { value: "role", label: "Contact Role (Attorney/Paralegal/PM/Client/Other)" },
+    { value: "email", label: "Email" },
+    { value: "phone", label: "Phone" },
+    { value: "company", label: "Company" },
     { value: "notes", label: "Notes" },
-    { value: "totalCost", label: "Total Cost" },
-    { value: "attorneyFee", label: "Attorney Fee" },
-    { value: "paymentStatus", label: "Payment Status" },
+    
+    // Hearing fields (from hearingSchema)
+    { value: "hearingId", label: "Hearing ID" },
+    { value: "courtName", label: "Court Name" },
+    { value: "hearingDate", label: "Hearing Date" },
+    { value: "outcome", label: "Hearing Outcome" },
+    
+    // Document fields (from documentSchema)
+    { value: "docId", label: "Document ID" },
+    { value: "type", label: "Document Type (Complaint/Summons/Affidavit/Motion/Order/Other)" },
+    { value: "fileURL", label: "File URL" },
+    { value: "serviceDate", label: "Service Date" },
+    
+    // Invoice fields (from invoiceSchema)
+    { value: "invoiceId", label: "Invoice ID" },
+    { value: "amount", label: "Amount" },
+    { value: "issueDate", label: "Issue Date" },
+    { value: "dueDate", label: "Due Date" },
+    { value: "paid", label: "Paid (true/false)" },
+    
+    // Service Log fields (from serviceLogSchema)
+    { value: "logId", label: "Service Log ID" },
+    { value: "method", label: "Service Method (Sheriff/SPS)" },
+    { value: "attemptDate", label: "Attempt Date" },
+    { value: "result", label: "Service Result (Success/Failed)" },
+    
     { value: "notUsed", label: "Not Used" },
   ];
 
@@ -160,6 +182,12 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
       fileType = 'complaint';
     } else if (headers.some(h => h.toLowerCase().includes('court') || h.toLowerCase().includes('hearing'))) {
       fileType = 'hearing';
+    } else if (headers.some(h => h.toLowerCase().includes('email') || h.toLowerCase().includes('phone') || h.toLowerCase().includes('contact'))) {
+      fileType = 'contact';
+    } else if (headers.some(h => h.toLowerCase().includes('invoice') || h.toLowerCase().includes('amount') || h.toLowerCase().includes('paid'))) {
+      fileType = 'invoice';
+    } else if (headers.some(h => h.toLowerCase().includes('document') || h.toLowerCase().includes('file'))) {
+      fileType = 'document';
     }
     
     setFileType(fileType);
@@ -181,6 +209,52 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
           initialMappings[col] = 'costs';
         });
       }
+    } else if (fileType === 'contact') {
+      // Auto-map contact fields based on header names
+      headers.forEach(h => {
+        const lower = h.toLowerCase();
+        if (lower.includes('name') && !lower.includes('company')) initialMappings[h] = 'name';
+        if (lower.includes('email')) initialMappings[h] = 'email';
+        if (lower.includes('phone')) initialMappings[h] = 'phone';
+        if (lower.includes('company') || lower.includes('firm')) initialMappings[h] = 'company';
+        if (lower.includes('role') || lower.includes('title')) initialMappings[h] = 'role';
+        if (lower.includes('address')) initialMappings[h] = 'address';
+        if (lower.includes('note')) initialMappings[h] = 'notes';
+      });
+    } else if (fileType === 'complaint' || fileType === 'hearing') {
+      // Auto-map case/hearing fields
+      headers.forEach(h => {
+        const lower = h.toLowerCase();
+        if (lower.includes('case') && lower.includes('id')) initialMappings[h] = 'caseId';
+        if (lower.includes('plaintiff')) initialMappings[h] = 'plaintiff';
+        if (lower.includes('defendant')) initialMappings[h] = 'defendant';
+        if (lower.includes('address')) initialMappings[h] = 'address';
+        if (lower.includes('status')) initialMappings[h] = 'status';
+        if (lower.includes('court') && lower.includes('name')) initialMappings[h] = 'courtName';
+        if (lower.includes('hearing') && lower.includes('date')) initialMappings[h] = 'hearingDate';
+        if (lower.includes('outcome')) initialMappings[h] = 'outcome';
+      });
+    } else if (fileType === 'invoice') {
+      // Auto-map invoice fields
+      headers.forEach(h => {
+        const lower = h.toLowerCase();
+        if (lower.includes('invoice') && lower.includes('id')) initialMappings[h] = 'invoiceId';
+        if (lower.includes('case') && lower.includes('id')) initialMappings[h] = 'caseId';
+        if (lower.includes('amount')) initialMappings[h] = 'amount';
+        if (lower.includes('issue') && lower.includes('date')) initialMappings[h] = 'issueDate';
+        if (lower.includes('due') && lower.includes('date')) initialMappings[h] = 'dueDate';
+        if (lower.includes('paid')) initialMappings[h] = 'paid';
+      });
+    } else if (fileType === 'document') {
+      // Auto-map document fields
+      headers.forEach(h => {
+        const lower = h.toLowerCase();
+        if (lower.includes('doc') && lower.includes('id')) initialMappings[h] = 'docId';
+        if (lower.includes('case') && lower.includes('id')) initialMappings[h] = 'caseId';
+        if (lower.includes('type')) initialMappings[h] = 'type';
+        if (lower.includes('url') || lower.includes('file')) initialMappings[h] = 'fileURL';
+        if (lower.includes('service') && lower.includes('date')) initialMappings[h] = 'serviceDate';
+      });
     }
     
     setFieldMappings(initialMappings);
@@ -261,8 +335,11 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
                 <h3 className="font-medium">File Analysis Results</h3>
                 <p className="text-sm text-blue-800">
                   {fileType === 'all_evictions_files' && 'All Evictions Files format detected'}
-                  {fileType === 'complaint' && 'Complaint data format detected'}
+                  {fileType === 'complaint' && 'Case/Complaint data format detected'}
                   {fileType === 'hearing' && 'Hearing data format detected'}
+                  {fileType === 'contact' && 'Contact data format detected'}
+                  {fileType === 'invoice' && 'Invoice data format detected'}
+                  {fileType === 'document' && 'Document data format detected'}
                   {fileType === 'unknown' && 'Unknown data format - please manually map columns'}
                 </p>
                 <p className="text-xs text-blue-600 mt-1">

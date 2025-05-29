@@ -79,7 +79,10 @@ export function parseCasesFromAllEvictions(data: any[]): Case[] {
   }
   
   if (headerRowIndex === -1) {
-    console.error('Could not find header row in ALL EVICTIONS FILES');
+    // Only log error if there's actually data to process
+    if (data.length > 0) {
+      console.error('Could not find header row in case data');
+    }
     return cases;
   }
   

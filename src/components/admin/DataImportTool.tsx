@@ -59,7 +59,7 @@ const DataImportTool: React.FC = () => {
       if (importType === 'excel') {
         setStep('preview');
         setIsImporting(true);
-        const result = await importFromExcel(selectedFiles[0]);
+        const result = await importFromExcel(selectedFiles);
         setImportResult(result);
         setIsImporting(false);
         
@@ -81,7 +81,7 @@ const DataImportTool: React.FC = () => {
     }
   };
 
-  const handleCsvImportComplete = async (mappedData: any) => {
+  const handleCsvImportComplete = async (mappedData: any, fileType: string) => {
     setIsImporting(true);
     
     try {
@@ -90,12 +90,12 @@ const DataImportTool: React.FC = () => {
       const result = {
         success: true,
         entities: {
-          cases: mappedData, // Use the mapped data that CSVDataInspector provides
-          hearings: [],
-          documents: [],
-          invoices: [],
+          cases: fileType === 'complaint' || fileType === 'all_evictions_files' ? mappedData : [],
+          hearings: fileType === 'hearing' ? mappedData : [],
+          documents: fileType === 'document' ? mappedData : [],
+          invoices: fileType === 'invoice' ? mappedData : [],
           paymentPlans: [],
-          contacts: [],
+          contacts: fileType === 'contact' ? mappedData : [],
           serviceLogs: [],
         },
         errors: [],

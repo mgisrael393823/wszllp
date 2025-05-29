@@ -66,7 +66,10 @@ function parseInvoicesFromSource(
   }
   
   if (headerRowIndex === -1) {
-    console.error(`Could not find header row in ${sourceName}`);
+    // Only log error if there's actually data to process
+    if (data.length > 0) {
+      console.error(`Could not find header row in ${sourceName}`);
+    }
     return invoices;
   }
   
