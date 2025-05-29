@@ -33,8 +33,8 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
     { value: "plaintiff", label: "Plaintiff" },
     { value: "defendant", label: "Defendant" },
     { value: "address", label: "Property Address" },
-    { value: "status", label: "Case Status (Intake/Active/Closed)" },
-    { value: "intakeDate", label: "Intake Date" },
+    { value: "status", label: "Case Status" },
+    { value: "dateFiled", label: "Date Filed" },
     
     // Contact fields (from contactSchema)
     { value: "contactId", label: "Contact ID" },
@@ -298,10 +298,13 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
       headers.forEach(h => {
         const lower = h.toLowerCase();
         if (lower.includes('case') && lower.includes('id')) initialMappings[h] = 'caseId';
+        if (lower.includes('case') && lower.includes('no')) initialMappings[h] = 'caseId';
         if (lower.includes('plaintiff')) initialMappings[h] = 'plaintiff';
         if (lower.includes('defendant')) initialMappings[h] = 'defendant';
         if (lower.includes('address')) initialMappings[h] = 'address';
-        if (lower.includes('status')) initialMappings[h] = 'status';
+        if (lower.includes('status') || lower.includes('service status')) initialMappings[h] = 'status';
+        if (lower.includes('date') && lower.includes('filed')) initialMappings[h] = 'dateFiled';
+        if (lower.includes('data') && lower.includes('filed')) initialMappings[h] = 'dateFiled';
         if (lower.includes('court') && lower.includes('name')) initialMappings[h] = 'courtName';
         if (lower.includes('hearing') && lower.includes('date')) initialMappings[h] = 'hearingDate';
         if (lower.includes('outcome')) initialMappings[h] = 'outcome';

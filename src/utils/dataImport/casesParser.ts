@@ -42,11 +42,11 @@ export function parseCasesFromComplaint(data: any[]): Case[] {
           formatStringValue(row['Zip'] || '')
         ),
         status: determineCaseStatus(row),
-        intakeDate: row['From Date'] ? 
+        dateFiled: row['From Date'] ? 
           (typeof row['From Date'] === 'number' ? 
             excelDateToISOString(row['From Date']) : 
             new Date(row['From Date']).toISOString()) : 
-          new Date().toISOString(),
+          undefined,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -118,11 +118,11 @@ export function parseCasesFromAllEvictions(data: any[]): Case[] {
         defendant: defendant.trim(),
         address: formatStringValue(row['Address'] || ''),
         status: determineCaseStatus(row),
-        intakeDate: row['Date Filed'] ? 
+        dateFiled: row['Date Filed'] ? 
           (typeof row['Date Filed'] === 'number' ? 
             excelDateToISOString(row['Date Filed']) : 
             new Date(row['Date Filed']).toISOString()) : 
-          new Date().toISOString(),
+          undefined,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };

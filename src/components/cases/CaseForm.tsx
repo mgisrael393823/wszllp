@@ -22,8 +22,8 @@ const CaseForm: React.FC<CaseFormProps> = ({ isOpen, onClose, caseId }) => {
     plaintiff: '',
     defendant: '',
     address: '',
-    status: 'Intake',
-    intakeDate: new Date().toISOString().split('T')[0],
+    status: 'SPS NOT SERVED',
+    dateFiled: '',
     createdAt: '',
     updatedAt: '',
   };
@@ -36,8 +36,7 @@ const CaseForm: React.FC<CaseFormProps> = ({ isOpen, onClose, caseId }) => {
       if (existingCase) {
         // Format the date for the input field
         const formattedCase = {
-          ...existingCase,
-          intakeDate: new Date(existingCase.intakeDate).toISOString().split('T')[0]
+          ...existingCase
         };
         setFormData(formattedCase);
       }
@@ -111,9 +110,10 @@ const CaseForm: React.FC<CaseFormProps> = ({ isOpen, onClose, caseId }) => {
   };
 
   const statusOptions = [
-    { value: 'Intake', label: 'Intake' },
-    { value: 'Active', label: 'Active' },
-    { value: 'Closed', label: 'Closed' },
+    { value: 'SPS NOT SERVED', label: 'SPS NOT SERVED' },
+    { value: 'SPS PENDING', label: 'SPS PENDING' },
+    { value: 'SEND TO SPS', label: 'SEND TO SPS' },
+    { value: 'SPS SERVED', label: 'SPS SERVED' },
   ];
 
   return (
@@ -174,7 +174,7 @@ const CaseForm: React.FC<CaseFormProps> = ({ isOpen, onClose, caseId }) => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Select
-            label="Status"
+            label="Case Status"
             name="status"
             value={formData.status}
             onChange={handleChange}
@@ -184,13 +184,12 @@ const CaseForm: React.FC<CaseFormProps> = ({ isOpen, onClose, caseId }) => {
           />
           
           <Input
-            label="Intake Date"
-            name="intakeDate"
+            label="Date Filed"
+            name="dateFiled"
             type="date"
-            value={formData.intakeDate}
+            value={formData.dateFiled}
             onChange={handleChange}
-            required
-            error={formErrors.intakeDate}
+            error={formErrors.dateFiled}
           />
         </div>
       </form>
