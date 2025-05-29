@@ -6,6 +6,7 @@
   "scripts": {
     "build": "vite build",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
     "preview": "vite preview",
     "audit:components": "node scripts/component-analysis.js",
     "audit:a11y": "node scripts/accessibility-audit.js",
