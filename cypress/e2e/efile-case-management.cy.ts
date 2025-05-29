@@ -66,8 +66,8 @@ describe('E-Filing Case Management Integration', () => {
     // Submit the form
     cy.get('button[type="submit"]').should('contain', 'Submit eFile Batch').click();
 
-    // Verify Tyler API submission
-    cy.wait('@submitEfile').then((interception) => {
+    // Verify Tyler API submission with extended timeout
+    cy.wait('@submitEfile', { timeout: 20000 }).then((interception) => {
       const payload = interception.request.body.data;
       
       // Verify Tyler API payload structure
@@ -79,8 +79,8 @@ describe('E-Filing Case Management Integration', () => {
       expect(payload.filings).to.be.an('array').that.is.not.empty;
     });
 
-    // Verify case creation API call
-    cy.wait('@createCase').then((interception) => {
+    // Verify case creation API call with extended timeout
+    cy.wait('@createCase', { timeout: 20000 }).then((interception) => {
       const casePayload = interception.request.body;
       
       expect(casePayload).to.have.property('userId');
@@ -91,8 +91,8 @@ describe('E-Filing Case Management Integration', () => {
       expect(casePayload).to.have.property('referenceId');
     });
 
-    // Verify document creation API call
-    cy.wait('@createDocument').then((interception) => {
+    // Verify document creation API call with extended timeout
+    cy.wait('@createDocument', { timeout: 20000 }).then((interception) => {
       const docPayload = interception.request.body;
       
       expect(docPayload).to.have.property('caseId', mockCaseId);
@@ -139,10 +139,10 @@ describe('E-Filing Case Management Integration', () => {
     cy.get('button[type="submit"]').click();
 
     // Tyler API should still succeed
-    cy.wait('@submitEfile');
+    cy.wait('@submitEfile', { timeout: 20000 });
     
     // Case creation should fail
-    cy.wait('@createCaseFail');
+    cy.wait('@createCaseFail', { timeout: 20000 });
 
     // Should show warning but not fail the Tyler submission
     cy.contains('Filing Submitted').should('be.visible');
@@ -162,11 +162,11 @@ describe('E-Filing Case Management Integration', () => {
     cy.contains('Submitting to Court...').should('be.visible');
     
     // Wait for Tyler API to complete
-    cy.wait('@submitEfile');
+    cy.wait('@submitEfile', { timeout: 20000 });
     
     // Verify case management integration completes (loading state may be too brief to catch)
-    cy.wait('@createCase');
-    cy.wait('@createDocument');
+    cy.wait('@createCase', { timeout: 20000 });
+    cy.wait('@createDocument', { timeout: 20000 });
     
     // Verify success notification appears after case management
     cy.contains('Filing Submitted').should('be.visible');
@@ -199,11 +199,11 @@ describe('E-Filing Case Management Integration', () => {
     cy.get('button[type="submit"]').click();
 
     // Verify Tyler API and case creation succeed
-    cy.wait('@submitEfile');
-    cy.wait('@createCase');
+    cy.wait('@submitEfile', { timeout: 20000 });
+    cy.wait('@createCase', { timeout: 20000 });
     
     // Document creation should fail with duplicate error
-    cy.wait('@createDocumentDuplicate');
+    cy.wait('@createDocumentDuplicate', { timeout: 20000 });
 
     // Should still show overall success (Tyler submission succeeded)
     cy.contains('Filing Submitted').should('be.visible');

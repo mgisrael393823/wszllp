@@ -36,7 +36,7 @@ describe('E-Filing Real API Test', () => {
   // This test requires actual API credentials in the environment
   it('should authenticate with real credentials', () => {
     // Ensure API endpoints are not intercepted for this test
-    cy.task('getEnvVariable', 'VITE_EFILE_USERNAME').then(username => {
+    cy.task('getEnvVariable', 'TYLER_API_USERNAME').then(username => {
       if (!username) {
         cy.log('Missing API credentials - cannot run real authentication test');
         cy.skip();

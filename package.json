@@ -13,7 +13,7 @@
     "docs:generate": "mkdir -p docs/components && node scripts/generate-component-docs.js",
     "dev": "vite --port 5178",
     "dev:api": "vercel dev --listen 3000",
-    "cypress:run": "cypress run --headless --browser chrome",
+    "cypress:run": "npx cypress run --headless --browser chrome --config video=false",
     "test:e2e:ci": "start-server-and-test dev http-get://localhost:5178 cypress:run",
     "contacts:migrate": "npx tsx scripts/contacts-migration.ts",
     "migration:validate": "npx tsx scripts/migration-validator.ts",
