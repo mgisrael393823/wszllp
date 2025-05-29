@@ -1,3 +1,4 @@
+// DEPRECATED: replaced by DataImportTool.tsx — remove after migration
 import React, { useState } from 'react';
 import { useImport } from '@refinedev/core';
 import { v4 as uuidv4 } from 'uuid';

@@ -1,3 +1,4 @@
+// DEPRECATED: replaced by DataImportTool.tsx — remove after migration
 import React, { useState, useEffect } from 'react';
 import { useData } from '../../context/DataContext';
 import Card from '../ui/Card';

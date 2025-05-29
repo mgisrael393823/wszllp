@@ -1,3 +1,4 @@
+// DEPRECATED: replaced by DataImportTool.tsx — remove after migration
 import React from 'react';
 import { Dialog, DialogContent, DialogOverlay, DialogTitle } from '@radix-ui/react-dialog';
 import Button from '../ui/Button';

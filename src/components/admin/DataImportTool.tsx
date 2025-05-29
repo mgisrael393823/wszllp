@@ -1,13 +1,11 @@
 import React, { useState, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { importFromExcel } from '../../utils/dataImport/excelImporter';
-import { importFromCSV } from '../../utils/dataImport/csvImporter';
-import { routeImport } from '../../utils/dataImport/importRouter';
-import CSVDataInspector from './CSVDataInspector';
+import { parseCsv } from '@/utils/dataImport/csvParser';
+import { routeImport } from '@/utils/dataImport/importRouter';
 import { useData } from '../../context/DataContext';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
-import Select from '../ui/Select';
 import ImportFormatGuide from './ImportFormatGuide';
 import { Upload, CheckCircle, AlertCircle, FileText, Database, FileSpreadsheet, HelpCircle } from 'lucide-react';
 
@@ -16,11 +14,10 @@ const DataImportTool: React.FC = () => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isImporting, setIsImporting] = useState(false);
   const [importResult, setImportResult] = useState<any | null>(null);
-  const [step, setStep] = useState<'upload' | 'preview' | 'importing' | 'complete' | 'csvInspector'>('upload');
+  const [step, setStep] = useState<'upload' | 'preview' | 'importing' | 'complete'>('upload');
   const [error, setError] = useState<string | null>(null);
   const [importType, setImportType] = useState<'excel' | 'csv'>('excel');
   const [dataType, setDataType] = useState<'auto' | 'contact' | 'case' | 'hearing' | 'invoice' | 'document'>('auto');
-  const [selectedCsvFile, setSelectedCsvFile] = useState<File | null>(null);
   const [showFormatHelp, setShowFormatHelp] = useState(false);
   const [showFormatGuide, setShowFormatGuide] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -49,64 +46,47 @@ const DataImportTool: React.FC = () => {
       return;
     }
 
-    // Validate file types
     if (importType === 'excel' && !selectedFiles[0].name.endsWith('.xlsx')) {
       setError('Please upload an Excel file (.xlsx)');
       return;
     }
 
     setError(null);
-    
+
     try {
+      setIsImporting(true);
       if (importType === 'excel') {
-        setStep('preview');
-        setIsImporting(true);
         const result = await importFromExcel(selectedFiles);
         setImportResult(result);
-        setIsImporting(false);
-        
-        if (result.success) {
-          setStep('preview');
-        } else {
-          setError('Import failed. Please check the file format and try again.');
-          setStep('upload');
-        }
+        setStep('preview');
       } else {
-        // For CSV, show the inspector first 
-        setSelectedCsvFile(selectedFiles[0]);
-        setStep('csvInspector');
+        const file = selectedFiles[0];
+        const csvContent = await file.text();
+        const records = parseCsv(csvContent);
+        const effectiveDataType = dataType === 'auto' ? inferDataType(records) : dataType;
+        const result = await routeImport(effectiveDataType, records);
+        setImportResult(result);
+        setStep('preview');
       }
     } catch (err) {
       setError(`Import error: ${err instanceof Error ? err.message : String(err)}`);
-      setIsImporting(false);
-      setStep('upload');
-    }
-  };
-
-  const handleCsvImportComplete = async (mappedData: any, fileType: string) => {
-    setIsImporting(true);
-
-    try {
-      const effectiveDataType = dataType === 'auto' ? fileType : dataType;
-
-      const result = routeImport(effectiveDataType, mappedData);
-
-      console.log('Using mapped data:', mappedData);
-      setImportResult(result);
-      
-      if (mappedData && mappedData.length > 0) {
-        setStep('preview');
-      } else {
-        setError('No data was mapped. Please check your column mappings.');
-        setStep('csvInspector');
-      }
-    } catch (err) {
-      setError(`CSV import error: ${err instanceof Error ? err.message : String(err)}`);
       setStep('upload');
     } finally {
       setIsImporting(false);
     }
   };
+
+  const inferDataType = (records: Record<string, string>[]):
+    'case' | 'hearing' | 'contact' | 'invoice' | 'document' => {
+    if (records.length === 0) return 'case';
+    const headers = Object.keys(records[0]).map(h => h.toLowerCase());
+    if (headers.some(h => h.includes('court') || h.includes('hearing'))) return 'hearing';
+    if (headers.some(h => h.includes('email') || h.includes('phone') || h.includes('contact'))) return 'contact';
+    if (headers.some(h => h.includes('invoice'))) return 'invoice';
+    if (headers.some(h => h.includes('document') || h.includes('file'))) return 'document';
+    return 'case';
+  };
+
 
   const handleImport = async () => {
     if (!importResult) return;
@@ -213,7 +193,6 @@ const DataImportTool: React.FC = () => {
     setImportResult(null);
     setStep('upload');
     setError(null);
-    setSelectedCsvFile(null);
     
     // Reset file input
     if (fileInputRef.current) {
@@ -449,13 +428,6 @@ const DataImportTool: React.FC = () => {
           </div>
         )}
 
-        {step === 'csvInspector' && selectedCsvFile && (
-          <CSVDataInspector 
-            file={selectedCsvFile}
-            onClose={handleReset}
-            onImport={handleCsvImportComplete}
-          />
-        )}
 
         {step === 'preview' && importResult && (
           <div className="space-y-6">
