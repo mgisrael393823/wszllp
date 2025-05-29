@@ -35,17 +35,21 @@ const saveContactsToSupabase = async (contacts: any[]) => {
 
     console.log('Transformed contacts for Supabase:', supabaseContacts);
 
+    // Use upsert to handle duplicate emails - update existing or insert new
     const { data, error } = await supabase
       .from('contacts')
-      .insert(supabaseContacts)
-      .select(); // Return the inserted rows
+      .upsert(supabaseContacts, { 
+        onConflict: 'email',
+        ignoreDuplicates: false // Update existing records
+      })
+      .select(); // Return the inserted/updated rows
 
     if (error) {
       console.error('Supabase error:', error);
       throw new Error(`Failed to save contacts: ${error.message}`);
     }
 
-    console.log('Contacts saved successfully:', data);
+    console.log('Contacts saved/updated successfully:', data);
     return { success: true, saved: data?.length || 0, data };
   } catch (error) {
     console.error('Error saving contacts to Supabase:', error);
@@ -214,7 +218,7 @@ const DataImportTool: React.FC = () => {
         console.log('Saving contacts to Supabase...');
         try {
           const supabaseResult = await saveContactsToSupabase(enhancedContacts);
-          console.log('Contacts saved to Supabase:', supabaseResult);
+          console.log('Contacts saved/updated in Supabase:', supabaseResult);
         } catch (error) {
           console.error('Failed to save contacts to Supabase:', error);
           // Continue with local save even if Supabase fails
