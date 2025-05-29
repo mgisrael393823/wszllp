@@ -12,8 +12,14 @@ export const useSandboxMode = () => {
   const [isSandbox, setIsSandbox] = useState(false);
 
   useEffect(() => {
+    console.log('useSandboxMode - user:', user);
+    console.log('useSandboxMode - userEmail:', user?.email);
+    console.log('useSandboxMode - SANDBOX_EMAIL check:', user?.email === 'evictionsandbox@gmail.com');
+    
     if (user) {
-      setIsSandbox(isSandboxUser(user.email));
+      const isUserSandbox = isSandboxUser(user.email);
+      console.log('useSandboxMode - isSandboxUser result:', isUserSandbox);
+      setIsSandbox(isUserSandbox);
       setIsLoading(false);
     } else {
       setIsSandbox(false);
