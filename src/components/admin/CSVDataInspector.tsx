@@ -37,11 +37,13 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
     { value: "intakeDate", label: "Intake Date" },
     
     // Contact fields (from contactSchema)
+    { value: "contactId", label: "Contact ID" },
     { value: "name", label: "Contact Name" },
     { value: "role", label: "Contact Role (Attorney/Paralegal/PM/Client/Other)" },
     { value: "email", label: "Email" },
     { value: "phone", label: "Phone" },
     { value: "company", label: "Company" },
+    { value: "address", label: "Address" },
     { value: "notes", label: "Notes" },
     
     // Hearing fields (from hearingSchema)
@@ -108,16 +110,28 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
           setLoading(false);
         };
         
-        // Try to detect delimiter first
-        const firstLine = csvContent.split('\n')[0];
+        // Enhanced delimiter detection
+        const firstLine = csvContent.split('\n')[0] || '';
+        console.log('First line for delimiter detection:', firstLine);
+        
         let delimiter = ',';
         
-        // Check for common delimiters
-        if (firstLine.includes(';') && firstLine.split(';').length > firstLine.split(',').length) {
+        // Count potential delimiters outside of quoted strings
+        const commaCount = (firstLine.match(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/g) || []).length;
+        const semiCount = (firstLine.match(/;(?=(?:[^"]*"[^"]*")*[^"]*$)/g) || []).length;
+        const tabCount = (firstLine.match(/\t/g) || []).length;
+        
+        console.log('Delimiter counts:', { commaCount, semiCount, tabCount });
+        
+        if (semiCount > commaCount && semiCount > tabCount) {
           delimiter = ';';
-        } else if (firstLine.includes('\t') && firstLine.split('\t').length > firstLine.split(',').length) {
+        } else if (tabCount > commaCount && tabCount > semiCount) {
           delimiter = '\t';
+        } else {
+          delimiter = ',';
         }
+        
+        console.log('Selected delimiter:', delimiter);
 
         Papa.parse(csvContent, {
           header: true,
@@ -125,17 +139,28 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
           delimiter: delimiter,
           quoteChar: '"',
           escapeChar: '"',
+          transformHeader: (header) => {
+            // Clean header by removing surrounding quotes and whitespace
+            return header.trim().replace(/^["']|["']$/g, '');
+          },
           complete: (results) => {
+            console.log('Parse results:', results);
+            console.log('Headers found:', results.meta.fields);
+            
             // Check if parsing failed (only 1 column detected when we expect more)
             const headers = results.meta.fields || [];
-            if (headers.length === 1 && headers[0] && headers[0].includes(',')) {
-              // Parsing failed, try with comma delimiter explicitly
+            if (headers.length === 1 && headers[0] && (headers[0].includes(',') || headers[0].includes(';'))) {
+              console.log('Parsing failed, retrying with different settings');
+              // Parsing failed, try with auto-detection disabled
               Papa.parse(csvContent, {
                 header: true,
                 skipEmptyLines: true,
-                delimiter: ',',
+                delimiter: '',  // Let Papa auto-detect
                 quoteChar: '"',
                 escapeChar: '"',
+                transformHeader: (header) => {
+                  return header.trim().replace(/^["']|["']$/g, '');
+                },
                 complete: handleParseResults
               });
             } else {
