@@ -88,30 +88,59 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
       try {
         const csvContent = e.target?.result as string;
         
+        // Function to handle parse results
+        const handleParseResults = (results: any) => {
+          if (results.errors.length > 0) {
+            setErrors(results.errors.map((err: any) => `Error: ${err.message} (row: ${err.row})`));
+          }
+          
+          const parsedHeaders = results.meta.fields || [];
+          setHeaders(parsedHeaders);
+          
+          // Take a sample of the first 5 rows for preview
+          const previewData = results.data.slice(0, 5);
+          setDataPreview(previewData);
+          setFileData(results.data);
+            
+          // Detect file type based on column patterns
+          detectFileType(parsedHeaders, previewData);
+            
+          setLoading(false);
+        };
+        
+        // Try to detect delimiter first
+        const firstLine = csvContent.split('\n')[0];
+        let delimiter = ',';
+        
+        // Check for common delimiters
+        if (firstLine.includes(';') && firstLine.split(';').length > firstLine.split(',').length) {
+          delimiter = ';';
+        } else if (firstLine.includes('\t') && firstLine.split('\t').length > firstLine.split(',').length) {
+          delimiter = '\t';
+        }
+
         Papa.parse(csvContent, {
           header: true,
           skipEmptyLines: true,
+          delimiter: delimiter,
+          quoteChar: '"',
+          escapeChar: '"',
           complete: (results) => {
-            if (results.errors.length > 0) {
-              setErrors(results.errors.map(err => `Error: ${err.message} (row: ${err.row})`));
+            // Check if parsing failed (only 1 column detected when we expect more)
+            const headers = results.meta.fields || [];
+            if (headers.length === 1 && headers[0] && headers[0].includes(',')) {
+              // Parsing failed, try with comma delimiter explicitly
+              Papa.parse(csvContent, {
+                header: true,
+                skipEmptyLines: true,
+                delimiter: ',',
+                quoteChar: '"',
+                escapeChar: '"',
+                complete: handleParseResults
+              });
+            } else {
+              handleParseResults(results);
             }
-            
-            const parsedHeaders = results.meta.fields || [];
-            setHeaders(parsedHeaders);
-            
-            // Take a sample of the first 5 rows for preview
-            const previewData = results.data.slice(0, 5);
-            setDataPreview(previewData);
-            setFileData(results.data);
-            
-            // Detect file type based on column patterns
-            detectFileType(parsedHeaders, previewData);
-            
-            setLoading(false);
-          },
-          error: (error) => {
-            setErrors([`Failed to parse CSV: ${error.message}`]);
-            setLoading(false);
           }
         });
       } catch (error) {
