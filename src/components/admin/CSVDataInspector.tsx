@@ -89,6 +89,10 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
     reader.onload = (e) => {
       try {
         const csvContent = e.target?.result as string;
+        console.log('=== CSV FILE CONTENT ===');
+        console.log('Raw content length:', csvContent.length);
+        console.log('First 200 characters:', JSON.stringify(csvContent.substring(0, 200)));
+        console.log('Content preview:', csvContent.substring(0, 200));
         
         // Function to handle parse results
         const handleParseResults = (results: any) => {
@@ -97,10 +101,24 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
           }
           
           const parsedHeaders = results.meta.fields || [];
+          console.log('=== PARSED HEADERS ===');
+          console.log('Raw headers array:', parsedHeaders);
+          console.log('Number of headers:', parsedHeaders.length);
+          parsedHeaders.forEach((header, index) => {
+            console.log(`Header ${index}:`, JSON.stringify(header));
+          });
+          
           setHeaders(parsedHeaders);
           
           // Take a sample of the first 5 rows for preview
           const previewData = results.data.slice(0, 5);
+          console.log('=== PREVIEW DATA ===');
+          console.log('Number of preview rows:', previewData.length);
+          if (previewData.length > 0) {
+            console.log('First row keys:', Object.keys(previewData[0]));
+            console.log('First row values:', previewData[0]);
+          }
+          
           setDataPreview(previewData);
           setFileData(results.data);
             
