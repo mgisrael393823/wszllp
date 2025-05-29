@@ -4,20 +4,82 @@ import { v4 as uuidv4 } from 'uuid';
 import { EFileContext } from '@/context/EFileContext';
 import { useData } from '@/context/DataContext';
 import { useToast } from '@/context/ToastContext';
+import { useAuth } from '@/context/AuthContext';
 import { ensureAuth, fileToBase64, submitFiling, validateFile } from '@/utils/efile';
 import { EFileSubmission, EFileDocument } from '@/types/efile';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
+import { ENHANCED_EFILING_PHASE_A, ENHANCED_EFILING_PHASE_B } from '@/config/features';
+import { JURISDICTIONS, type Jurisdiction } from '@/config/jurisdictions';
+
+interface PaymentAccount { 
+  id: string; 
+  name: string; 
+}
+
+export function usePaymentAccounts() {
+  const [accounts, setAccounts] = useState<PaymentAccount[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchAccounts() {
+      try {
+        const res = await fetch('/api/tyler/payment-accounts');
+        const data = await res.json();
+        if (res.ok) {
+          setAccounts(data.accounts || []);
+          setError(data.error || null);
+        } else {
+          setAccounts(data.accounts || []);
+          setError(data.error || 'Failed to load accounts');
+        }
+      } catch (err) {
+        setError((err as Error).message);
+        setAccounts([{ id: 'demo', name: 'Demo Account (Fallback)' }]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchAccounts();
+  }, []);
+
+  return { accounts, loading, error };
+}
 
 interface FormData {
   jurisdiction: string;
   county: string;
+  jurisdictionCode?: string; // Phase B
   caseType: string;
   filingType: 'initial' | 'subsequent';
   existingCaseNumber?: string;
   attorneyId: string;
+  // Phase A: Enhanced fields
+  paymentAccountId?: string;
+  amountInControversy?: string;
+  showAmountInControversy?: boolean;
+  petitioner?: {
+    type: 'business' | 'individual';
+    businessName?: string;
+    firstName?: string;
+    lastName?: string;
+    addressLine1: string;
+    city: string;
+    state: string;
+    zipCode: string;
+  };
+  // FIXED: Use defendants array instead of single defendant
+  defendants: Array<{
+    firstName: string;
+    lastName: string;
+    addressLine1: string;
+    city: string;
+    state: string;
+    zipCode: string;
+  }>;
   files: FileList | null;
   referenceId: string;
 }
@@ -25,9 +87,19 @@ interface FormData {
 interface FormErrors {
   jurisdiction?: string;
   county?: string;
+  jurisdictionCode?: string; // Phase B
   caseType?: string;
   existingCaseNumber?: string;
   attorneyId?: string;
+  paymentAccountId?: string;
+  amountInControversy?: string;
+  'petitioner.businessName'?: string;
+  'petitioner.firstName'?: string;
+  'petitioner.lastName'?: string;
+  'petitioner.zipCode'?: string;
+  'defendants.0.firstName'?: string;
+  'defendants.0.lastName'?: string;
+  'defendants.0.zipCode'?: string;
   files?: string;
 }
 
@@ -35,18 +107,135 @@ const EFileSubmissionForm: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     jurisdiction: 'il',
     county: 'cook',
+    jurisdictionCode: '', // Phase B
     caseType: '',
     filingType: 'initial',
     existingCaseNumber: '',
     attorneyId: '',
+    // Phase A: Initialize enhanced fields
+    paymentAccountId: '',
+    amountInControversy: '',
+    showAmountInControversy: false,
+    petitioner: {
+      type: 'business',
+      businessName: '',
+      firstName: '',
+      lastName: '',
+      addressLine1: '',
+      city: '',
+      state: 'IL',
+      zipCode: ''
+    },
+    // FIXED: Initialize defendants as array
+    defendants: [{
+      firstName: '',
+      lastName: '',
+      addressLine1: '',
+      city: '',
+      state: 'IL',
+      zipCode: ''
+    }],
     files: null,
     referenceId: `WSZ-${Date.now()}`,
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSavingCase, setIsSavingCase] = useState(false);
   const { state, dispatch } = useContext(EFileContext);
   const { dispatch: dataDispatch } = useData();
   const { addToast } = useToast();
+  const { user } = useAuth();
+  const { accounts, loading: accountsLoading, error: accountsError } = usePaymentAccounts();
+
+  // Case management integration functions
+  const createCaseRecord = async (tylerData: any) => {
+    if (!user?.id) {
+      console.warn('User not authenticated, skipping case creation');
+      return null;
+    }
+
+    try {
+      const response = await fetch('/api/cases', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          jurisdiction: formData.jurisdiction,
+          county: formData.county,
+          caseType: formData.caseType,
+          attorneyId: formData.attorneyId,
+          referenceId: formData.referenceId,
+          // Phase A: Send enhanced payload
+          ...(ENHANCED_EFILING_PHASE_A && {
+            paymentAccountId: formData.paymentAccountId,
+            amountInControversy: formData.amountInControversy,
+            showAmountInControversy: formData.showAmountInControversy,
+            petitioner: formData.petitioner,
+            // FIXED: Send defendants array instead of single defendant
+            defendants: formData.defendants
+          })
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(`Case creation failed: ${error.error}`);
+      }
+
+      const result = await response.json();
+      return result.caseId;
+    } catch (error) {
+      console.error('Error creating case record:', error);
+      // Show warning but don't fail the Tyler submission
+      addToast({
+        type: 'warning',
+        title: 'Case Management Warning',
+        message: 'E-filing succeeded but case record creation failed. Contact support if needed.',
+        duration: 8000
+      });
+      return null;
+    }
+  };
+
+  const createDocumentRecords = async (caseId: string, tylerData: any) => {
+    if (!caseId || !formData.files || !tylerData?.item) return;
+
+    try {
+      // Create document records for each filed document
+      const documentPromises = Array.from(formData.files).map(async (file, index) => {
+        const filing = tylerData.item.filings?.[index];
+        if (!filing) return;
+
+        const response = await fetch('/api/documents', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            caseId: caseId,
+            envelopeId: tylerData.item.id,
+            filingId: filing.id,
+            fileName: file.name,
+            docType: filing.code || 'document',
+            status: filing.status || 'submitted',
+            timestamp: new Date().toISOString()
+          }),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          console.error(`Document creation failed for ${file.name}:`, error);
+        }
+      });
+
+      await Promise.allSettled(documentPromises);
+    } catch (error) {
+      console.error('Error creating document records:', error);
+      // Log but don't notify user - this is background processing
+    }
+  };
   
   // Check for saved drafts when component mounts
   useEffect(() => {
@@ -70,8 +259,26 @@ const EFileSubmissionForm: React.FC = () => {
   const mutation = useMutation({
     mutationFn: ({ payload, token }: { payload: EFileSubmission; token: string }) => 
       submitFiling(payload, token),
-    onSuccess: data => {
+    onSuccess: async data => {
       dispatch({ type: 'ADD_ENVELOPE', caseId: data.item.case_number || formData.referenceId, envelopeId: data.item.id });
+      
+      // Case management integration - create case and document records
+      try {
+        setIsSavingCase(true);
+        
+        // Step 1: Create case record
+        const caseId = await createCaseRecord(data);
+        
+        // Step 2: Create document records (if case creation succeeded)
+        if (caseId) {
+          await createDocumentRecords(caseId, data);
+        }
+      } catch (error) {
+        console.error('Case management integration error:', error);
+        // Don't fail the overall submission - Tyler filing already succeeded
+      } finally {
+        setIsSavingCase(false);
+      }
       
       // Add to system notifications
       dataDispatch({
@@ -101,11 +308,35 @@ const EFileSubmissionForm: React.FC = () => {
       // Reset form
       setFormData({ 
         jurisdiction: 'il', 
-        county: 'cook', 
+        county: 'cook',
+        jurisdictionCode: '', // Phase B
         caseType: '', 
         filingType: 'initial',
         existingCaseNumber: '',
-        attorneyId: '', 
+        attorneyId: '',
+        // Phase A: Reset enhanced fields
+        paymentAccountId: '',
+        amountInControversy: '',
+        showAmountInControversy: false,
+        petitioner: {
+          type: 'business',
+          businessName: '',
+          firstName: '',
+          lastName: '',
+          addressLine1: '',
+          city: '',
+          state: 'IL',
+          zipCode: ''
+        },
+        // Reset defendants array
+        defendants: [{
+          firstName: '',
+          lastName: '',
+          addressLine1: '',
+          city: '',
+          state: 'IL',
+          zipCode: ''
+        }],
         files: null,
         referenceId: `WSZ-${Date.now()}`
       });
@@ -227,6 +458,48 @@ const EFileSubmissionForm: React.FC = () => {
     }
   };
 
+  // Phase A: Enhanced input handlers
+  const handlePetitionerChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      petitioner: {
+        ...prev.petitioner!,
+        [field]: e.target.value
+      }
+    }));
+    // Clear validation errors for this field
+    const errorKey = `petitioner.${field}` as keyof FormErrors;
+    if (errors[errorKey]) {
+      setErrors(prev => ({ ...prev, [errorKey]: undefined }));
+    }
+  };
+
+  const handleDefendantChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      defendants: prev.defendants.map((defendant, index) => 
+        index === 0 ? { ...defendant, [field]: e.target.value } : defendant
+      )
+    }));
+    // Clear validation errors for this field
+    const errorKey = `defendants.0.${field}` as keyof FormErrors;
+    if (errors[errorKey]) {
+      setErrors(prev => ({ ...prev, [errorKey]: undefined }));
+    }
+  };
+
+  const handlePetitionerTypeChange = (type: 'business' | 'individual') => {
+    setFormData(prev => ({
+      ...prev,
+      petitioner: {
+        ...prev.petitioner!,
+        type,
+        // Clear fields that don't apply to the new type
+        ...(type === 'business' ? { firstName: '', lastName: '' } : { businessName: '' })
+      }
+    }));
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     
@@ -257,13 +530,29 @@ const EFileSubmissionForm: React.FC = () => {
   const validateForm = () => {
     const newErrors: FormErrors = {};
     let isValid = true;
+    
+    // Existing validations
     if (!formData.jurisdiction) {
       newErrors.jurisdiction = 'Please select a jurisdiction';
       isValid = false;
     }
-    if (!formData.county) {
-      newErrors.county = 'Please select a county';
-      isValid = false;
+    
+    // Phase B: Enhanced jurisdiction validation
+    if (ENHANCED_EFILING_PHASE_B) {
+      if (!formData.jurisdictionCode) {
+        newErrors.jurisdictionCode = 'Please select a jurisdiction';
+        isValid = false;
+      }
+      // Enhanced validation: Check jurisdiction code format
+      if (formData.jurisdictionCode && !/^[a-z]+:[a-z0-9]+$/.test(formData.jurisdictionCode)) {
+        newErrors.jurisdictionCode = 'Invalid jurisdiction format';
+        isValid = false;
+      }
+    } else {
+      if (!formData.county) {
+        newErrors.county = 'Please select a county';
+        isValid = false;
+      }
     }
     if (!formData.caseType) {
       newErrors.caseType = 'Please select a case type';
@@ -281,6 +570,66 @@ const EFileSubmissionForm: React.FC = () => {
       newErrors.files = 'Please upload at least one document';
       isValid = false;
     }
+
+    // Phase A: Enhanced validations
+    if (ENHANCED_EFILING_PHASE_A) {
+      // Payment account validation
+      if (!formData.paymentAccountId) {
+        newErrors.paymentAccountId = 'Please select a payment account';
+        isValid = false;
+      }
+
+      // Petitioner validation
+      if (formData.petitioner) {
+        if (formData.petitioner.type === 'business') {
+          if (!formData.petitioner.businessName?.trim()) {
+            newErrors['petitioner.businessName'] = 'Business name is required';
+            isValid = false;
+          }
+        } else {
+          if (!formData.petitioner.firstName?.trim()) {
+            newErrors['petitioner.firstName'] = 'First name is required';
+            isValid = false;
+          }
+          if (!formData.petitioner.lastName?.trim()) {
+            newErrors['petitioner.lastName'] = 'Last name is required';
+            isValid = false;
+          }
+        }
+
+        // ZIP code validation
+        if (formData.petitioner.zipCode && !/^\d{5}(-\d{4})?$/.test(formData.petitioner.zipCode)) {
+          newErrors['petitioner.zipCode'] = 'Valid ZIP code required';
+          isValid = false;
+        }
+      }
+
+      // Defendants validation
+      if (formData.defendants?.length > 0) {
+        const defendant = formData.defendants[0];
+        if (!defendant.firstName?.trim()) {
+          newErrors['defendants.0.firstName'] = 'First name is required';
+          isValid = false;
+        }
+        if (!defendant.lastName?.trim()) {
+          newErrors['defendants.0.lastName'] = 'Last name is required';
+          isValid = false;
+        }
+        // ZIP code validation for defendant
+        if (defendant.zipCode && !/^\d{5}(-\d{4})?$/.test(defendant.zipCode)) {
+          newErrors['defendants.0.zipCode'] = 'Valid ZIP code required';
+          isValid = false;
+        }
+      }
+
+      // Amount in controversy validation (required for certain case types)
+      const requiresAmount = ['174140', '174141', '174143'].includes(formData.caseType);
+      if (requiresAmount && (!formData.amountInControversy || parseFloat(formData.amountInControversy) <= 0)) {
+        newErrors.amountInControversy = 'Amount in controversy is required for this case type';
+        isValid = false;
+      }
+    }
+
     setErrors(newErrors);
     return isValid;
   };
@@ -341,16 +690,56 @@ const EFileSubmissionForm: React.FC = () => {
           )
         );
         
+        // Create case parties for Phase A enhanced filing
+        const caseParties = ENHANCED_EFILING_PHASE_A && formData.petitioner && formData.defendants?.length > 0 ? [
+          // Petitioner (business or individual)
+          {
+            id: 'Party_25694092',
+            type: '189138', // Petitioner type code
+            ...(formData.petitioner.type === 'business' ? {
+              business_name: formData.petitioner.businessName,
+              is_business: 'true'
+            } : {
+              first_name: formData.petitioner.firstName,
+              last_name: formData.petitioner.lastName,
+              is_business: 'false'
+            }),
+            address_line_1: formData.petitioner.addressLine1,
+            city: formData.petitioner.city,
+            state: formData.petitioner.state,
+            zip_code: formData.petitioner.zipCode,
+            lead_attorney: formData.attorneyId
+          },
+          // Defendant
+          {
+            id: 'Party_60273353',
+            type: '189131', // Defendant type code
+            first_name: formData.defendants[0].firstName,
+            last_name: formData.defendants[0].lastName,
+            address_line_1: formData.defendants[0].addressLine1,
+            city: formData.defendants[0].city,
+            state: formData.defendants[0].state,
+            zip_code: formData.defendants[0].zipCode,
+            is_business: 'false'
+          }
+        ] : undefined;
+
         // Create a properly typed submission payload
         const payload: EFileSubmission = {
           reference_id: formData.referenceId,
-          jurisdiction: `${formData.county}:cvd1`,
+          jurisdiction: ENHANCED_EFILING_PHASE_B ? formData.jurisdictionCode! : `${formData.county}:cvd1`,
           case_category: '7', // Category code for evictions
           case_type: formData.caseType,
+          case_parties: caseParties,
           filings: files,
-          payment_account_id: 'demo',
+          filing_type: 'EFile',
+          payment_account_id: ENHANCED_EFILING_PHASE_A ? (formData.paymentAccountId || 'demo') : 'demo',
           filing_attorney_id: formData.attorneyId,
           filing_party_id: 'Party_25694092',
+          ...(ENHANCED_EFILING_PHASE_A && formData.amountInControversy && {
+            amount_in_controversy: formData.amountInControversy,
+            show_amount_in_controversy: formData.showAmountInControversy ? 'true' : 'false'
+          }),
           is_initial_filing: formData.filingType === 'initial',
           ...(formData.filingType === 'subsequent' && {
             cross_references: [{ type: 'CASE_NUMBER', number: formData.existingCaseNumber }]
@@ -444,15 +833,31 @@ const EFileSubmissionForm: React.FC = () => {
           required
           error={errors.jurisdiction}
         />
-        <Select
-          name="county"
-          label="County"
-          options={counties[formData.jurisdiction as keyof typeof counties] || []}
-          value={formData.county}
-          onChange={handleSelectChange('county')}
-          required
-          error={errors.county}
-        />
+        {ENHANCED_EFILING_PHASE_B ? (
+          <Select
+            name="jurisdictionCode"
+            label="Jurisdiction"
+            options={JURISDICTIONS.map((j: Jurisdiction) => ({
+              value: j.code,
+              label: j.label
+            }))}
+            value={formData.jurisdictionCode}
+            onChange={handleSelectChange('jurisdictionCode')}
+            required
+            error={errors.jurisdictionCode}
+            data-cy="jurisdiction-select"
+          />
+        ) : (
+          <Select
+            name="county"
+            label="County"
+            options={counties[formData.jurisdiction as keyof typeof counties] || []}
+            value={formData.county}
+            onChange={handleSelectChange('county')}
+            required
+            error={errors.county}
+          />
+        )}
         <Select
           name="filingType"
           label="Filing Type"
@@ -493,6 +898,255 @@ const EFileSubmissionForm: React.FC = () => {
           required
           error={errors.attorneyId}
         />
+        
+        {/* Phase A: Enhanced E-Filing Fields */}
+        {ENHANCED_EFILING_PHASE_A && (
+          <>
+            {/* 1. Payment Account Selection */}
+            <div className="mb-4">
+              <Select
+                name="paymentAccountId"
+                label="Payment Account"
+                options={accounts.map(account => ({ value: account.id, label: account.name }))}
+                value={formData.paymentAccountId}
+                onChange={handleSelectChange('paymentAccountId')}
+                required
+                error={errors.paymentAccountId}
+                disabled={accountsLoading}
+                data-cy="payment-account-select"
+              />
+              {accountsError && (
+                <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md" role="alert">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm text-yellow-700">{accountsError}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 2. Petitioner Section */}
+            <Card className="p-4 mb-4" data-cy="petitioner-card">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Petitioner Information</h3>
+              
+              {/* Business/Individual Toggle */}
+              <div className="mb-4">
+                <fieldset>
+                  <legend className="text-sm font-medium text-gray-700 mb-2">Petitioner Type</legend>
+                  <div className="flex gap-4">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        value="business"
+                        checked={formData.petitioner?.type === 'business'}
+                        onChange={() => handlePetitionerTypeChange('business')}
+                        className="mr-2"
+                      />
+                      Business Entity
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        value="individual"
+                        checked={formData.petitioner?.type === 'individual'}
+                        onChange={() => handlePetitionerTypeChange('individual')}
+                        className="mr-2"
+                      />
+                      Individual
+                    </label>
+                  </div>
+                </fieldset>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Conditional Name Fields */}
+                {formData.petitioner?.type === 'business' ? (
+                  <div className="sm:col-span-2">
+                    <Input
+                      name="businessName"
+                      label="Business Name"
+                      value={formData.petitioner?.businessName || ''}
+                      onChange={handlePetitionerChange('businessName')}
+                      required
+                      error={errors['petitioner.businessName']}
+                      data-cy="petitioner-business-name"
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <Input
+                      name="firstName"
+                      label="First Name"
+                      value={formData.petitioner?.firstName || ''}
+                      onChange={handlePetitionerChange('firstName')}
+                      required
+                      error={errors['petitioner.firstName']}
+                      data-cy="petitioner-first-name"
+                    />
+                    <Input
+                      name="lastName"
+                      label="Last Name"
+                      value={formData.petitioner?.lastName || ''}
+                      onChange={handlePetitionerChange('lastName')}
+                      required
+                      error={errors['petitioner.lastName']}
+                      data-cy="petitioner-last-name"
+                    />
+                  </>
+                )}
+
+                {/* Address Fields */}
+                <div className="sm:col-span-2">
+                  <Input
+                    name="addressLine1"
+                    label="Address Line 1"
+                    value={formData.petitioner?.addressLine1 || ''}
+                    onChange={handlePetitionerChange('addressLine1')}
+                    required
+                    data-cy="petitioner-address"
+                  />
+                </div>
+                <Input
+                  name="city"
+                  label="City"
+                  value={formData.petitioner?.city || ''}
+                  onChange={handlePetitionerChange('city')}
+                  required
+                  data-cy="petitioner-city"
+                />
+                <Input
+                  name="state"
+                  label="State"
+                  value={formData.petitioner?.state || ''}
+                  onChange={handlePetitionerChange('state')}
+                  required
+                  data-cy="petitioner-state"
+                />
+                <Input
+                  name="zipCode"
+                  label="ZIP Code"
+                  value={formData.petitioner?.zipCode || ''}
+                  onChange={handlePetitionerChange('zipCode')}
+                  required
+                  error={errors['petitioner.zipCode']}
+                  aria-describedby={errors['petitioner.zipCode'] ? 'petitioner-zip-error' : undefined}
+                  data-cy="petitioner-zip"
+                />
+                {errors['petitioner.zipCode'] && (
+                  <p id="petitioner-zip-error" className="text-sm text-red-600" role="alert">
+                    {errors['petitioner.zipCode']}
+                  </p>
+                )}
+              </div>
+            </Card>
+
+            {/* 3. Defendant Section */}
+            <Card className="p-4 mb-4" data-cy="defendant-card">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Defendant Information</h3>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Input
+                  name="firstName"
+                  label="First Name"
+                  value={formData.defendants[0]?.firstName || ''}
+                  onChange={handleDefendantChange('firstName')}
+                  required
+                  error={errors['defendants.0.firstName']}
+                  data-cy="defendant-first-name"
+                />
+                <Input
+                  name="lastName"
+                  label="Last Name"
+                  value={formData.defendants[0]?.lastName || ''}
+                  onChange={handleDefendantChange('lastName')}
+                  required
+                  error={errors['defendants.0.lastName']}
+                  data-cy="defendant-last-name"
+                />
+                <div className="sm:col-span-2">
+                  <Input
+                    name="addressLine1"
+                    label="Address Line 1"
+                    value={formData.defendants[0]?.addressLine1 || ''}
+                    onChange={handleDefendantChange('addressLine1')}
+                    required
+                    data-cy="defendant-address"
+                  />
+                </div>
+                <Input
+                  name="city"
+                  label="City"
+                  value={formData.defendants[0]?.city || ''}
+                  onChange={handleDefendantChange('city')}
+                  required
+                  data-cy="defendant-city"
+                />
+                <Input
+                  name="state"
+                  label="State"
+                  value={formData.defendants[0]?.state || ''}
+                  onChange={handleDefendantChange('state')}
+                  required
+                  data-cy="defendant-state"
+                />
+                <Input
+                  name="zipCode"
+                  label="ZIP Code"
+                  value={formData.defendants[0]?.zipCode || ''}
+                  onChange={handleDefendantChange('zipCode')}
+                  required
+                  error={errors['defendants.0.zipCode']}
+                  aria-describedby={errors['defendants.0.zipCode'] ? 'defendant-zip-error' : undefined}
+                  data-cy="defendant-zip"
+                />
+                {errors['defendants.0.zipCode'] && (
+                  <p id="defendant-zip-error" className="text-sm text-red-600" role="alert">
+                    {errors['defendants.0.zipCode']}
+                  </p>
+                )}
+              </div>
+            </Card>
+
+            {/* 4. Amount in Controversy (conditional on case type) */}
+            {['174140', '174141', '174143'].includes(formData.caseType) && (
+              <div className="mb-4">
+                <Input
+                  type="number"
+                  name="amountInControversy"
+                  label="Amount in Controversy"
+                  value={formData.amountInControversy}
+                  onChange={handleInputChange}
+                  placeholder="Enter dollar amount"
+                  error={errors.amountInControversy}
+                  data-cy="amount-in-controversy"
+                />
+                <div className="mt-2">
+                  <label className="flex items-center">
+                    <input
+                      id="showAmount"
+                      type="checkbox"
+                      checked={formData.showAmountInControversy}
+                      onChange={e => setFormData(prev => ({ 
+                        ...prev, 
+                        showAmountInControversy: e.target.checked 
+                      }))}
+                      className="mr-2"
+                      data-cy="show-amount-checkbox"
+                    />
+                    Show amount on filing
+                  </label>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Documents <span className="text-error-600">*</span>
@@ -525,14 +1179,22 @@ const EFileSubmissionForm: React.FC = () => {
           )}
         </div>
         <div className="mt-6">
-          <Button type="submit" variant="primary" fullWidth disabled={isSubmitting}>
+          <Button type="submit" variant="primary" fullWidth disabled={isSubmitting || isSavingCase}>
             {isSubmitting ? (
               <span className="inline-flex items-center">
                 <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Submitting...
+                Submitting to Court...
+              </span>
+            ) : isSavingCase ? (
+              <span className="inline-flex items-center">
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Saving Case Record...
               </span>
             ) : (
               'Submit eFile Batch'

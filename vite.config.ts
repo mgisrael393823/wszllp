@@ -13,6 +13,15 @@ export default defineConfig({
       '@lib': path.resolve(__dirname, './src/lib')
     },
   },
+  server: {
+    port: 5178,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true
+      }
+    }
+  },
   optimizeDeps: {
     exclude: ['lucide-react'],
     include: ['papaparse'],

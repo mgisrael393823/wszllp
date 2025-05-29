@@ -42,9 +42,27 @@ The e-filing request is a JSON payload with the following key components:
 
 1. **Case Metadata**:
    - `reference_id`: Your internal reference ID
-   - `jurisdiction`: Court jurisdiction (e.g., "cook:cvd1")
+   - `jurisdiction`: Court jurisdiction code
    - `case_category`: Category code (e.g., "7")
    - `case_type`: Type of case
+
+### Phase B Enhancement: Jurisdiction Codes
+
+**Updated:** Phase B now uses Illinois Courts PDF jurisdiction codes for Cook County Municipal Civil Districts:
+
+- `cook:M1` - Municipal Civil – District 1 (Chicago)
+- `cook:M2` - Municipal Civil – District 2 (Skokie)  
+- `cook:M3` - Municipal Civil – District 3 (Rolling Meadows)
+- `cook:M4` - Municipal Civil – District 4 (Maywood)
+- `cook:M5` - Municipal Civil – District 5 (Bridgeview)
+- `cook:M6` - Municipal Civil – District 6 (Markham)
+
+**Format:** `{county_slug}:{pdf_code}` where:
+- `county_slug` is lowercase (e.g., "cook")
+- `pdf_code` is exactly as listed in Illinois Courts PDF (M1-M6)
+- No spaces, single colon separator
+
+**Legacy Format (Phase A):** `cook:cvd1` - Deprecated, use M1-M6 codes instead
 
 2. **Case Parties**:
    - Each party has an ID, type, and personal information
@@ -69,7 +87,7 @@ The e-filing request is a JSON payload with the following key components:
 {
     "data": {
         "reference_id": "${reference_id}",
-        "jurisdiction": "cook:cvd1",
+        "jurisdiction": "cook:M1",
         "case_category": "7",
         "case_type": "${case_type_code}",
         "case_parties": [
@@ -172,7 +190,7 @@ The e-filing request is a JSON payload with the following key components:
 {
     "message_code": 0,
     "item": {
-        "jurisdiction": "cook:cvd1",
+        "jurisdiction": "cook:M1",
         "case_category": "174140",
         "case_type": "184140",
         "case_number": "IL-Case-1",
