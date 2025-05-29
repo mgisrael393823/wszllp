@@ -3,6 +3,11 @@ describe('E-Filing Flows', () => {
     // Login to Supabase
     cy.loginSupabase();
     
+    // Set Phase B environment for testing
+    cy.window().then((win) => {
+      win.localStorage.setItem('VITE_ENHANCED_EFILING_PHASE_B', 'true');
+    });
+    
     // Set up API intercepts
     cy.intercept('POST', '**/v4/il/efile', {
       statusCode: 200,
@@ -16,6 +21,21 @@ describe('E-Filing Flows', () => {
       }
     }).as('submitEfile');
 
+    // Mock Tyler jurisdictions API
+    cy.intercept('GET', '/api/tyler/jurisdictions', {
+      statusCode: 200,
+      body: {
+        jurisdictions: [
+          { code: 'cook:M1', label: 'Municipal Civil – District 1 (Chicago)', state: 'il' },
+          { code: 'cook:M2', label: 'Municipal Civil – District 2 (Skokie)', state: 'il' },
+          { code: 'cook:M3', label: 'Municipal Civil – District 3 (Rolling Meadows)', state: 'il' },
+          { code: 'cook:M4', label: 'Municipal Civil – District 4 (Maywood)', state: 'il' },
+          { code: 'cook:M5', label: 'Municipal Civil – District 5 (Bridgeview)', state: 'il' },
+          { code: 'cook:M6', label: 'Municipal Civil – District 6 (Markham)', state: 'il' },
+        ]
+      }
+    }).as('getJurisdictions');
+
     // Visit e-filing page
     cy.visit('/documents/efile');
     
@@ -24,15 +44,16 @@ describe('E-Filing Flows', () => {
     cy.contains('WSZ Direct E-Filing Integration').should('be.visible');
   });
 
-  it('should complete initial filing flow with correct payload structure', () => {
+  it('should complete initial filing flow with Phase B jurisdiction codes', () => {
     // Fill out the form for initial filing
     // State/Jurisdiction
     cy.contains('label', 'State or Jurisdiction').parent().find('button').click({ force: true });
     cy.contains('[role="option"]', 'Illinois').click({ force: true });
     
-    // County (auto-populated based on jurisdiction)
-    cy.contains('label', 'County').parent().find('button').click({ force: true });
-    cy.contains('[role="option"]', 'Cook County').click({ force: true });
+    // Phase B: Jurisdiction dropdown should be visible instead of County
+    cy.contains('label', 'Jurisdiction').should('be.visible');
+    cy.get('[data-cy="jurisdiction-select"]').click({ force: true });
+    cy.contains('[role="option"]', 'Municipal Civil – District 1 (Chicago)').click({ force: true });
     
     // Filing Type - Select Initial Filing
     cy.contains('label', 'Filing Type').parent().find('button').click({ force: true });
@@ -51,7 +72,7 @@ describe('E-Filing Flows', () => {
     // Submit the form
     cy.contains('button', 'Submit eFile Batch').click();
     
-    // Verify the API call was made with correct structure for initial filing
+    // Verify the API call was made with correct Phase B jurisdiction code
     cy.wait('@submitEfile').then((interception) => {
       const payload = interception.request.body.data;
       
@@ -64,24 +85,24 @@ describe('E-Filing Flows', () => {
       // Should NOT have cross_references for initial filing
       expect(payload).to.not.have.property('cross_references');
       
-      // Should have required fields
+      // Should have required fields with Phase B jurisdiction code
       expect(payload).to.have.property('reference_id');
-      expect(payload).to.have.property('jurisdiction', 'cook:cvd1');
+      expect(payload).to.have.property('jurisdiction', 'cook:M1'); // Phase B format
       expect(payload).to.have.property('case_type', '174140');
       expect(payload).to.have.property('filing_attorney_id', 'ATT123');
       expect(payload.filings).to.be.an('array').that.is.not.empty;
     });
   });
 
-  it('should complete subsequent filing flow with cross_references', () => {
+  it('should complete subsequent filing flow with Phase B jurisdiction codes', () => {
     // Fill out the form for subsequent filing
     // State/Jurisdiction
     cy.contains('label', 'State or Jurisdiction').parent().find('button').click({ force: true });
     cy.contains('[role="option"]', 'Illinois').click({ force: true });
     
-    // County
-    cy.contains('label', 'County').parent().find('button').click({ force: true });
-    cy.contains('[role="option"]', 'Cook County').click({ force: true });
+    // Phase B: Jurisdiction dropdown instead of County
+    cy.get('[data-cy="jurisdiction-select"]').click({ force: true });
+    cy.contains('[role="option"]', 'Municipal Civil – District 2 (Skokie)').click({ force: true });
     
     // Filing Type - Select Subsequent Filing
     cy.contains('label', 'Filing Type').parent().find('button').click({ force: true });
@@ -104,7 +125,7 @@ describe('E-Filing Flows', () => {
     // Submit the form
     cy.contains('button', 'Submit eFile Batch').click();
     
-    // Verify the API call was made with correct structure for subsequent filing
+    // Verify the API call was made with correct Phase B jurisdiction code
     cy.wait('@submitEfile').then((interception) => {
       const payload = interception.request.body.data;
       
@@ -122,12 +143,37 @@ describe('E-Filing Flows', () => {
         number: '2024-EV-123456'
       });
       
-      // Should have required fields
+      // Should have required fields with Phase B jurisdiction code
       expect(payload).to.have.property('reference_id');
-      expect(payload).to.have.property('jurisdiction', 'cook:cvd1');
+      expect(payload).to.have.property('jurisdiction', 'cook:M2'); // Phase B format for District 2
       expect(payload).to.have.property('case_type', '174140');
       expect(payload).to.have.property('filing_attorney_id', 'ATT123');
     });
+  });
+
+  it('should show Phase B jurisdiction dropdown with all 6 Cook County options', () => {
+    // Verify jurisdiction dropdown is visible (Phase B)
+    cy.contains('label', 'Jurisdiction').should('be.visible');
+    
+    // Verify County dropdown is NOT visible (Phase A disabled)
+    cy.contains('label', 'County').should('not.exist');
+    
+    // Open jurisdiction dropdown
+    cy.get('[data-cy="jurisdiction-select"]').click({ force: true });
+    
+    // Verify all 6 Cook County options are present
+    cy.contains('[role="option"]', 'Municipal Civil – District 1 (Chicago)').should('be.visible');
+    cy.contains('[role="option"]', 'Municipal Civil – District 2 (Skokie)').should('be.visible');
+    cy.contains('[role="option"]', 'Municipal Civil – District 3 (Rolling Meadows)').should('be.visible');
+    cy.contains('[role="option"]', 'Municipal Civil – District 4 (Maywood)').should('be.visible');
+    cy.contains('[role="option"]', 'Municipal Civil – District 5 (Bridgeview)').should('be.visible');
+    cy.contains('[role="option"]', 'Municipal Civil – District 6 (Markham)').should('be.visible');
+    
+    // Select one option to test functionality
+    cy.contains('[role="option"]', 'Municipal Civil – District 3 (Rolling Meadows)').click({ force: true });
+    
+    // Verify the selection was made
+    cy.get('[data-cy="jurisdiction-select"]').should('contain', 'Municipal Civil – District 3 (Rolling Meadows)');
   });
 
   it('should conditionally show/hide existing case number input based on filing type', () => {
