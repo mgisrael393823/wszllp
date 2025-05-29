@@ -18,6 +18,7 @@ const DataImportTool: React.FC = () => {
   const [step, setStep] = useState<'upload' | 'preview' | 'importing' | 'complete' | 'csvInspector'>('upload');
   const [error, setError] = useState<string | null>(null);
   const [importType, setImportType] = useState<'excel' | 'csv'>('excel');
+  const [dataType, setDataType] = useState<'auto' | 'contact' | 'case' | 'hearing' | 'invoice' | 'document'>('auto');
   const [selectedCsvFile, setSelectedCsvFile] = useState<File | null>(null);
   const [showFormatHelp, setShowFormatHelp] = useState(false);
   const [showFormatGuide, setShowFormatGuide] = useState(false);
@@ -85,17 +86,20 @@ const DataImportTool: React.FC = () => {
     setIsImporting(true);
     
     try {
+      // Use user-selected data type if not auto, otherwise use detected file type
+      const effectiveDataType = dataType === 'auto' ? fileType : dataType;
+      
       // Process the mapped data instead of re-importing the original file
       // Create a result structure compatible with what importFromCSV would return
       const result = {
         success: true,
         entities: {
-          cases: fileType === 'complaint' || fileType === 'all_evictions_files' ? mappedData : [],
-          hearings: fileType === 'hearing' ? mappedData : [],
-          documents: fileType === 'document' ? mappedData : [],
-          invoices: fileType === 'invoice' ? mappedData : [],
+          cases: effectiveDataType === 'case' || effectiveDataType === 'complaint' || effectiveDataType === 'all_evictions_files' ? mappedData : [],
+          hearings: effectiveDataType === 'hearing' ? mappedData : [],
+          documents: effectiveDataType === 'document' ? mappedData : [],
+          invoices: effectiveDataType === 'invoice' ? mappedData : [],
           paymentPlans: [],
-          contacts: fileType === 'contact' ? mappedData : [],
+          contacts: effectiveDataType === 'contact' ? mappedData : [],
           serviceLogs: [],
         },
         errors: [],
@@ -314,6 +318,92 @@ const DataImportTool: React.FC = () => {
                 <FileText className="w-5 h-5 mr-2" />
                 CSV Import
               </button>
+            </div>
+
+            {/* Data Type Selector */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                What type of data are you uploading?
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setDataType('auto')}
+                  className={`p-3 rounded-lg border text-sm ${
+                    dataType === 'auto'
+                      ? 'bg-blue-50 text-blue-700 border-blue-200'
+                      : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                  }`}
+                >
+                  <div className="font-medium">🤖 Auto-Detect</div>
+                  <div className="text-xs mt-1">Let system detect</div>
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={() => setDataType('contact')}
+                  className={`p-3 rounded-lg border text-sm ${
+                    dataType === 'contact'
+                      ? 'bg-blue-50 text-blue-700 border-blue-200'
+                      : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                  }`}
+                >
+                  <div className="font-medium">👥 Contacts</div>
+                  <div className="text-xs mt-1">Names, emails, phones</div>
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={() => setDataType('case')}
+                  className={`p-3 rounded-lg border text-sm ${
+                    dataType === 'case'
+                      ? 'bg-blue-50 text-blue-700 border-blue-200'
+                      : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                  }`}
+                >
+                  <div className="font-medium">📋 Cases</div>
+                  <div className="text-xs mt-1">Plaintiff, defendant</div>
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={() => setDataType('hearing')}
+                  className={`p-3 rounded-lg border text-sm ${
+                    dataType === 'hearing'
+                      ? 'bg-blue-50 text-blue-700 border-blue-200'
+                      : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                  }`}
+                >
+                  <div className="font-medium">⚖️ Hearings</div>
+                  <div className="text-xs mt-1">Court dates, outcomes</div>
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={() => setDataType('invoice')}
+                  className={`p-3 rounded-lg border text-sm ${
+                    dataType === 'invoice'
+                      ? 'bg-blue-50 text-blue-700 border-blue-200'
+                      : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                  }`}
+                >
+                  <div className="font-medium">💰 Invoices</div>
+                  <div className="text-xs mt-1">Billing, amounts</div>
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={() => setDataType('document')}
+                  className={`p-3 rounded-lg border text-sm ${
+                    dataType === 'document'
+                      ? 'bg-blue-50 text-blue-700 border-blue-200'
+                      : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                  }`}
+                >
+                  <div className="font-medium">📄 Documents</div>
+                  <div className="text-xs mt-1">Files, doc types</div>
+                </button>
+              </div>
             </div>
             
             <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center">
