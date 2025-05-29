@@ -11,7 +11,8 @@ import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
-import { ENHANCED_EFILING_PHASE_A } from '@/config/features';
+import { ENHANCED_EFILING_PHASE_A, ENHANCED_EFILING_PHASE_B } from '@/config/features';
+import { JURISDICTIONS, type Jurisdiction } from '@/config/jurisdictions';
 
 interface PaymentAccount { 
   id: string; 
@@ -51,6 +52,7 @@ export function usePaymentAccounts() {
 interface FormData {
   jurisdiction: string;
   county: string;
+  jurisdictionCode?: string; // Phase B
   caseType: string;
   filingType: 'initial' | 'subsequent';
   existingCaseNumber?: string;
@@ -85,6 +87,7 @@ interface FormData {
 interface FormErrors {
   jurisdiction?: string;
   county?: string;
+  jurisdictionCode?: string; // Phase B
   caseType?: string;
   existingCaseNumber?: string;
   attorneyId?: string;
@@ -104,6 +107,7 @@ const EFileSubmissionForm: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     jurisdiction: 'il',
     county: 'cook',
+    jurisdictionCode: '', // Phase B
     caseType: '',
     filingType: 'initial',
     existingCaseNumber: '',
@@ -302,10 +306,11 @@ const EFileSubmissionForm: React.FC = () => {
       });
       
       // Reset form
-      setFormData({ 
-        jurisdiction: 'il', 
-        county: 'cook', 
-        caseType: '', 
+      setFormData({
+        jurisdiction: 'il',
+        county: 'cook',
+        jurisdictionCode: '', // Phase B
+        caseType: '',
         filingType: 'initial',
         existingCaseNumber: '',
         attorneyId: '',
@@ -531,9 +536,16 @@ const EFileSubmissionForm: React.FC = () => {
       newErrors.jurisdiction = 'Please select a jurisdiction';
       isValid = false;
     }
-    if (!formData.county) {
-      newErrors.county = 'Please select a county';
-      isValid = false;
+    if (ENHANCED_EFILING_PHASE_B) {
+      if (!formData.jurisdictionCode) {
+        newErrors.jurisdictionCode = 'Please select a jurisdiction';
+        isValid = false;
+      }
+    } else {
+      if (!formData.county) {
+        newErrors.county = 'Please select a county';
+        isValid = false;
+      }
     }
     if (!formData.caseType) {
       newErrors.caseType = 'Please select a case type';
@@ -674,7 +686,9 @@ const EFileSubmissionForm: React.FC = () => {
         // Create a properly typed submission payload
         const payload: EFileSubmission = {
           reference_id: formData.referenceId,
-          jurisdiction: `${formData.county}:cvd1`,
+          jurisdiction: ENHANCED_EFILING_PHASE_B
+            ? formData.jurisdictionCode!
+            : `${formData.county}:cvd1`,
           case_category: '7', // Category code for evictions
           case_type: formData.caseType,
           filings: files,
@@ -774,15 +788,32 @@ const EFileSubmissionForm: React.FC = () => {
           required
           error={errors.jurisdiction}
         />
-        <Select
-          name="county"
-          label="County"
-          options={counties[formData.jurisdiction as keyof typeof counties] || []}
-          value={formData.county}
-          onChange={handleSelectChange('county')}
-          required
-          error={errors.county}
-        />
+        {ENHANCED_EFILING_PHASE_B ? (
+          <Select
+            name="jurisdictionCode"
+            label="Jurisdiction"
+            options={JURISDICTIONS.map((j: Jurisdiction) => ({
+              value: j.code,
+              label: j.label
+            }))}
+            value={formData.jurisdictionCode}
+            onChange={handleSelectChange('jurisdictionCode')}
+            required
+            error={errors.jurisdictionCode}
+            data-cy="jurisdiction-select"
+          />
+        ) : (
+          <Select
+            name="county"
+            label="County"
+            options={counties[formData.jurisdiction as keyof typeof counties] || []}
+            value={formData.county}
+            onChange={handleSelectChange('county')}
+            required
+            error={errors.county}
+            data-cy="county-select"
+          />
+        )}
         <Select
           name="filingType"
           label="Filing Type"

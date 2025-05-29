@@ -228,9 +228,13 @@ describe('E-Filing Case Management Integration', () => {
     cy.contains('label', 'State or Jurisdiction').parent().find('button').click({ force: true });
     cy.contains('[role="option"]', 'Illinois').click({ force: true });
     
-    // County - Cook County (auto-populated)
-    cy.contains('label', 'County').parent().find('button').click({ force: true });
-    cy.contains('[role="option"]', 'Cook County').click({ force: true });
+    cy.get('body').then($body => {
+      if ($body.find('[data-cy=jurisdiction-select]').length) {
+        cy.get('[data-cy=jurisdiction-select]').select('cook:cvd1');
+      } else {
+        cy.get('[data-cy=county-select]').select('cook');
+      }
+    });
     
     // Filing Type - Initial Filing
     cy.contains('label', 'Filing Type').parent().find('button').click({ force: true });

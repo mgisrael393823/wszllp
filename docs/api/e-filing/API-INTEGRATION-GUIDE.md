@@ -61,7 +61,18 @@ The e-filing request is a JSON payload with the following key components:
 4. **Payment Information**:
    - `payment_account_id`: ID from your Tyler payment account
    - `filing_attorney_id`: ID of the attorney filing
-   - `filing_party_id`: ID of the filing party (typically petitioner)
+ - `filing_party_id`: ID of the filing party (typically petitioner)
+
+## Request Payload
+```
+  "county": string,            // e.g. "cook" (Phase A)
+  "jurisdictionCode": string,  // e.g. "cook:cvd1" (Phase B – Chicago District 1)
+```
+
+## Phase B Enhancement
+When ENHANCED_EFILING_PHASE_B is enabled, use Tyler jurisdiction codes:
+- cook:cvd1 = Cook County – Municipal Civil – District 1 (Chicago)
+- fetch full list via GET /il/jurisdictions
 
 ### Sample Filing Request
 
