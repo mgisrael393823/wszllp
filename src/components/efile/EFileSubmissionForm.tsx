@@ -308,7 +308,30 @@ const EFileSubmissionForm: React.FC = () => {
         caseType: '', 
         filingType: 'initial',
         existingCaseNumber: '',
-        attorneyId: '', 
+        attorneyId: '',
+        // Phase A: Reset enhanced fields
+        paymentAccountId: '',
+        amountInControversy: '',
+        showAmountInControversy: false,
+        petitioner: {
+          type: 'business',
+          businessName: '',
+          firstName: '',
+          lastName: '',
+          addressLine1: '',
+          city: '',
+          state: 'IL',
+          zipCode: ''
+        },
+        // Reset defendants array
+        defendants: [{
+          firstName: '',
+          lastName: '',
+          addressLine1: '',
+          city: '',
+          state: 'IL',
+          zipCode: ''
+        }],
         files: null,
         referenceId: `WSZ-${Date.now()}`
       });
@@ -428,6 +451,48 @@ const EFileSubmissionForm: React.FC = () => {
     if (errors[name as keyof FormErrors]) {
       setErrors(prev => ({ ...prev, [name]: undefined }));
     }
+  };
+
+  // Phase A: Enhanced input handlers
+  const handlePetitionerChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      petitioner: {
+        ...prev.petitioner!,
+        [field]: e.target.value
+      }
+    }));
+    // Clear validation errors for this field
+    const errorKey = `petitioner.${field}` as keyof FormErrors;
+    if (errors[errorKey]) {
+      setErrors(prev => ({ ...prev, [errorKey]: undefined }));
+    }
+  };
+
+  const handleDefendantChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      defendants: prev.defendants.map((defendant, index) => 
+        index === 0 ? { ...defendant, [field]: e.target.value } : defendant
+      )
+    }));
+    // Clear validation errors for this field
+    const errorKey = `defendants.0.${field}` as keyof FormErrors;
+    if (errors[errorKey]) {
+      setErrors(prev => ({ ...prev, [errorKey]: undefined }));
+    }
+  };
+
+  const handlePetitionerTypeChange = (type: 'business' | 'individual') => {
+    setFormData(prev => ({
+      ...prev,
+      petitioner: {
+        ...prev.petitioner!,
+        type,
+        // Clear fields that don't apply to the new type
+        ...(type === 'business' ? { firstName: '', lastName: '' } : { businessName: '' })
+      }
+    }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -758,6 +823,255 @@ const EFileSubmissionForm: React.FC = () => {
           required
           error={errors.attorneyId}
         />
+        
+        {/* Phase A: Enhanced E-Filing Fields */}
+        {ENHANCED_EFILING_PHASE_A && (
+          <>
+            {/* 1. Payment Account Selection */}
+            <div className="mb-4">
+              <Select
+                name="paymentAccountId"
+                label="Payment Account"
+                options={accounts.map(account => ({ value: account.id, label: account.name }))}
+                value={formData.paymentAccountId}
+                onChange={handleSelectChange('paymentAccountId')}
+                required
+                error={errors.paymentAccountId}
+                disabled={accountsLoading}
+                data-cy="payment-account-select"
+              />
+              {accountsError && (
+                <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md" role="alert">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm text-yellow-700">{accountsError}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 2. Petitioner Section */}
+            <Card className="p-4 mb-4" data-cy="petitioner-card">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Petitioner Information</h3>
+              
+              {/* Business/Individual Toggle */}
+              <div className="mb-4">
+                <fieldset>
+                  <legend className="text-sm font-medium text-gray-700 mb-2">Petitioner Type</legend>
+                  <div className="flex gap-4">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        value="business"
+                        checked={formData.petitioner?.type === 'business'}
+                        onChange={() => handlePetitionerTypeChange('business')}
+                        className="mr-2"
+                      />
+                      Business Entity
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        value="individual"
+                        checked={formData.petitioner?.type === 'individual'}
+                        onChange={() => handlePetitionerTypeChange('individual')}
+                        className="mr-2"
+                      />
+                      Individual
+                    </label>
+                  </div>
+                </fieldset>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Conditional Name Fields */}
+                {formData.petitioner?.type === 'business' ? (
+                  <div className="sm:col-span-2">
+                    <Input
+                      name="businessName"
+                      label="Business Name"
+                      value={formData.petitioner?.businessName || ''}
+                      onChange={handlePetitionerChange('businessName')}
+                      required
+                      error={errors['petitioner.businessName']}
+                      data-cy="petitioner-business-name"
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <Input
+                      name="firstName"
+                      label="First Name"
+                      value={formData.petitioner?.firstName || ''}
+                      onChange={handlePetitionerChange('firstName')}
+                      required
+                      error={errors['petitioner.firstName']}
+                      data-cy="petitioner-first-name"
+                    />
+                    <Input
+                      name="lastName"
+                      label="Last Name"
+                      value={formData.petitioner?.lastName || ''}
+                      onChange={handlePetitionerChange('lastName')}
+                      required
+                      error={errors['petitioner.lastName']}
+                      data-cy="petitioner-last-name"
+                    />
+                  </>
+                )}
+
+                {/* Address Fields */}
+                <div className="sm:col-span-2">
+                  <Input
+                    name="addressLine1"
+                    label="Address Line 1"
+                    value={formData.petitioner?.addressLine1 || ''}
+                    onChange={handlePetitionerChange('addressLine1')}
+                    required
+                    data-cy="petitioner-address"
+                  />
+                </div>
+                <Input
+                  name="city"
+                  label="City"
+                  value={formData.petitioner?.city || ''}
+                  onChange={handlePetitionerChange('city')}
+                  required
+                  data-cy="petitioner-city"
+                />
+                <Input
+                  name="state"
+                  label="State"
+                  value={formData.petitioner?.state || ''}
+                  onChange={handlePetitionerChange('state')}
+                  required
+                  data-cy="petitioner-state"
+                />
+                <Input
+                  name="zipCode"
+                  label="ZIP Code"
+                  value={formData.petitioner?.zipCode || ''}
+                  onChange={handlePetitionerChange('zipCode')}
+                  required
+                  error={errors['petitioner.zipCode']}
+                  aria-describedby={errors['petitioner.zipCode'] ? 'petitioner-zip-error' : undefined}
+                  data-cy="petitioner-zip"
+                />
+                {errors['petitioner.zipCode'] && (
+                  <p id="petitioner-zip-error" className="text-sm text-red-600" role="alert">
+                    {errors['petitioner.zipCode']}
+                  </p>
+                )}
+              </div>
+            </Card>
+
+            {/* 3. Defendant Section */}
+            <Card className="p-4 mb-4" data-cy="defendant-card">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Defendant Information</h3>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Input
+                  name="firstName"
+                  label="First Name"
+                  value={formData.defendants[0]?.firstName || ''}
+                  onChange={handleDefendantChange('firstName')}
+                  required
+                  error={errors['defendants.0.firstName']}
+                  data-cy="defendant-first-name"
+                />
+                <Input
+                  name="lastName"
+                  label="Last Name"
+                  value={formData.defendants[0]?.lastName || ''}
+                  onChange={handleDefendantChange('lastName')}
+                  required
+                  error={errors['defendants.0.lastName']}
+                  data-cy="defendant-last-name"
+                />
+                <div className="sm:col-span-2">
+                  <Input
+                    name="addressLine1"
+                    label="Address Line 1"
+                    value={formData.defendants[0]?.addressLine1 || ''}
+                    onChange={handleDefendantChange('addressLine1')}
+                    required
+                    data-cy="defendant-address"
+                  />
+                </div>
+                <Input
+                  name="city"
+                  label="City"
+                  value={formData.defendants[0]?.city || ''}
+                  onChange={handleDefendantChange('city')}
+                  required
+                  data-cy="defendant-city"
+                />
+                <Input
+                  name="state"
+                  label="State"
+                  value={formData.defendants[0]?.state || ''}
+                  onChange={handleDefendantChange('state')}
+                  required
+                  data-cy="defendant-state"
+                />
+                <Input
+                  name="zipCode"
+                  label="ZIP Code"
+                  value={formData.defendants[0]?.zipCode || ''}
+                  onChange={handleDefendantChange('zipCode')}
+                  required
+                  error={errors['defendants.0.zipCode']}
+                  aria-describedby={errors['defendants.0.zipCode'] ? 'defendant-zip-error' : undefined}
+                  data-cy="defendant-zip"
+                />
+                {errors['defendants.0.zipCode'] && (
+                  <p id="defendant-zip-error" className="text-sm text-red-600" role="alert">
+                    {errors['defendants.0.zipCode']}
+                  </p>
+                )}
+              </div>
+            </Card>
+
+            {/* 4. Amount in Controversy (conditional on case type) */}
+            {['174140', '174141', '174143'].includes(formData.caseType) && (
+              <div className="mb-4">
+                <Input
+                  type="number"
+                  name="amountInControversy"
+                  label="Amount in Controversy"
+                  value={formData.amountInControversy}
+                  onChange={handleInputChange}
+                  placeholder="Enter dollar amount"
+                  error={errors.amountInControversy}
+                  data-cy="amount-in-controversy"
+                />
+                <div className="mt-2">
+                  <label className="flex items-center">
+                    <input
+                      id="showAmount"
+                      type="checkbox"
+                      checked={formData.showAmountInControversy}
+                      onChange={e => setFormData(prev => ({ 
+                        ...prev, 
+                        showAmountInControversy: e.target.checked 
+                      }))}
+                      className="mr-2"
+                      data-cy="show-amount-checkbox"
+                    />
+                    Show amount on filing
+                  </label>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Documents <span className="text-error-600">*</span>
