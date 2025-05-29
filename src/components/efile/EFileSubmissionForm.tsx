@@ -13,6 +13,7 @@ import Button from '../ui/Button';
 import Card from '../ui/Card';
 import { ENHANCED_EFILING_PHASE_A, ENHANCED_EFILING_PHASE_B } from '@/config/features';
 import { JURISDICTIONS, type Jurisdiction } from '@/config/jurisdictions';
+import { isSandboxUser } from '@/utils/sandbox';
 
 interface PaymentAccount { 
   id: string; 
@@ -23,9 +24,24 @@ export function usePaymentAccounts() {
   const [accounts, setAccounts] = useState<PaymentAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     async function fetchAccounts() {
+      // Sandbox mode: Return demo payment accounts
+      if (isSandboxUser(user?.email)) {
+        setAccounts([
+          { id: 'demo-1', name: 'Law Firm Trust Account (Demo)' },
+          { id: 'demo-2', name: 'Client Credit Card (Demo)' },
+          { id: 'demo-3', name: 'Business Checking (Demo)' },
+          { id: 'demo-4', name: 'IOLTA Account (Demo)' }
+        ]);
+        setError('🧪 Demo Mode: Showing sample payment accounts');
+        setLoading(false);
+        return;
+      }
+
+      // Production mode: Fetch real Tyler accounts
       try {
         const res = await fetch('/api/tyler/payment-accounts');
         const data = await res.json();
@@ -44,7 +60,7 @@ export function usePaymentAccounts() {
       }
     }
     fetchAccounts();
-  }, []);
+  }, [user]);
 
   return { accounts, loading, error };
 }
@@ -638,6 +654,102 @@ const EFileSubmissionForm: React.FC = () => {
     e.preventDefault();
     if (!validateForm()) return;
     setIsSubmitting(true);
+    
+    // Sandbox mode: Show demo response instead of real submission
+    if (isSandboxUser(user?.email)) {
+      try {
+        // Simulate processing time
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Create fake successful response
+        const mockResponse = {
+          message_code: 0,
+          item: {
+            id: `DEMO-${Date.now()}`,
+            case_number: `DEMO-${Math.floor(Math.random() * 10000)}`,
+            case_tracking_id: `demo_cook:M1~${uuidv4()}`,
+            filings: [
+              {
+                code: "174403",
+                id: uuidv4(),
+                status: "submitted"
+              }
+            ]
+          }
+        };
+
+        // Show success message
+        addToast({
+          type: 'success',
+          title: '🧪 Demo Submission Complete',
+          message: `Demo envelope ${mockResponse.item.id} submitted successfully. This is a non-functional demo - no real court filing was created.`,
+          duration: 8000
+        });
+
+        // Add to system notifications
+        dataDispatch({
+          type: 'ADD_NOTIFICATION',
+          payload: {
+            notificationId: uuidv4(),
+            title: '🧪 Demo filing submitted',
+            message: `Demo envelope ${mockResponse.item.id} - This is a sandbox demonstration`,
+            type: 'System',
+            priority: 'Low',
+            isRead: false,
+            entityType: 'Filing',
+            entityId: mockResponse.item.id,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        });
+
+        // Reset form
+        setFormData({ 
+          jurisdiction: 'il', 
+          county: 'cook',
+          jurisdictionCode: '',
+          caseType: '', 
+          filingType: 'initial',
+          existingCaseNumber: '',
+          attorneyId: '',
+          paymentAccountId: '',
+          amountInControversy: '',
+          showAmountInControversy: false,
+          petitioner: {
+            type: 'business',
+            businessName: '',
+            firstName: '',
+            lastName: '',
+            addressLine1: '',
+            city: '',
+            state: 'IL',
+            zipCode: ''
+          },
+          defendants: [{
+            firstName: '',
+            lastName: '',
+            addressLine1: '',
+            city: '',
+            state: 'IL',
+            zipCode: ''
+          }],
+          files: null,
+          referenceId: `WSZ-${Date.now()}`
+        });
+
+        setIsSubmitting(false);
+        return;
+      } catch (error) {
+        addToast({
+          type: 'error',
+          title: '🧪 Demo Error',
+          message: 'Demo submission failed. This is a sandbox demonstration.',
+          duration: 5000
+        });
+        setIsSubmitting(false);
+        return;
+      }
+    }
     
     try {
       // Get auth token

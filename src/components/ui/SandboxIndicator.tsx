@@ -13,9 +13,19 @@ export const SandboxIndicator: React.FC = () => {
   }
 
   return (
-    <div className="bg-amber-500 text-white font-medium shadow-md w-full">
-      <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-2 text-center">
-        <span>DEMO MODE - Sample Data for Demonstration Purposes</span>
+    <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white font-medium shadow-lg w-full">
+      <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-3 text-center">
+        <div className="flex items-center justify-center space-x-2">
+          <span className="text-xl">🧪</span>
+          <span className="font-semibold">DEMO MODE</span>
+          <span className="hidden sm:inline">|</span>
+          <span className="hidden sm:inline text-blue-100">
+            Enhanced E-Filing Demo • Phase A & B Features • Non-Functional Tyler Integration
+          </span>
+        </div>
+        <div className="text-xs text-blue-200 mt-1 sm:hidden">
+          Enhanced E-Filing Demo - All features visible, non-functional
+        </div>
       </div>
     </div>
   );
