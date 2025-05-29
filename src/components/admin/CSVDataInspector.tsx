@@ -43,7 +43,7 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
     { value: "email", label: "Email" },
     { value: "phone", label: "Phone" },
     { value: "company", label: "Company" },
-    { value: "address", label: "Address" },
+    { value: "contactAddress", label: "Contact Address" },
     { value: "notes", label: "Notes" },
     
     // Hearing fields (from hearingSchema)
@@ -272,7 +272,7 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
         if (lower.includes('phone')) initialMappings[h] = 'phone';
         if (lower.includes('company') || lower.includes('firm')) initialMappings[h] = 'company';
         if (lower.includes('role') || lower.includes('title')) initialMappings[h] = 'role';
-        if (lower.includes('address')) initialMappings[h] = 'address';
+        if (lower.includes('address')) initialMappings[h] = 'contactAddress';
         if (lower.includes('note')) initialMappings[h] = 'notes';
       });
     } else if (fileType === 'complaint' || fileType === 'hearing') {
@@ -337,12 +337,24 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
             if (!transformedRow.costs) transformedRow.costs = {};
             transformedRow.costs[sourceField] = row[sourceField];
           } else {
-            transformedRow[targetField] = row[sourceField];
+            // Handle special mapping cases
+            let finalTargetField = targetField;
+            if (targetField === 'contactAddress') {
+              finalTargetField = 'address'; // Map contactAddress back to address in the data
+            }
+            
+            transformedRow[finalTargetField] = row[sourceField];
             
             // For caseId field, also set it as the main identifier
             if (targetField === 'caseId' && row[sourceField]) {
               transformedRow.id = row[sourceField];
               transformedRow.caseId = row[sourceField];
+            }
+            
+            // For contactId field, also set it as the main identifier
+            if (targetField === 'contactId' && row[sourceField]) {
+              transformedRow.id = row[sourceField];
+              transformedRow.contactId = row[sourceField];
             }
           }
         }
