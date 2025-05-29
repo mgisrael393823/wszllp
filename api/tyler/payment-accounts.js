@@ -16,8 +16,8 @@ export default async function handler(req, res) {
     // Use server-side Tyler authentication with Vercel environment variables
     const BASE_URL = process.env.VITE_EFILE_BASE_URL || 'https://api.uslegalpro.com/v4';
     const CLIENT_TOKEN = process.env.VITE_EFILE_CLIENT_TOKEN;
-    const USERNAME = process.env.VITE_TYLER_API_USERNAME;
-    const PASSWORD = process.env.VITE_TYLER_API_PASSWORD;
+    const USERNAME = process.env.TYLER_API_USERNAME;
+    const PASSWORD = process.env.TYLER_API_PASSWORD;
 
     // Authenticate with Tyler API
     const authRes = await fetch(`${BASE_URL}/il/user/authenticate`, {
@@ -39,7 +39,7 @@ export default async function handler(req, res) {
     const token = authData.item.auth_token;
 
     // Fetch payment accounts
-    const accountsRes = await fetch(`${BASE_URL}/il/payment-accounts`, {
+    const accountsRes = await fetch(`${BASE_URL}/il/payment_accounts`, {
       headers: { 'authtoken': token }
     });
 
