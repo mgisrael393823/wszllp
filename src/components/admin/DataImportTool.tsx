@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { importFromExcel } from '../../utils/dataImport/excelImporter';
 import { importFromCSV } from '../../utils/dataImport/csvImporter';
-import { parseCsv } from '../../utils/dataImport/csvParser';
 import { routeImport } from '../../utils/dataImport/importRouter';
 import CSVDataInspector from './CSVDataInspector';
 import { useData } from '../../context/DataContext';
