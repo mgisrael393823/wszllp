@@ -59,6 +59,11 @@ describe('/api/cases endpoint', () => {
         p_reference_id: 'WSZ-1234567890',
         p_status: 'Open',
         p_case_category: '7',
+        p_payment_account_id: null,
+        p_amount_in_controversy: null,
+        p_show_amount_in_controversy: false,
+        p_petitioner: null,
+        p_defendants: '[]',
       });
     });
 
@@ -66,8 +71,7 @@ describe('/api/cases endpoint', () => {
       const req = createRequest({
         method: 'POST',
         body: {
-          userId: 'user-uuid-123',
-          // Missing required fields
+          // Missing all required fields
         },
       });
 

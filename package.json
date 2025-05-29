@@ -12,6 +12,7 @@
     "audit": "npm run audit:components && npm run audit:a11y",
     "docs:generate": "mkdir -p docs/components && node scripts/generate-component-docs.js",
     "dev": "vite --port 5178",
+    "dev:api": "vercel dev --listen 3000",
     "cypress:run": "cypress run --headless --browser chrome",
     "test:e2e:ci": "start-server-and-test dev http-get://localhost:5178 cypress:run",
     "contacts:migrate": "npx tsx scripts/contacts-migration.ts",
@@ -91,6 +92,7 @@
     "tsx": "^4.19.4",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.3.0",
+    "vercel": "^42.2.0",
     "vite": "^5.4.2",
     "vitest": "^3.1.4",
     "wait-on": "^8.0.3"
