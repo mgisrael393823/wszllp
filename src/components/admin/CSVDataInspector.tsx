@@ -7,7 +7,7 @@ import { AlertTriangle, Check, Info } from 'lucide-react';
 interface CSVDataInspectorProps {
   file: File;
   onClose: () => void;
-  onImport: (mappedData: any) => void;
+  onImport: (mappedData: any, fileType: string) => void;
 }
 
 const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onImport }) => {
@@ -32,6 +32,11 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
     { value: "plaintiff", label: "Plaintiff / Owner" },
     { value: "defendant", label: "Defendant / Tenant" },
     { value: "address", label: "Property Address" },
+    { value: "name", label: "Contact Name" },
+    { value: "email", label: "Email" },
+    { value: "phone", label: "Phone" },
+    { value: "company", label: "Company" },
+    { value: "role", label: "Role" },
     { value: "filingDate", label: "Filing Date" },
     { value: "status", label: "Case Status" },
     { value: "costs", label: "Costs / Fees" },
@@ -160,6 +165,8 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
       fileType = 'complaint';
     } else if (headers.some(h => h.toLowerCase().includes('court') || h.toLowerCase().includes('hearing'))) {
       fileType = 'hearing';
+    } else if (headers.some(h => h.toLowerCase().includes('email') || h.toLowerCase().includes('phone'))) {
+      fileType = 'contact';
     }
     
     setFileType(fileType);
@@ -174,13 +181,24 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
       if (detectedFields.plaintiff) initialMappings[detectedFields.plaintiff] = 'plaintiff';
       if (detectedFields.defendant) initialMappings[detectedFields.defendant] = 'defendant';
       if (detectedFields.address) initialMappings[detectedFields.address] = 'address';
-      
+
       // Map cost fields
       if (detectedFields.costs) {
         detectedFields.costs.forEach((col: string) => {
           initialMappings[col] = 'costs';
         });
       }
+    } else if (fileType === 'contact') {
+      headers.forEach(h => {
+        const lower = h.toLowerCase();
+        if (lower.includes('name')) initialMappings[h] = 'name';
+        if (lower.includes('email')) initialMappings[h] = 'email';
+        if (lower.includes('phone')) initialMappings[h] = 'phone';
+        if (lower.includes('company')) initialMappings[h] = 'company';
+        if (lower.includes('role')) initialMappings[h] = 'role';
+        if (lower.includes('address')) initialMappings[h] = 'address';
+        if (lower.includes('note')) initialMappings[h] = 'notes';
+      });
     }
     
     setFieldMappings(initialMappings);
@@ -234,7 +252,7 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
     
     console.log(`Mapped ${validMappedData.length} valid rows out of ${mappedData.length} total rows`);
     
-    onImport(validMappedData);
+    onImport(validMappedData, fileType);
   };
 
   return (
@@ -263,6 +281,7 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
                   {fileType === 'all_evictions_files' && 'All Evictions Files format detected'}
                   {fileType === 'complaint' && 'Complaint data format detected'}
                   {fileType === 'hearing' && 'Hearing data format detected'}
+                  {fileType === 'contact' && 'Contact data format detected'}
                   {fileType === 'unknown' && 'Unknown data format - please manually map columns'}
                 </p>
                 <p className="text-xs text-blue-600 mt-1">

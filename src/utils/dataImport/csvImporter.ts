@@ -203,8 +203,12 @@ export async function importFromCSV(files: File[]): Promise<ImportResult> {
         // Transform the parsed data to match our expected format
         const transformedData = csvFieldMapper.transformDataset(parsedData.data, sheetName);
         
-        // Store transformed data
-        allSheets[sheetName] = transformedData;
+        // Store transformed data, merging if sheet already exists
+        if (allSheets[sheetName]) {
+          allSheets[sheetName] = [...allSheets[sheetName], ...transformedData];
+        } else {
+          allSheets[sheetName] = transformedData;
+        }
         result.stats.processedFiles++;
         result.stats.processedRows += transformedData.length;
         
