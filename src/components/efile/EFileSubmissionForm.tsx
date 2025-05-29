@@ -574,8 +574,8 @@ const EFileSubmissionForm: React.FC = () => {
     // Phase A: Enhanced validations
     if (ENHANCED_EFILING_PHASE_A) {
       // Payment account validation
-      if (!formData.paymentAccountId || formData.paymentAccountId === 'demo') {
-        newErrors.paymentAccountId = 'Please select a valid payment account';
+      if (!formData.paymentAccountId) {
+        newErrors.paymentAccountId = 'Please select a payment account';
         isValid = false;
       }
 
@@ -690,16 +690,56 @@ const EFileSubmissionForm: React.FC = () => {
           )
         );
         
+        // Create case parties for Phase A enhanced filing
+        const caseParties = ENHANCED_EFILING_PHASE_A && formData.petitioner && formData.defendants?.length > 0 ? [
+          // Petitioner (business or individual)
+          {
+            id: 'Party_25694092',
+            type: '189138', // Petitioner type code
+            ...(formData.petitioner.type === 'business' ? {
+              business_name: formData.petitioner.businessName,
+              is_business: 'true'
+            } : {
+              first_name: formData.petitioner.firstName,
+              last_name: formData.petitioner.lastName,
+              is_business: 'false'
+            }),
+            address_line_1: formData.petitioner.addressLine1,
+            city: formData.petitioner.city,
+            state: formData.petitioner.state,
+            zip_code: formData.petitioner.zipCode,
+            lead_attorney: formData.attorneyId
+          },
+          // Defendant
+          {
+            id: 'Party_60273353',
+            type: '189131', // Defendant type code
+            first_name: formData.defendants[0].firstName,
+            last_name: formData.defendants[0].lastName,
+            address_line_1: formData.defendants[0].addressLine1,
+            city: formData.defendants[0].city,
+            state: formData.defendants[0].state,
+            zip_code: formData.defendants[0].zipCode,
+            is_business: 'false'
+          }
+        ] : undefined;
+
         // Create a properly typed submission payload
         const payload: EFileSubmission = {
           reference_id: formData.referenceId,
           jurisdiction: ENHANCED_EFILING_PHASE_B ? formData.jurisdictionCode! : `${formData.county}:cvd1`,
           case_category: '7', // Category code for evictions
           case_type: formData.caseType,
+          case_parties: caseParties,
           filings: files,
-          payment_account_id: 'demo',
+          filing_type: 'EFile',
+          payment_account_id: ENHANCED_EFILING_PHASE_A ? (formData.paymentAccountId || 'demo') : 'demo',
           filing_attorney_id: formData.attorneyId,
           filing_party_id: 'Party_25694092',
+          ...(ENHANCED_EFILING_PHASE_A && formData.amountInControversy && {
+            amount_in_controversy: formData.amountInControversy,
+            show_amount_in_controversy: formData.showAmountInControversy ? 'true' : 'false'
+          }),
           is_initial_filing: formData.filingType === 'initial',
           ...(formData.filingType === 'subsequent' && {
             cross_references: [{ type: 'CASE_NUMBER', number: formData.existingCaseNumber }]

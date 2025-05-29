@@ -48,7 +48,7 @@ export default async function handler(req, res) {
     }
 
     const accountsData = await accountsRes.json();
-    const accounts = (accountsData.item || []).map(account => ({
+    const accounts = (accountsData.items || []).map(account => ({
       id: account.id,
       name: account.name || account.description || 'Payment Account'
     }));
