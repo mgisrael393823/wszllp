@@ -148,6 +148,25 @@ const DataImportTool: React.FC = () => {
         };
       });
 
+      // Validate and enhance imported contacts data
+      const enhancedContacts = entities.contacts.map(contactItem => {
+        // Ensure each contact has required fields
+        return {
+          ...contactItem,
+          // Generate required fields if they don't exist
+          contactId: contactItem.contactId || contactItem.id || `contact-${Math.random().toString(36).substring(2, 11)}`,
+          id: contactItem.id || contactItem.contactId || `contact-${Math.random().toString(36).substring(2, 11)}`,
+          name: contactItem.name || 'Unknown Contact',
+          role: contactItem.role || 'Other',
+          email: contactItem.email || '',
+          phone: contactItem.phone || '',
+          createdAt: contactItem.createdAt || new Date().toISOString(),
+          updatedAt: contactItem.updatedAt || new Date().toISOString()
+        };
+      });
+
+      console.log('Enhanced contacts:', enhancedContacts);
+
       // Load all the data in a single dispatch
       dispatch({
         type: 'LOAD_DATA',
@@ -158,7 +177,7 @@ const DataImportTool: React.FC = () => {
           serviceLogs: entities.serviceLogs,
           invoices: entities.invoices,
           paymentPlans: entities.paymentPlans,
-          contacts: entities.contacts,
+          contacts: enhancedContacts,
           zoomLinks: [], // Not directly imported
           workflows: [], // Not directly imported
           workflowTasks: [], // Not directly imported
@@ -182,17 +201,25 @@ const DataImportTool: React.FC = () => {
       });
       
       // Add an audit log entry
+      const totalImported = enhancedCases.length + enhancedContacts.length + entities.hearings.length + entities.documents.length + entities.invoices.length;
+      const importDetails = [];
+      if (enhancedCases.length > 0) importDetails.push(`${enhancedCases.length} cases`);
+      if (enhancedContacts.length > 0) importDetails.push(`${enhancedContacts.length} contacts`);
+      if (entities.hearings.length > 0) importDetails.push(`${entities.hearings.length} hearings`);
+      if (entities.documents.length > 0) importDetails.push(`${entities.documents.length} documents`);
+      if (entities.invoices.length > 0) importDetails.push(`${entities.invoices.length} invoices`);
+      
       dispatch({
         type: 'ADD_AUDIT_LOG',
         payload: {
           id: uuidv4(),
           timestamp: new Date().toISOString(),
           action: 'IMPORT_DATA',
-          entityType: 'CASES',
+          entityType: 'MIXED',
           entityId: 'BULK_IMPORT',
           userId: 'CURRENT_USER', // In a real app, this would be the current user's ID
-          details: `Imported ${enhancedCases.length} cases and related data`,
-          changes: { added: enhancedCases.length }
+          details: `Imported ${importDetails.join(', ')}`,
+          changes: { added: totalImported }
         }
       });
       
