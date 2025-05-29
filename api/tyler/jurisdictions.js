@@ -36,8 +36,7 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error('Jurisdiction fetch error:', error);
     // Fix #2: Use absolute import for Vercel compatibility
-    const jurisdictionsModule = await import('../../src/config/jurisdictions.js');
-    const JURISDICTIONS = jurisdictionsModule.JURISDICTIONS;
+    const { JURISDICTIONS } = await import('../../src/config/jurisdictions.ts');
     return res.status(500).json({ error: 'Failed to fetch jurisdictions', jurisdictions: JURISDICTIONS, fallback: true });
   }
 }
