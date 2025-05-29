@@ -1,5 +1,4 @@
 // Utility functions for case status styling
-import React from 'react';
 
 export type CaseStatus = 'SPS NOT SERVED' | 'SPS PENDING' | 'SEND TO SPS' | 'SPS SERVED';
 

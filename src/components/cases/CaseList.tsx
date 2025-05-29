@@ -30,9 +30,9 @@ const CaseList: React.FC = () => {
           defendant: c.defendant,
           address: c.address || '',
           status: c.status,
-          dateFiled: c.dateFiled,
-          createdAt: c.createdAt,
-          updatedAt: c.updatedAt
+          dateFiled: c.dateFiled || null,
+          createdAt: c.created_at,
+          updatedAt: c.updated_at
         }));
         
         // Update the local state
