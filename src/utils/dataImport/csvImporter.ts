@@ -7,6 +7,38 @@ import invoicesParser from './invoicesParser';
 import clientsParser from './clientsParser';
 import csvFieldMapper from './csvFieldMapper';
 
+/**
+ * Parse CSV content into objects using PapaParse.
+ * Automatically chooses ';' as the delimiter when it appears
+ * more often than ',' in the header row.
+ */
+export function parseCsv(content: string) {
+  const headerLine = content.split('\n')[0] || '';
+  const commaCount = (headerLine.match(/,/g) || []).length;
+  const semiCount = (headerLine.match(/;/g) || []).length;
+  const delimiter = semiCount > commaCount ? ';' : ',';
+
+  const result = Papa.parse<Record<string, any>>(content, {
+    header: true,
+    skipEmptyLines: true,
+    delimiter,
+    transformHeader: (h) => h ? h.trim().replace(/^"|"$/g, '') : '',
+  });
+
+  if (result.errors.length > 0) {
+    console.error('CSV parse errors:', result.errors);
+  }
+
+  return result.data.map(row => {
+    const cleaned: Record<string, any> = {};
+    Object.entries(row).forEach(([key, value]) => {
+      const cleanKey = key.trim().replace(/^"|"$/g, '');
+      cleaned[cleanKey] = value;
+    });
+    return cleaned;
+  });
+}
+
 interface ImportResult {
   success: boolean;
   entities: {

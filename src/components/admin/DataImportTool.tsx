@@ -82,11 +82,11 @@ const DataImportTool: React.FC = () => {
     }
   };
 
-  const handleCsvImportComplete = async (mappedData: any, fileType: string) => {
+  const handleCsvImportComplete = async (mappedData: any, fileType?: string) => {
     setIsImporting(true);
-    
+
     try {
-      // Use user-selected data type if not auto, otherwise use detected file type
+      // Respect the user's selected data type when provided
       const effectiveDataType = dataType === 'auto' ? fileType : dataType;
       
       // Process the mapped data instead of re-importing the original file
