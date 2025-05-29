@@ -2,6 +2,8 @@ import React, { useState, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { importFromExcel } from '../../utils/dataImport/excelImporter';
 import { importFromCSV } from '../../utils/dataImport/csvImporter';
+import { parseCsv } from '../../utils/dataImport/csvParser';
+import { routeImport } from '../../utils/dataImport/importRouter';
 import CSVDataInspector from './CSVDataInspector';
 import { useData } from '../../context/DataContext';
 import Card from '../ui/Card';
@@ -84,33 +86,12 @@ const DataImportTool: React.FC = () => {
 
   const handleCsvImportComplete = async (mappedData: any, fileType: string) => {
     setIsImporting(true);
-    
+
     try {
-      // Use user-selected data type if not auto, otherwise use detected file type
       const effectiveDataType = dataType === 'auto' ? fileType : dataType;
-      
-      // Process the mapped data instead of re-importing the original file
-      // Create a result structure compatible with what importFromCSV would return
-      const result = {
-        success: true,
-        entities: {
-          cases: effectiveDataType === 'case' || effectiveDataType === 'complaint' || effectiveDataType === 'all_evictions_files' ? mappedData : [],
-          hearings: effectiveDataType === 'hearing' ? mappedData : [],
-          documents: effectiveDataType === 'document' ? mappedData : [],
-          invoices: effectiveDataType === 'invoice' ? mappedData : [],
-          paymentPlans: [],
-          contacts: effectiveDataType === 'contact' ? mappedData : [],
-          serviceLogs: [],
-        },
-        errors: [],
-        warnings: [],
-        stats: {
-          totalFiles: 1,
-          processedFiles: 1,
-          processedRows: mappedData.length,
-        }
-      };
-      
+
+      const result = routeImport(effectiveDataType, mappedData);
+
       console.log('Using mapped data:', mappedData);
       setImportResult(result);
       
