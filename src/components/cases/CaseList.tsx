@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabaseClient';
 import { format, parseISO, isValid } from 'date-fns';
 import { Calendar } from 'lucide-react';
 import { Card, Table, Pagination, FilterBar, LoadingState } from '../ui';
+import { getStatusColor } from '../../utils/statusColors';
 
 const CaseList: React.FC = () => {
   const navigate = useNavigate();
@@ -29,7 +30,7 @@ const CaseList: React.FC = () => {
           defendant: c.defendant,
           address: c.address || '',
           status: c.status,
-          intakeDate: c.intakeDate,
+          dateFiled: c.dateFiled,
           createdAt: c.createdAt,
           updatedAt: c.updatedAt
         }));
@@ -65,7 +66,22 @@ const CaseList: React.FC = () => {
       c.address.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter ? c.status === statusFilter : true;
-    const matchesDate = dateFilter ? c.intakeDate.startsWith(dateFilter) : true;
+    const matchesDate = dateFilter ? (c.dateFiled && (() => {
+      // Parse the MM/DD/YY date and check if it matches the selected year-month
+      let date = null;
+      if (typeof c.dateFiled === 'string') {
+        date = parseISO(c.dateFiled);
+        if (!isValid(date)) {
+          date = new Date(c.dateFiled);
+        }
+      }
+      
+      if (date && isValid(date)) {
+        const yearMonth = format(date, 'yyyy-MM');
+        return yearMonth === dateFilter;
+      }
+      return false;
+    })()) : true;
     
     return matchesSearch && matchesStatus && matchesDate;
   });
@@ -96,11 +112,19 @@ const CaseList: React.FC = () => {
     const dates = new Set<string>();
     
     state.cases.forEach(c => {
-      const date = typeof c.intakeDate === 'string' 
-        ? parseISO(c.intakeDate) 
-        : c.intakeDate instanceof Date 
-        ? c.intakeDate 
-        : null;
+      if (!c.dateFiled) return;
+      
+      let date = null;
+      if (typeof c.dateFiled === 'string') {
+        // Try parsing as ISO first
+        date = parseISO(c.dateFiled);
+        // If that fails, try parsing MM/DD/YY format
+        if (!isValid(date)) {
+          date = new Date(c.dateFiled);
+        }
+      } else if (c.dateFiled instanceof Date) {
+        date = c.dateFiled;
+      }
       
       if (date && isValid(date)) {
         const yearMonth = format(date, 'yyyy-MM');
@@ -138,33 +162,39 @@ const CaseList: React.FC = () => {
     },
     {
       header: 'Status',
-      accessor: (item: typeof state.cases[0]) => (
+      accessor: 'status',
+      sortable: true,
+      renderCell: (value: unknown, item: typeof state.cases[0]) => (
         <span 
-          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-            ${item.status === 'Intake' ? 'bg-blue-100 text-blue-800' : 
-              item.status === 'Active' ? 'bg-green-100 text-green-800' : 
-                'bg-neutral-100 text-neutral-800'}`
-          }
+          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}
         >
           {item.status}
         </span>
       ),
-      sortable: false,
     },
     {
-      header: 'Intake Date',
-      accessor: (item: typeof state.cases[0]) => {
-        const date = typeof item.intakeDate === 'string' 
-          ? parseISO(item.intakeDate) 
-          : item.intakeDate instanceof Date 
-          ? item.intakeDate 
-          : null;
+      header: 'Date Filed',
+      accessor: 'dateFiled',
+      sortable: true,
+      renderCell: (value: unknown, item: typeof state.cases[0]) => {
+        if (!item.dateFiled) return 'Not filed';
+        
+        let date = null;
+        if (typeof item.dateFiled === 'string') {
+          // Try parsing as ISO first
+          date = parseISO(item.dateFiled);
+          // If that fails, try parsing MM/DD/YY format
+          if (!isValid(date)) {
+            date = new Date(item.dateFiled);
+          }
+        } else if (item.dateFiled instanceof Date) {
+          date = item.dateFiled;
+        }
         
         return date && isValid(date) 
           ? format(date, 'MMM d, yyyy') 
           : 'Invalid Date';
       },
-      sortable: true,
     },
   ];
 
@@ -179,9 +209,10 @@ const CaseList: React.FC = () => {
           onChange: setStatusFilter,
           options: [
             { value: '', label: 'All Statuses' },
-            { value: 'Intake', label: 'Intake' },
-            { value: 'Active', label: 'Active' },
-            { value: 'Closed', label: 'Closed' }
+            { value: 'SPS NOT SERVED', label: 'SPS NOT SERVED' },
+            { value: 'SPS PENDING', label: 'SPS PENDING' },
+            { value: 'SEND TO SPS', label: 'SEND TO SPS' },
+            { value: 'SPS SERVED', label: 'SPS SERVED' }
           ]
         }}
         secondaryFilter={{

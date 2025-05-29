@@ -13,6 +13,7 @@ import Table from '../ui/Table';
 import HearingForm from '../hearings/HearingForm';
 import DocumentForm from '../documents/DocumentForm';
 import CaseForm from './CaseForm';
+import { getStatusColor, getStatusBackground } from '../../utils/statusColors';
 import Pagination from '../ui/Pagination';
 
 const CaseDetail: React.FC = () => {
@@ -93,7 +94,7 @@ const CaseDetail: React.FC = () => {
   
   // Case age in days
   const caseAge = Math.ceil(
-    (new Date().getTime() - new Date(caseData.intakeDate).getTime()) / (1000 * 60 * 60 * 24)
+    (new Date().getTime() - new Date(caseData.createdAt).getTime()) / (1000 * 60 * 60 * 24)
   );
 
   // Table configurations for different tabs
@@ -400,26 +401,18 @@ const CaseDetail: React.FC = () => {
       </div>
 
       {/* Status Banner */}
-      <div className={`p-4 rounded-lg ${
-        caseData.status === 'Active' ? 'bg-green-50 border border-green-200' :
-        caseData.status === 'Intake' ? 'bg-blue-50 border border-blue-200' : 
-        'bg-gray-50 border border-gray-200'
-      }`}>
+      <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-full ${
-              caseData.status === 'Active' ? 'bg-green-100' :
-              caseData.status === 'Intake' ? 'bg-blue-100' : 
-              'bg-gray-100'
-            }`}>
-              <Activity size={20} className={
-                caseData.status === 'Active' ? 'text-green-700' :
-                caseData.status === 'Intake' ? 'text-blue-700' : 
-                'text-gray-700'
-              } />
+            <div className="p-2 rounded-full bg-gray-100">
+              <Activity size={20} className="text-gray-700" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-900">Status: <span className="font-bold">{caseData.status}</span></p>
+              <p className="text-sm font-medium text-gray-900">
+                Status: <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(caseData.status)}`}>
+                  {caseData.status}
+                </span>
+              </p>
               <p className="text-xs text-gray-600">Case Age: {caseAge} days</p>
             </div>
           </div>

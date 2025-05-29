@@ -45,8 +45,8 @@ export const caseSchema = z.object({
   plaintiff: z.string().min(1).max(100),
   defendant: z.string().min(1).max(100),
   address: z.string().min(1).max(200),
-  status: z.enum(['Intake', 'Active', 'Closed']),
-  intakeDate: z.string(),
+  status: z.enum(['SPS NOT SERVED', 'SPS PENDING', 'SEND TO SPS', 'SPS SERVED']),
+  dateFiled: z.string().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

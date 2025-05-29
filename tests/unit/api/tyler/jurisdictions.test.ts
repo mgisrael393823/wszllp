@@ -17,31 +17,7 @@ describe('/api/tyler/jurisdictions endpoint', () => {
   });
 
   describe('GET /api/tyler/jurisdictions', () => {
-    it('should return Cook County M1-M6 jurisdictions from Tyler API', async () => {
-      // Mock Tyler auth response
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({
-          item: { auth_token: 'mock-auth-token' }
-        })
-      });
-
-      // Mock Tyler jurisdictions response with M1-M6 codes
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({
-          items: [
-            { code: 'cook:M1', label: 'Municipal Civil – District 1 (Chicago)', state: 'il' },
-            { code: 'cook:M2', label: 'Municipal Civil – District 2 (Skokie)', state: 'il' },
-            { code: 'cook:M3', label: 'Municipal Civil – District 3 (Rolling Meadows)', state: 'il' },
-            { code: 'cook:M4', label: 'Municipal Civil – District 4 (Maywood)', state: 'il' },
-            { code: 'cook:M5', label: 'Municipal Civil – District 5 (Bridgeview)', state: 'il' },
-            { code: 'cook:M6', label: 'Municipal Civil – District 6 (Markham)', state: 'il' },
-            { code: 'dupage:C1', label: 'DuPage County Civil', state: 'il' }, // Should be filtered out in our hardcoded list
-          ]
-        })
-      });
-
+    it('should return Cook County M1-M6 jurisdictions from static config', async () => {
       const req = createRequest({
         method: 'GET',
       });
@@ -56,6 +32,7 @@ describe('/api/tyler/jurisdictions endpoint', () => {
       // Verify the response structure
       expect(responseData).toHaveProperty('jurisdictions');
       expect(responseData).toHaveProperty('cached_at');
+      expect(responseData).toHaveProperty('source', 'static_config');
       expect(Array.isArray(responseData.jurisdictions)).toBe(true);
 
       // Verify Cook County M1-M6 codes are present
@@ -69,37 +46,12 @@ describe('/api/tyler/jurisdictions endpoint', () => {
         expect(jurisdiction.state).toBe('il');
       });
 
-      // Verify fetch calls
-      expect(mockFetch).toHaveBeenCalledTimes(2);
-      
-      // First call: authentication
-      expect(mockFetch).toHaveBeenNthCalledWith(1, 
-        'https://api.uslegalpro.com/v4/il/user/authenticate',
-        expect.objectContaining({
-          method: 'POST',
-          headers: expect.objectContaining({
-            'Content-Type': 'application/json',
-            'clienttoken': 'TEST_CLIENT_TOKEN'
-          })
-        })
-      );
-
-      // Second call: jurisdictions
-      expect(mockFetch).toHaveBeenNthCalledWith(2,
-        'https://api.uslegalpro.com/v4/il/jurisdictions',
-        expect.objectContaining({
-          headers: expect.objectContaining({
-            authtoken: 'mock-auth-token',
-            clienttoken: 'TEST_CLIENT_TOKEN'
-          })
-        })
-      );
+      // Verify no fetch calls are made (static data)
+      expect(mockFetch).not.toHaveBeenCalled();
     });
 
-    it('should return fallback jurisdictions when Tyler API fails', async () => {
-      // Mock Tyler auth failure
-      mockFetch.mockRejectedValue(new Error('Tyler API unavailable'));
-
+    it('should always return static jurisdictions successfully', async () => {
+      // Since we use static data that's part of the build, it should always succeed
       const req = createRequest({
         method: 'GET',
       });
@@ -108,24 +60,12 @@ describe('/api/tyler/jurisdictions endpoint', () => {
 
       await handler(req, res);
 
-      expect(res.statusCode).toBe(500);
+      expect(res.statusCode).toBe(200);
       const responseData = JSON.parse(res._getData());
       
-      // Should return fallback jurisdictions from our config
-      expect(responseData).toHaveProperty('error', 'Failed to fetch jurisdictions');
       expect(responseData).toHaveProperty('jurisdictions');
-      expect(responseData).toHaveProperty('fallback', true);
-      
-      // Verify fallback contains our M1-M6 codes
-      const cookJurisdictions = responseData.jurisdictions.filter((j: any) => j.code?.startsWith('cook:M'));
-      expect(cookJurisdictions).toHaveLength(6);
-      
-      const expectedCodes = ['cook:M1', 'cook:M2', 'cook:M3', 'cook:M4', 'cook:M5', 'cook:M6'];
-      expectedCodes.forEach(code => {
-        const jurisdiction = responseData.jurisdictions.find((j: any) => j.code === code);
-        expect(jurisdiction).toBeDefined();
-        expect(jurisdiction.state).toBe('il');
-      });
+      expect(responseData.jurisdictions).toHaveLength(6);
+      expect(responseData).toHaveProperty('source', 'static_config');
     });
 
     it('should return 405 for non-GET methods', async () => {
@@ -145,13 +85,8 @@ describe('/api/tyler/jurisdictions endpoint', () => {
       expect(mockFetch).not.toHaveBeenCalled();
     });
 
-    it('should handle Tyler auth failure gracefully', async () => {
-      // Mock Tyler auth failure
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 401
-      });
-
+    it('should return static jurisdictions regardless of network state', async () => {
+      // Since we now use static data, network state doesn't matter
       const req = createRequest({
         method: 'GET',
       });
@@ -160,25 +95,18 @@ describe('/api/tyler/jurisdictions endpoint', () => {
 
       await handler(req, res);
 
-      expect(res.statusCode).toBe(500);
+      expect(res.statusCode).toBe(200);
       const responseData = JSON.parse(res._getData());
       
-      expect(responseData).toHaveProperty('error', 'Failed to fetch jurisdictions');
-      expect(responseData).toHaveProperty('fallback', true);
-      expect(responseData.jurisdictions).toHaveLength(6); // Fallback M1-M6 codes
+      expect(responseData).toHaveProperty('jurisdictions');
+      expect(responseData).toHaveProperty('source', 'static_config');
+      expect(responseData.jurisdictions).toHaveLength(6); // M1-M6 codes
+      
+      // Verify no network calls were made
+      expect(mockFetch).not.toHaveBeenCalled();
     });
 
     it('should set proper CORS headers', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({ item: { auth_token: 'token' } })
-      });
-      
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({ items: [] })
-      });
-
       const req = createRequest({
         method: 'GET',
       });
@@ -191,6 +119,9 @@ describe('/api/tyler/jurisdictions endpoint', () => {
         'access-control-allow-origin': '*',
         'content-type': 'application/json',
       });
+      
+      // Should return successful response with static data
+      expect(res.statusCode).toBe(200);
     });
   });
 });

@@ -49,148 +49,169 @@ const ImportFormatGuide: React.FC<ImportFormatGuideProps> = ({
 
           <div className="prose prose-sm max-w-none mb-6">
             <p className="text-gray-700">
-              {importType === 'excel' 
-                ? 'This guide explains the required format for Excel files to import data into the system.' 
-                : 'This guide explains the required format for CSV files to import data into the system.'}
+              The import system uses intelligent content detection to automatically identify and process your data. You can use any file/sheet names - the system will detect the data type based on your column headers.
             </p>
             
-            <h3 className="mt-4">General Requirements</h3>
+            <div className="bg-blue-50 p-4 rounded-lg mb-4">
+              <h4 className="text-blue-800 font-medium mb-2">🚀 Smart Detection</h4>
+              <p className="text-blue-700 text-sm">
+                No need for specific file names! The system automatically detects:
+              </p>
+              <ul className="text-blue-700 text-sm mt-2 ml-4">
+                <li><strong>Contact data</strong> - files with email, phone, or contact columns</li>
+                <li><strong>Case data</strong> - files with plaintiff, defendant, or case columns</li>
+                <li><strong>Hearing data</strong> - files with court, hearing, or date columns</li>
+                <li><strong>Invoice data</strong> - files with amount, paid, or invoice columns</li>
+                <li><strong>Document data</strong> - files with document, file, or type columns</li>
+              </ul>
+            </div>
+
+            <h3 className="mt-4">Supported Data Types</h3>
             
             {importType === 'excel' ? (
-              <>
-                <p>Your Excel file should contain the following worksheets:</p>
-                <ul>
-                  <li><strong>Case Data:</strong> Complaints, ALL EVICTIONS FILES</li>
-                  <li><strong>Hearings:</strong> Court 25, Court 24, ZOOM</li>
-                  <li><strong>Documents:</strong> Summons, ALIAS Summons, Aff of Serv</li>
-                  <li><strong>Service:</strong> SPS 25, SPS & ALIAS, SHERIFF, SHERIFF EVICTIONS</li>
-                  <li><strong>Invoices:</strong> Outstanding Invoices, New Invoice List, Final Invoices, Payment Plan</li>
-                  <li><strong>Contacts:</strong> PM INFO</li>
-                </ul>
-              </>
+              <p>Your Excel file can contain any number of sheets with any names. Each sheet will be automatically analyzed for content type.</p>
             ) : (
-              <>
-                <p>For CSV imports, you need to provide multiple files:</p>
-                <ul>
-                  <li>Files must be comma-separated (.csv files)</li>
-                  <li>Each file must have a header row with column names</li>
-                  <li>Filenames should indicate their content category</li>
-                  <li>Text with commas should be enclosed in double quotes</li>
-                </ul>
-                
-                <p>Required files (name them exactly as shown or use the naming guidelines below):</p>
-                <ul>
-                  <li>Cases: <code>complaints.csv</code> or <code>all-evictions.csv</code></li>
-                  <li>Hearings: <code>court-25.csv</code> and/or <code>court-24.csv</code></li>
-                  <li>Optional: <code>zoom.csv</code> for Zoom hearing information</li>
-                  <li>Optional: <code>summons.csv</code>, <code>alias-summons.csv</code> for documents</li>
-                  <li>Optional: <code>sps-25.csv</code>, <code>sheriff.csv</code> for service logs</li>
-                  <li>Optional: <code>outstanding-invoices.csv</code>, <code>payment-plan.csv</code> for billing</li>
-                  <li>Optional: <code>pm-info.csv</code> or <code>clients.csv</code> for contact information</li>
-                </ul>
-              </>
+              <p>Upload CSV files containing any type of data. The system will automatically detect the content type based on your column headers.</p>
             )}
 
-            <h3 className="mt-4">Required Data Fields</h3>
+            <h3 className="mt-4">Platform Data Fields</h3>
             
             <div className="overflow-x-auto mb-4">
               <table className="min-w-full divide-y divide-gray-300 text-xs">
                 <thead>
                   <tr className="bg-gray-100">
-                    <th className="px-3 py-2 text-left font-medium text-gray-600">Sheet/File</th>
+                    <th className="px-3 py-2 text-left font-medium text-gray-600">Data Type</th>
                     <th className="px-3 py-2 text-left font-medium text-gray-600">Required Fields</th>
-                    <th className="px-3 py-2 text-left font-medium text-gray-600">Description</th>
+                    <th className="px-3 py-2 text-left font-medium text-gray-600">Optional Fields</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   <tr>
-                    <td className="px-3 py-2 font-medium">Complaint / complaints.csv</td>
-                    <td className="px-3 py-2">file id, plaintiff, defendant, address, date</td>
-                    <td className="px-3 py-2">Case filing information</td>
+                    <td className="px-3 py-2 font-medium text-green-700">📋 Cases</td>
+                    <td className="px-3 py-2">plaintiff, defendant, address</td>
+                    <td className="px-3 py-2">caseId, status, intakeDate</td>
                   </tr>
                   <tr>
-                    <td className="px-3 py-2 font-medium">ALL EVICTIONS FILES / all-evictions.csv</td>
-                    <td className="px-3 py-2">file, file id, client, property, defendant</td>
-                    <td className="px-3 py-2">Comprehensive case listing</td>
+                    <td className="px-3 py-2 font-medium text-blue-700">👥 Contacts</td>
+                    <td className="px-3 py-2">name, email</td>
+                    <td className="px-3 py-2">role, phone, company, address, notes</td>
                   </tr>
                   <tr>
-                    <td className="px-3 py-2 font-medium">Court 25 / court-25.csv</td>
-                    <td className="px-3 py-2">file id, court, date, time, defendant</td>
-                    <td className="px-3 py-2">Court hearings for department 25</td>
+                    <td className="px-3 py-2 font-medium text-purple-700">⚖️ Hearings</td>
+                    <td className="px-3 py-2">courtName, hearingDate</td>
+                    <td className="px-3 py-2">hearingId, caseId, outcome</td>
                   </tr>
                   <tr>
-                    <td className="px-3 py-2 font-medium">ZOOM / zoom.csv</td>
-                    <td className="px-3 py-2">file id, meeting id, password, link</td>
-                    <td className="px-3 py-2">Zoom hearing information</td>
+                    <td className="px-3 py-2 font-medium text-orange-700">💰 Invoices</td>
+                    <td className="px-3 py-2">amount, issueDate</td>
+                    <td className="px-3 py-2">invoiceId, caseId, dueDate, paid</td>
                   </tr>
                   <tr>
-                    <td className="px-3 py-2 font-medium">PM INFO / pm-info.csv</td>
-                    <td className="px-3 py-2">client, name, contact, phone, email</td>
-                    <td className="px-3 py-2">Property manager/client information</td>
+                    <td className="px-3 py-2 font-medium text-red-700">📄 Documents</td>
+                    <td className="px-3 py-2">type, fileURL</td>
+                    <td className="px-3 py-2">docId, caseId, serviceDate</td>
                   </tr>
                 </tbody>
               </table>
             </div>
-
-            <h3 className="mt-4">CSV File Naming Guidelines</h3>
             
-            {importType === 'csv' && (
-              <p>The system will attempt to match your file names to the expected data categories. Here are the recognized naming patterns:</p>
-            )}
+            <div className="bg-yellow-50 p-4 rounded-lg mb-4">
+              <h4 className="text-yellow-800 font-medium mb-2">💡 Field Mapping Tips</h4>
+              <ul className="text-yellow-700 text-sm space-y-1">
+                <li><strong>Flexible headers:</strong> Use headers like "Name", "Contact Name", "Full Name" - all will map to the name field</li>
+                <li><strong>Status values:</strong> For cases, use "Intake", "Active", or "Closed"</li>
+                <li><strong>Contact roles:</strong> Use "Attorney", "Paralegal", "PM", "Client", or "Other"</li>
+                <li><strong>Document types:</strong> Use "Complaint", "Summons", "Affidavit", "Motion", "Order", or "Other"</li>
+                <li><strong>Boolean fields:</strong> Use "true"/"false" or "yes"/"no" for paid status</li>
+              </ul>
+            </div>
+
+            <h3 className="mt-4">How Detection Works</h3>
+            
+            <p>The system uses intelligent content analysis rather than file names. Detection is based on your column headers:</p>
             
             <div className="overflow-x-auto mb-4">
               <table className="min-w-full divide-y divide-gray-300 text-xs">
                 <thead>
                   <tr className="bg-gray-100">
-                    <th className="px-3 py-2 text-left font-medium text-gray-600">Data Category</th>
-                    <th className="px-3 py-2 text-left font-medium text-gray-600">Recognized File Names</th>
+                    <th className="px-3 py-2 text-left font-medium text-gray-600">Data Type</th>
+                    <th className="px-3 py-2 text-left font-medium text-gray-600">Detection Triggers</th>
+                    <th className="px-3 py-2 text-left font-medium text-gray-600">Example Headers</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   <tr>
-                    <td className="px-3 py-2 font-medium">Cases (Complaint sheet)</td>
-                    <td className="px-3 py-2">complaint.csv, complaints.csv</td>
+                    <td className="px-3 py-2 font-medium text-green-700">Cases</td>
+                    <td className="px-3 py-2">plaintiff, defendant, case columns</td>
+                    <td className="px-3 py-2">"Plaintiff Name", "Defendant", "Case Number"</td>
                   </tr>
                   <tr>
-                    <td className="px-3 py-2 font-medium">Cases (ALL EVICTIONS FILES)</td>
-                    <td className="px-3 py-2">all-evictions.csv, all-evictions-files.csv, allevictions.csv, evictions.csv</td>
+                    <td className="px-3 py-2 font-medium text-blue-700">Contacts</td>
+                    <td className="px-3 py-2">email, phone, contact columns</td>
+                    <td className="px-3 py-2">"Email Address", "Phone", "Contact Name"</td>
                   </tr>
                   <tr>
-                    <td className="px-3 py-2 font-medium">Hearings (Court 25)</td>
-                    <td className="px-3 py-2">court25.csv, court-25.csv</td>
+                    <td className="px-3 py-2 font-medium text-purple-700">Hearings</td>
+                    <td className="px-3 py-2">court, hearing, date columns</td>
+                    <td className="px-3 py-2">"Court Name", "Hearing Date", "Court Room"</td>
                   </tr>
                   <tr>
-                    <td className="px-3 py-2 font-medium">Hearings (Court 24)</td>
-                    <td className="px-3 py-2">court24.csv, court-24.csv</td>
+                    <td className="px-3 py-2 font-medium text-orange-700">Invoices</td>
+                    <td className="px-3 py-2">invoice, amount, paid columns</td>
+                    <td className="px-3 py-2">"Invoice Number", "Amount Due", "Paid Status"</td>
                   </tr>
                   <tr>
-                    <td className="px-3 py-2 font-medium">Hearings (Zoom)</td>
-                    <td className="px-3 py-2">zoom.csv, zoom-info.csv, zoom-data.csv</td>
-                  </tr>
-                  <tr>
-                    <td className="px-3 py-2 font-medium">Contacts (PM INFO)</td>
-                    <td className="px-3 py-2">pm-info.csv, pm.csv, clients.csv, client-info.csv</td>
+                    <td className="px-3 py-2 font-medium text-red-700">Documents</td>
+                    <td className="px-3 py-2">document, file, type columns</td>
+                    <td className="px-3 py-2">"Document Type", "File URL", "File Name"</td>
                   </tr>
                 </tbody>
               </table>
             </div>
 
-            <h3 className="mt-4">Example CSV Format</h3>
+            <h3 className="mt-4">Example Data Formats</h3>
             
-            <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto">
-              {`# Example complaints.csv
-file id,plaintiff,defendant,address,date filed
-"EV2023-001","Smith Property Group","John Doe","123 Main St Apt 4, Anytown, CA 90210","2023-09-15"
-"EV2023-002","ABC Apartments","Jane Smith","456 Oak Ave #2, Anytown, CA 90210","2023-09-16"`}
-            </pre>
+            <div className="space-y-3">
+              <div>
+                <h4 className="font-medium text-sm mb-1">📋 Cases Example:</h4>
+                <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto">
+{`Case ID,Plaintiff,Defendant,Property Address,Status,Intake Date
+"WSZ-2023-001","Smith Property LLC","John Doe","123 Main St #4","Active","2023-09-15"
+"WSZ-2023-002","ABC Apartments","Jane Smith","456 Oak Ave #2","Intake","2023-09-16"`}
+                </pre>
+              </div>
+              
+              <div>
+                <h4 className="font-medium text-sm mb-1">👥 Contacts Example:</h4>
+                <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto">
+{`Contact Name,Role,Email,Phone,Company,Notes
+"John Smith","Attorney","john@lawfirm.com","555-1234","Smith & Associates","Primary contact"
+"Mary Johnson","PM","mary@properties.com","555-5678","ABC Properties","Property manager"`}
+                </pre>
+              </div>
+              
+              <div>
+                <h4 className="font-medium text-sm mb-1">⚖️ Hearings Example:</h4>
+                <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto">
+{`Hearing ID,Case ID,Court Name,Hearing Date,Outcome
+"H-001","WSZ-2023-001","Municipal Court Dept 1","2023-10-15","Judgment for Plaintiff"
+"H-002","WSZ-2023-002","Municipal Court Dept 2","2023-10-20",""`}
+                </pre>
+              </div>
+            </div>
             
             <h3 className="mt-4">Troubleshooting</h3>
             
-            <ul>
-              <li><strong>No data imported:</strong> Ensure your file names match the expected patterns and contain the required headers</li>
-              <li><strong>CSV parsing errors:</strong> Make sure your CSV files use comma separators and text with commas is properly quoted</li>
-              <li><strong>Missing relationships:</strong> Ensure the "file id" field is consistent across related files</li>
-            </ul>
+            <div className="bg-red-50 p-4 rounded-lg">
+              <h4 className="text-red-800 font-medium mb-2">⚠️ Common Issues</h4>
+              <ul className="text-red-700 text-sm space-y-1">
+                <li><strong>No data detected:</strong> Ensure your headers contain recognizable keywords (plaintiff, email, court, etc.)</li>
+                <li><strong>Wrong data type detected:</strong> Check that your headers clearly indicate the content type</li>
+                <li><strong>CSV parsing errors:</strong> Enclose text containing commas in double quotes</li>
+                <li><strong>Missing required fields:</strong> Include at least the required fields for your data type</li>
+                <li><strong>Date format issues:</strong> Use YYYY-MM-DD format for dates (e.g., 2023-09-15)</li>
+              </ul>
+            </div>
           </div>
 
           <div className="flex justify-end mt-4 pt-4 border-t sticky bottom-0 bg-white">
