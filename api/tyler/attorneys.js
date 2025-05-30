@@ -1,19 +1,44 @@
-import fetch from 'node-fetch';
-
-// Use Tyler API credentials
-const USERNAME = process.env.TYLER_API_USERNAME;
-const PASSWORD = process.env.TYLER_API_PASSWORD;
-const BASE_URL = 'https://api.uslegalpro.com/v4/il';
-const CLIENT_TOKEN = 'EVICT87';
-
 export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Content-Type', 'application/json');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
+    // Use server-side Tyler authentication with Vercel environment variables
+    // Note: Vercel Functions cannot access VITE_ prefixed variables, only build process can
+    const BASE_URL = process.env.TYLER_API_BASE_URL || 'https://api.uslegalpro.com/v4';
+    const CLIENT_TOKEN = process.env.TYLER_API_CLIENT_TOKEN || 'EVICT87';
+    const USERNAME = process.env.TYLER_API_USERNAME;
+    const PASSWORD = process.env.TYLER_API_PASSWORD;
+
+    // Check if credentials are available
+    if (!USERNAME || !PASSWORD) {
+      console.log('Tyler API credentials not configured, using fallback data');
+      
+      // Use fallback data for development
+      const { fallbackAttorneys } = await import('./attorneys-fallback.js');
+      
+      return res.status(200).json({ 
+        attorneys: fallbackAttorneys,
+        error: null,
+        count: fallbackAttorneys.length
+      });
+    }
+
+    // Import fetch dynamically
+    const fetch = (await import('node-fetch')).default;
+
     // First authenticate to get auth token
-    const authResponse = await fetch(`${BASE_URL}/user/authenticate`, {
+    const authResponse = await fetch(`${BASE_URL}/il/user/authenticate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
