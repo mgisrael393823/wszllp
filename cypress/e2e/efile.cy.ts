@@ -108,6 +108,13 @@ describe('E-Filing Flows', () => {
       expect(payload).to.have.property('filing_attorney_id', 'ATT123');
       expect(payload.filings).to.be.an('array').that.is.not.empty;
       
+      // Verify file upload format
+      const filing = payload.filings[0];
+      expect(filing).to.have.property('file');
+      expect(filing.file).to.match(/^base64:\/\//); // Should start with base64://
+      expect(filing).to.have.property('file_name');
+      expect(filing).to.have.property('doc_type', '189705');
+      
       // Verify case parties include Unknown Occupants
       expect(payload).to.have.property('case_parties');
       expect(payload.case_parties).to.be.an('array').with.lengthOf.at.least(3);

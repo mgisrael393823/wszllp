@@ -4,7 +4,7 @@ import { EFileError, AuthenticationError, SubmissionError, ServerError } from '.
 // Configuration for different request types
 const DEFAULT_TIMEOUT = 30000; // 30 seconds for regular requests
 const UPLOAD_TIMEOUT = 120000; // 2 minutes for file uploads
-const MAX_CONTENT_SIZE = 10 * 1024 * 1024; // 10MB max file size
+const MAX_CONTENT_SIZE = 50 * 1024 * 1024; // 50MB max for base64 encoded files
 
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_EFILE_BASE_URL,

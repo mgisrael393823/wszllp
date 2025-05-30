@@ -685,17 +685,32 @@ const EFileSubmissionForm: React.FC = () => {
       
       // Process files with proper error handling
       try {
-        // Process files into EFileDocument array
+        // Process files into EFileDocument array with proper filing codes
         const files: EFileDocument[] = await Promise.all(
-          Array.from(formData.files as FileList).map(file =>
+          Array.from(formData.files as FileList).map((file, index) =>
             fileToBase64(file)
-              .then(b64 => ({
-                code: 'document',
-                description: file.name,
-                file: b64,
-                file_name: file.name,
-                doc_type: '189705', // Document type code for eviction complaint
-              }))
+              .then(b64 => {
+                // Determine filing code based on file name or position
+                let code = '174403'; // Default: Complaint/Petition
+                let description = 'Complaint / Petition - Eviction - Residential - Joint Action';
+                
+                // Check if file name indicates summons
+                if (file.name.toLowerCase().includes('summons')) {
+                  code = '189495';
+                  description = 'Summons - Issued And Returnable';
+                } else if (file.name.toLowerCase().includes('affidavit')) {
+                  code = '189259';
+                  description = 'Affidavit Filed';
+                }
+                
+                return {
+                  code,
+                  description,
+                  file: `base64://${b64}`, // Tyler API expects base64:// prefix
+                  file_name: file.name,
+                  doc_type: '189705', // Document type code
+                };
+              })
               .catch(error => {
                 // Add specific file error to the form
                 throw new Error(`Error processing file ${file.name}: ${error.message}`);
@@ -1211,13 +1226,36 @@ const EFileSubmissionForm: React.FC = () => {
           </div>
           {errors.files && <p className="mt-1 text-sm text-error-600">{errors.files}</p>}
           {formData.files && (
-            <div className="mt-2">
-              <p className="text-sm text-gray-500">{Array.from(formData.files).length} file(s) selected</p>
-              <ul className="mt-1 text-xs text-gray-500">
-                {Array.from(formData.files).map((file, index) => (
-                  <li key={index}>{file.name}</li>
-                ))}
-              </ul>
+            <div className="mt-4 bg-green-50 border border-green-200 rounded-md p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-green-800">
+                    {Array.from(formData.files).length} document{Array.from(formData.files).length > 1 ? 's' : ''} ready to submit
+                  </h3>
+                  <div className="mt-2 text-sm text-green-700">
+                    <ul className="list-disc pl-5 space-y-1">
+                      {Array.from(formData.files).map((file, index) => (
+                        <li key={index} className="flex items-center justify-between">
+                          <span>{file.name}</span>
+                          <span className="text-xs text-green-600 ml-2">
+                            {file.name.toLowerCase().includes('summons') && '(Summons)'}
+                            {file.name.toLowerCase().includes('affidavit') && '(Affidavit)'}
+                            {!file.name.toLowerCase().includes('summons') && !file.name.toLowerCase().includes('affidavit') && '(Complaint)'}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <p className="mt-2 text-xs text-green-600">
+                    All documents will be converted to base64 and submitted to Tyler E-Filing system
+                  </p>
+                </div>
+              </div>
             </div>
           )}
         </div>
