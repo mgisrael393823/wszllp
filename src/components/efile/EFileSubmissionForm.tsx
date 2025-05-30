@@ -19,6 +19,100 @@ interface PaymentAccount {
   name: string; 
 }
 
+interface Attorney {
+  id: string;
+  firmId: string;
+  barNumber: string;
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  displayName: string;
+}
+
+export function useAttorneys() {
+  const [attorneys, setAttorneys] = useState<Attorney[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchAttorneys() {
+      try {
+        // In development, use fallback data
+        if (import.meta.env.DEV) {
+          const fallbackAttorneys = [
+            { 
+              id: '448c583f-aaf7-43d2-8053-2b49c810b66f',
+              firmId: '5f41beaa-13d4-4328-b87b-5d7d852f9491',
+              barNumber: '1111111',
+              firstName: 'Sam',
+              middleName: '',
+              lastName: 'Smith',
+              displayName: 'Sam Smith - 1111111'
+            },
+            { 
+              id: '550c684f-bbf8-54e3-9154-3c5ad921c77g',
+              firmId: '5f41beaa-13d4-4328-b87b-5d7d852f9491',
+              barNumber: '2222222',
+              firstName: 'Jane',
+              middleName: 'M',
+              lastName: 'Doe',
+              displayName: 'Jane M Doe - 2222222'
+            },
+            { 
+              id: '660d795f-ccf9-65f4-a265-4d6be032d88h',
+              firmId: '5f41beaa-13d4-4328-b87b-5d7d852f9491',
+              barNumber: '3333333',
+              firstName: 'John',
+              middleName: 'P',
+              lastName: 'Attorney',
+              displayName: 'John P Attorney - 3333333'
+            }
+          ];
+          setAttorneys(fallbackAttorneys);
+          setLoading(false);
+          return;
+        }
+
+        const res = await fetch('/api/tyler/attorneys');
+        
+        // Check if response has content
+        const contentType = res.headers.get('content-type');
+        const hasJson = contentType && contentType.includes('application/json');
+        
+        if (!hasJson) {
+          throw new Error('Invalid response format');
+        }
+        
+        const data = await res.json();
+        if (res.ok) {
+          setAttorneys(data.attorneys || []);
+          setError(data.error || null);
+        } else {
+          throw new Error(data.error || 'Failed to load attorneys');
+        }
+      } catch (err) {
+        console.error('Error fetching attorneys:', err);
+        setError((err as Error).message);
+        // Provide a minimal fallback
+        setAttorneys([{ 
+          id: 'error', 
+          displayName: 'Failed to load attorneys',
+          firmId: '',
+          barNumber: '',
+          firstName: '',
+          middleName: '',
+          lastName: ''
+        }]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchAttorneys();
+  }, []);
+
+  return { attorneys, loading, error };
+}
+
 export function usePaymentAccounts() {
   const [accounts, setAccounts] = useState<PaymentAccount[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,6 +174,7 @@ interface FormData {
     city: string;
     state: string;
     zipCode: string;
+    leadAttorneyId?: string;
   };
   // FIXED: Use defendants array instead of single defendant
   defendants: Array<{
@@ -107,6 +202,7 @@ interface FormErrors {
   'petitioner.firstName'?: string;
   'petitioner.lastName'?: string;
   'petitioner.zipCode'?: string;
+  'petitioner.leadAttorneyId'?: string;
   'defendants.0.firstName'?: string;
   'defendants.0.lastName'?: string;
   'defendants.0.zipCode'?: string;
@@ -134,7 +230,8 @@ const EFileSubmissionForm: React.FC = () => {
       addressLine1: '',
       city: '',
       state: 'IL',
-      zipCode: ''
+      zipCode: '',
+      leadAttorneyId: ''
     },
     // FIXED: Initialize defendants as array
     defendants: [{
@@ -156,6 +253,7 @@ const EFileSubmissionForm: React.FC = () => {
   const { addToast } = useToast();
   const { user } = useAuth();
   const { accounts, loading: accountsLoading, error: accountsError } = usePaymentAccounts();
+  const { attorneys, loading: attorneysLoading, error: attorneysError } = useAttorneys();
 
   // Case management integration functions
   const createCaseRecord = async (tylerData: any) => {
@@ -336,7 +434,8 @@ const EFileSubmissionForm: React.FC = () => {
           addressLine1: '',
           city: '',
           state: 'IL',
-          zipCode: ''
+          zipCode: '',
+          leadAttorneyId: ''
         },
         // Reset defendants array
         defendants: [{
@@ -501,6 +600,21 @@ const EFileSubmissionForm: React.FC = () => {
     }
   };
 
+  const handlePetitionerSelectChange = (field: string) => (value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      petitioner: {
+        ...prev.petitioner!,
+        [field]: value
+      }
+    }));
+    // Clear validation errors for this field
+    const errorKey = `petitioner.${field}` as keyof FormErrors;
+    if (errors[errorKey]) {
+      setErrors(prev => ({ ...prev, [errorKey]: undefined }));
+    }
+  };
+
   const handlePetitionerTypeChange = (type: 'business' | 'individual') => {
     setFormData(prev => ({
       ...prev,
@@ -613,6 +727,12 @@ const EFileSubmissionForm: React.FC = () => {
         // ZIP code validation
         if (formData.petitioner.zipCode && !/^\d{5}(-\d{4})?$/.test(formData.petitioner.zipCode)) {
           newErrors['petitioner.zipCode'] = 'Valid ZIP code required';
+          isValid = false;
+        }
+
+        // Lead attorney validation
+        if (!formData.petitioner.leadAttorneyId?.trim()) {
+          newErrors['petitioner.leadAttorneyId'] = 'Lead attorney is required';
           isValid = false;
         }
       }
@@ -736,7 +856,7 @@ const EFileSubmissionForm: React.FC = () => {
             city: formData.petitioner.city,
             state: formData.petitioner.state,
             zip_code: formData.petitioner.zipCode,
-            lead_attorney: formData.attorneyId
+            lead_attorney: formData.petitioner.leadAttorneyId
           },
           // Defendant
           {
@@ -1083,6 +1203,61 @@ const EFileSubmissionForm: React.FC = () => {
                     {errors['petitioner.zipCode']}
                   </p>
                 )}
+                
+                {/* Lead Attorney Selection */}
+                <div className="sm:col-span-2">
+                  <div className="mb-4">
+                    <div className="relative">
+                      <div className="flex items-center justify-between mb-1">
+                        <label htmlFor="leadAttorneyId" className="block text-sm font-medium text-neutral-700">
+                          Lead Attorney <span className="text-error-600">*</span>
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            // TODO: Implement add attorney modal
+                            addToast({
+                              type: 'info',
+                              title: 'Add Attorney',
+                              message: 'Attorney management feature coming soon',
+                              duration: 3000
+                            });
+                          }}
+                          className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                        >
+                          + Add Attorney
+                        </button>
+                      </div>
+                      <Select
+                        name="leadAttorneyId"
+                        options={attorneys.map(attorney => ({ 
+                          value: attorney.id, 
+                          label: attorney.displayName 
+                        }))}
+                        value={formData.petitioner?.leadAttorneyId || ''}
+                        onChange={handlePetitionerSelectChange('leadAttorneyId')}
+                        required
+                        error={errors['petitioner.leadAttorneyId']}
+                        disabled={attorneysLoading}
+                        data-cy="lead-attorney-select"
+                      />
+                    </div>
+                    {attorneysError && (
+                      <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md" role="alert">
+                        <div className="flex">
+                          <div className="flex-shrink-0">
+                            <svg className="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <div className="ml-3">
+                            <p className="text-sm text-yellow-700">{attorneysError}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </Card>
 
