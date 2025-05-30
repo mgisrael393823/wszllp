@@ -14,6 +14,22 @@ describe('E-Filing Offline Draft Smoke Test', () => {
       }
     }).as('authenticate');
     
+    // Mock Tyler payment accounts API
+    cy.intercept('GET', '/api/tyler/payment-accounts', {
+      statusCode: 200,
+      headers: {
+        'content-type': 'application/json'
+      },
+      body: {
+        accounts: [
+          { id: '203155ef-615f-4b81-a439-d1753e1fdf3b', name: 'CZ&A 2 (VISA)' },
+          { id: '87323cee-d57e-4794-acb8-d899e64b8bbf', name: 'CZ&A (VISA)' },
+          { id: 'e2d6c4ff-581f-4dc6-89bd-e97556bc616a', name: 'WS LAW (CEZ) (VISA)' },
+          { id: '02391463-ccff-4953-99c9-7cb1a632aaa7', name: 'WS LAW (DES) (VISA)' }
+        ]
+      }
+    }).as('getPaymentAccounts');
+    
     // Visit the e-filing page
     cy.visit('/efile', { failOnStatusCode: false });
   });

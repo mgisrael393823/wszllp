@@ -21,15 +21,24 @@ apiClient.interceptors.request.use(
       config.timeout = UPLOAD_TIMEOUT;
     }
     
-    // Log the request if in development
-    if (import.meta.env.DEV) {
-      console.info(
-        '[E-File API Request]',
-        config.method?.toUpperCase(),
-        config.url,
-        config.params || {}
-      );
-    }
+    // Log the request (sensitive in production, verbose in dev)
+    const logLevel = import.meta.env.PROD ? 'info' : 'log';
+    console[logLevel](
+      '[E-File API Request]',
+      config.method?.toUpperCase(),
+      config.url,
+      {
+        headers: {
+          ...config.headers,
+          // Mask sensitive headers in logs
+          authtoken: config.headers?.authtoken ? `${config.headers.authtoken.substring(0, 10)}...` : undefined,
+          clienttoken: config.headers?.clienttoken ? `${config.headers.clienttoken.substring(0, 3)}***` : undefined,
+        },
+        params: config.params || {},
+        // Don't log full request body in production
+        hasBody: !!config.data,
+      }
+    );
     
     return config;
   },
@@ -55,13 +64,23 @@ apiClient.interceptors.response.use(
     return response;
   },
   error => {
-    // Log the error
+    // Enhanced error logging
     console.error(
       '[E-File API Error]',
-      error.config?.method?.toUpperCase(),
-      error.config?.url,
-      error.response?.status,
-      error.message
+      {
+        method: error.config?.method?.toUpperCase(),
+        url: error.config?.url,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        message: error.message,
+        responseData: error.response?.data,
+        headers: {
+          ...error.config?.headers,
+          // Mask sensitive headers
+          authtoken: error.config?.headers?.authtoken ? 'present' : 'missing',
+          clienttoken: error.config?.headers?.clienttoken ? 'present' : 'missing',
+        },
+      }
     );
     
     if (error.response) {

@@ -7,20 +7,54 @@ const CLIENT_TOKEN = import.meta.env.VITE_EFILE_CLIENT_TOKEN;
 const FALLBACK_CLIENT_TOKEN =
   typeof process !== 'undefined' && process.env.VITE_EFILE_CLIENT_TOKEN;
 
-export const getClientToken = () =>
-  CLIENT_TOKEN ?? FALLBACK_CLIENT_TOKEN;
+export const getClientToken = () => {
+  const token = CLIENT_TOKEN ?? FALLBACK_CLIENT_TOKEN;
+  // Ensure we're using EVICT87 for production
+  if (!token) {
+    console.error('[E-File Auth] No client token found in environment variables');
+    throw new Error('E-Filing client token not configured');
+  }
+  return token;
+};
 
 export async function authenticate(
   username: string,
   password: string,
 ): Promise<string> {
+  const clientToken = getClientToken();
+  
+  // Log authentication attempt (without exposing credentials)
+  console.info('[E-File Auth] Attempting authentication', {
+    username: username ? `${username.substring(0, 3)}***` : 'missing',
+    clientToken: clientToken ? `${clientToken.substring(0, 3)}***` : 'missing',
+    baseURL: import.meta.env.VITE_EFILE_BASE_URL,
+  });
+  
   const req: AuthenticateRequest = { data: { username, password } };
-  const { data } = await apiClient.post<AuthenticateResponse>(
-    '/il/user/authenticate',
-    req,
-    { headers: { clienttoken: getClientToken() } },
-  );
-  return data.item.auth_token;
+  
+  try {
+    const { data } = await apiClient.post<AuthenticateResponse>(
+      '/il/user/authenticate',
+      req,
+      { headers: { clienttoken: clientToken } },
+    );
+    
+    // Verify response structure
+    if (!data?.item?.auth_token) {
+      console.error('[E-File Auth] Invalid response structure', data);
+      throw new Error('Invalid authentication response from Tyler API');
+    }
+    
+    console.info('[E-File Auth] Authentication successful');
+    return data.item.auth_token;
+  } catch (error) {
+    console.error('[E-File Auth] Authentication failed', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      response: (error as any)?.response?.data,
+      status: (error as any)?.response?.status,
+    });
+    throw error;
+  }
 }
 
 export function storeToken(token: string, expiresIn: number) {
@@ -47,13 +81,27 @@ export async function ensureAuth(
   dispatch: React.Dispatch<{ type: 'SET_TOKEN'; token: string; expires: number }>,
 ): Promise<string> {
   if (currentToken && expires && !isTokenExpired(expires)) {
+    console.info('[E-File Auth] Using existing valid token');
     return currentToken;
   }
+  
   const username = import.meta.env.VITE_EFILE_USERNAME;
   const password = import.meta.env.VITE_EFILE_PASSWORD;
+  
+  if (!username || !password) {
+    console.error('[E-File Auth] Missing credentials in environment variables');
+    throw new Error('E-Filing credentials not configured');
+  }
+  
+  console.info('[E-File Auth] Token expired or missing, re-authenticating...');
   const token = await authenticate(username, password);
+  
   // Docs do not specify expiration; assume 1 hour
   const expiry = Date.now() + 60 * 60 * 1000;
   dispatch({ type: 'SET_TOKEN', token, expires: expiry });
+  
+  // Also store in localStorage for persistence
+  storeToken(token, 3600);
+  
   return token;
 }

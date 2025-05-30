@@ -28,17 +28,27 @@ export function usePaymentAccounts() {
     async function fetchAccounts() {
       try {
         const res = await fetch('/api/tyler/payment-accounts');
+        
+        // Check if response has content
+        const contentType = res.headers.get('content-type');
+        const hasJson = contentType && contentType.includes('application/json');
+        
+        if (!hasJson) {
+          throw new Error('Invalid response format');
+        }
+        
         const data = await res.json();
         if (res.ok) {
           setAccounts(data.accounts || []);
           setError(data.error || null);
         } else {
-          setAccounts(data.accounts || []);
-          setError(data.error || 'Failed to load accounts');
+          throw new Error(data.error || 'Failed to load accounts');
         }
       } catch (err) {
+        console.error('Error fetching payment accounts:', err);
         setError((err as Error).message);
-        setAccounts([{ id: 'demo', name: 'Demo Account (Fallback)' }]);
+        // Provide a minimal fallback
+        setAccounts([{ id: 'error', name: 'Failed to load payment accounts' }]);
       } finally {
         setLoading(false);
       }
