@@ -64,7 +64,7 @@ export default async function handler(req, res) {
     }
 
     // Now fetch attorneys list
-    const attorneysResponse = await fetch(`${BASE_URL}/firm/attorneys`, {
+    const attorneysResponse = await fetch(`${BASE_URL}/il/firm/attorneys`, {
       method: 'GET',
       headers: {
         'authtoken': authToken
