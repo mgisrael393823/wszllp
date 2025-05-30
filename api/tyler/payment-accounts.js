@@ -19,6 +19,16 @@ export default async function handler(req, res) {
     const USERNAME = process.env.VITE_EFILE_USERNAME || process.env.TYLER_API_USERNAME;
     const PASSWORD = process.env.VITE_EFILE_PASSWORD || process.env.TYLER_API_PASSWORD;
 
+    // Log environment check (without exposing secrets)
+    console.log('Tyler API Config:', {
+      baseUrl: BASE_URL,
+      hasClientToken: !!CLIENT_TOKEN,
+      hasUsername: !!USERNAME,
+      hasPassword: !!PASSWORD,
+      clientTokenLength: CLIENT_TOKEN?.length,
+      usernameLength: USERNAME?.length
+    });
+
     // Authenticate with Tyler API
     const authRes = await fetch(`${BASE_URL}/il/user/authenticate`, {
       method: 'POST',
@@ -32,6 +42,12 @@ export default async function handler(req, res) {
     });
 
     if (!authRes.ok) {
+      const errorText = await authRes.text();
+      console.error('Tyler auth error:', {
+        status: authRes.status,
+        statusText: authRes.statusText,
+        body: errorText.substring(0, 200) // First 200 chars of error
+      });
       throw new Error(`Tyler auth failed: ${authRes.status}`);
     }
 
