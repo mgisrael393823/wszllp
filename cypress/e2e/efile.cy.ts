@@ -52,6 +52,37 @@ describe('E-Filing Flows', () => {
       }
     }).as('getPaymentAccounts');
 
+    // Mock Tyler attorneys API
+    cy.intercept('GET', '/api/tyler/attorneys', {
+      statusCode: 200,
+      headers: {
+        'content-type': 'application/json'
+      },
+      body: {
+        attorneys: [
+          { 
+            id: '448c583f-aaf7-43d2-8053-2b49c810b66f',
+            firmId: '5f41beaa-13d4-4328-b87b-5d7d852f9491',
+            barNumber: '1111111',
+            firstName: 'Sam',
+            middleName: '',
+            lastName: 'Smith',
+            displayName: 'Sam Smith - 1111111'
+          },
+          { 
+            id: '550c684f-bbf8-54e3-9154-3c5ad921c77g',
+            firmId: '5f41beaa-13d4-4328-b87b-5d7d852f9491',
+            barNumber: '2222222',
+            firstName: 'Jane',
+            middleName: 'M',
+            lastName: 'Doe',
+            displayName: 'Jane M Doe - 2222222'
+          }
+        ],
+        count: 2
+      }
+    }).as('getAttorneys');
+
     // Visit e-filing page
     cy.visit('/documents/efile');
     
@@ -221,6 +252,33 @@ describe('E-Filing Flows', () => {
     cy.contains('All Unknown Occupants').should('be.visible');
     cy.contains('Same as primary defendant').should('be.visible');
     cy.contains('"All Unknown Occupants" is automatically added as a second defendant').should('be.visible');
+  });
+
+  it('should show lead attorney dropdown and allow selection', () => {
+    // Fill in state to enable form
+    cy.contains('label', 'State or Jurisdiction').parent().find('button').click({ force: true });
+    cy.contains('[role="option"]', 'Illinois').click({ force: true });
+    
+    // Verify Lead Attorney dropdown is visible in petitioner section
+    cy.get('[data-cy="petitioner-card"]').within(() => {
+      cy.contains('Lead Attorney').should('be.visible');
+      
+      // Click on the lead attorney dropdown
+      cy.get('[data-cy="lead-attorney-select"]').click({ force: true });
+      
+      // Verify attorneys are loaded
+      cy.contains('[role="option"]', 'Sam Smith - 1111111').should('be.visible');
+      cy.contains('[role="option"]', 'Jane M Doe - 2222222').should('be.visible');
+      
+      // Select an attorney
+      cy.contains('[role="option"]', 'Jane M Doe - 2222222').click({ force: true });
+      
+      // Verify selection was made
+      cy.get('[data-cy="lead-attorney-select"]').should('contain', 'Jane M Doe - 2222222');
+      
+      // Verify "+ Add Attorney" button is visible
+      cy.contains('+ Add Attorney').should('be.visible');
+    });
   });
 
   it('should conditionally show/hide existing case number input based on filing type', () => {
