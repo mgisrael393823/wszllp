@@ -107,6 +107,18 @@ describe('E-Filing Flows', () => {
       expect(payload).to.have.property('case_type', '174140');
       expect(payload).to.have.property('filing_attorney_id', 'ATT123');
       expect(payload.filings).to.be.an('array').that.is.not.empty;
+      
+      // Verify case parties include Unknown Occupants
+      expect(payload).to.have.property('case_parties');
+      expect(payload.case_parties).to.be.an('array').with.lengthOf.at.least(3);
+      
+      // Find Unknown Occupants in the case parties
+      const unknownOccupants = payload.case_parties.find(
+        party => party.first_name === 'All' && party.last_name === 'Unknown Occupants'
+      );
+      expect(unknownOccupants).to.exist;
+      expect(unknownOccupants.type).to.equal('189131'); // Defendant type code
+      expect(unknownOccupants.is_business).to.equal('false');
     });
   });
 
@@ -190,6 +202,18 @@ describe('E-Filing Flows', () => {
     
     // Verify the selection was made
     cy.get('[data-cy="jurisdiction-select"]').should('contain', 'Municipal Civil – District 3 (Rolling Meadows)');
+  });
+
+  it('should display Unknown Occupants as second defendant', () => {
+    // Fill in state to enable form
+    cy.contains('label', 'State or Jurisdiction').parent().find('button').click({ force: true });
+    cy.contains('[role="option"]', 'Illinois').click({ force: true });
+    
+    // Verify Unknown Occupants section is visible
+    cy.contains('Second Defendant (Automatically Included)').should('be.visible');
+    cy.contains('All Unknown Occupants').should('be.visible');
+    cy.contains('Same as primary defendant').should('be.visible');
+    cy.contains('"All Unknown Occupants" is automatically added as a second defendant').should('be.visible');
   });
 
   it('should conditionally show/hide existing case number input based on filing type', () => {

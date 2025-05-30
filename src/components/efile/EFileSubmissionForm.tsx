@@ -734,6 +734,18 @@ const EFileSubmissionForm: React.FC = () => {
             state: formData.defendants[0].state,
             zip_code: formData.defendants[0].zipCode,
             is_business: 'false'
+          },
+          // Unknown Occupants (always included as second defendant)
+          {
+            id: 'Party_10518212',
+            type: '189131', // Defendant type code
+            first_name: 'All',
+            last_name: 'Unknown Occupants',
+            address_line_1: formData.defendants[0].addressLine1, // Use same address as primary defendant
+            city: formData.defendants[0].city,
+            state: formData.defendants[0].state,
+            zip_code: formData.defendants[0].zipCode,
+            is_business: 'false'
           }
         ] : undefined;
 
@@ -1123,6 +1135,24 @@ const EFileSubmissionForm: React.FC = () => {
                     {errors['defendants.0.zipCode']}
                   </p>
                 )}
+              </div>
+              
+              {/* Second Defendant - Unknown Occupants (Read-only display) */}
+              <div className="mt-6 p-4 bg-gray-50 rounded-md border border-gray-200">
+                <h4 className="text-sm font-medium text-gray-700 mb-3">Second Defendant (Automatically Included)</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <span className="font-medium text-gray-600">Name:</span>
+                    <span className="ml-2 text-gray-900">All Unknown Occupants</span>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-600">Address:</span>
+                    <span className="ml-2 text-gray-900">Same as primary defendant</span>
+                  </div>
+                </div>
+                <p className="mt-2 text-xs text-gray-500 italic">
+                  "All Unknown Occupants" is automatically added as a second defendant to ensure proper notice to all parties who may have an interest in the property.
+                </p>
               </div>
             </Card>
 
