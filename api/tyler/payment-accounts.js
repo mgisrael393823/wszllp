@@ -19,6 +19,16 @@ export default async function handler(req, res) {
     const USERNAME = process.env.VITE_EFILE_USERNAME || process.env.TYLER_API_USERNAME;
     const PASSWORD = process.env.VITE_EFILE_PASSWORD || process.env.TYLER_API_PASSWORD;
 
+    // Check if credentials are missing
+    if (!USERNAME || !PASSWORD) {
+      console.error('Tyler API credentials missing:', {
+        hasUsername: !!USERNAME,
+        hasPassword: !!PASSWORD,
+        envVars: Object.keys(process.env).filter(k => k.includes('TYLER') || k.includes('EFILE')).sort()
+      });
+      throw new Error('Tyler API credentials not configured');
+    }
+
     // Log environment check (without exposing secrets)
     console.log('Tyler API Config:', {
       baseUrl: BASE_URL,
