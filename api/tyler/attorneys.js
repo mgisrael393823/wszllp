@@ -53,17 +53,25 @@ export default async function handler(req, res) {
     });
 
     if (!authResponse.ok) {
+      const errorText = await authResponse.text();
+      console.error('Tyler auth failed:', authResponse.status, errorText);
       throw new Error(`Authentication failed: ${authResponse.status}`);
     }
 
     const authData = await authResponse.json();
+    console.log('Auth response:', authData.message_code === 0 ? 'Success' : 'Failed');
     const authToken = authData.item?.auth_token;
 
     if (!authToken) {
+      console.error('Auth data:', authData);
       throw new Error('No auth token received');
     }
 
     // Now fetch attorneys list
+    console.log('Fetching attorneys from Tyler API...');
+    console.log('Auth token:', authToken ? 'Present' : 'Missing');
+    console.log('URL:', `${BASE_URL}/il/firm/attorneys`);
+    
     const attorneysResponse = await fetch(`${BASE_URL}/il/firm/attorneys`, {
       method: 'GET',
       headers: {
@@ -71,8 +79,12 @@ export default async function handler(req, res) {
       }
     });
 
+    console.log('Attorneys response status:', attorneysResponse.status);
+
     if (!attorneysResponse.ok) {
-      throw new Error(`Failed to fetch attorneys: ${attorneysResponse.status}`);
+      const errorText = await attorneysResponse.text();
+      console.error('Tyler API error response:', errorText);
+      throw new Error(`Failed to fetch attorneys: ${attorneysResponse.status} - ${errorText}`);
     }
 
     const attorneysData = await attorneysResponse.json();
@@ -94,6 +106,20 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error('Error fetching attorneys:', error);
+    
+    // In production, return fallback data to keep the form functional
+    if (process.env.NODE_ENV === 'production' || !USERNAME || !PASSWORD) {
+      console.log('Using fallback attorney data due to API error');
+      const { fallbackAttorneys } = await import('./attorneys-fallback.js');
+      
+      return res.status(200).json({ 
+        attorneys: fallbackAttorneys,
+        error: null,
+        count: fallbackAttorneys.length
+      });
+    }
+    
+    // In development, return the actual error
     res.status(500).json({ 
       error: 'Failed to fetch attorneys',
       message: error.message 
