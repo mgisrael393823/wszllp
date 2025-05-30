@@ -415,11 +415,14 @@ const EFileSubmissionForm: React.FC = () => {
   } as const;
 
   const caseTypes = [
-    { value: '174140', label: 'Eviction - Residential' },
-    { value: '174141', label: 'Eviction - Commercial' },
-    { value: '174142', label: 'Eviction - Joint Action' },
-    { value: '174143', label: 'Civil Action' },
-    { value: '174144', label: 'Small Claims' },
+    { value: '201996', label: 'Eviction – Joint Action – Commercial Complaint Filed – Jury' },
+    { value: '201995', label: 'Eviction – Joint Action – Commercial Complaint Filed – Non-Jury' },
+    { value: '237042', label: 'Eviction – Joint Action – Residential Complaint Filed – Jury' },
+    { value: '237037', label: 'Eviction – Joint Action – Residential Complaint Filed – Non-Jury' },
+    { value: '201992', label: 'Eviction – Possession – Commercial Complaint Filed – Jury' },
+    { value: '201991', label: 'Eviction – Possession – Commercial Complaint Filed – Non-Jury' },
+    { value: '237041', label: 'Eviction – Possession – Residential Complaint Filed – Jury' },
+    { value: '237036', label: 'Eviction – Possession – Residential Complaint Filed – Non-Jury' },
   ];
 
   const filingTypes = [
