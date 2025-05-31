@@ -1002,10 +1002,8 @@ const EFileSubmissionForm: React.FC = () => {
           payment_account_id: ENHANCED_EFILING_PHASE_A ? (formData.paymentAccountId || 'demo') : 'demo',
           filing_attorney_id: ENHANCED_EFILING_PHASE_A && formData.petitioner?.leadAttorneyId ? formData.petitioner.leadAttorneyId : formData.attorneyId,
           filing_party_id: 'Party_25694092',
-          ...(ENHANCED_EFILING_PHASE_A && formData.amountInControversy && {
-            amount_in_controversy: formData.amountInControversy,
-            show_amount_in_controversy: formData.showAmountInControversy ? 'true' : 'false'
-          }),
+          amount_in_controversy: formData.amountInControversy || '',
+          show_amount_in_controversy: formData.showAmountInControversy ? 'true' : 'false',
           is_initial_filing: formData.filingType === 'initial',
           // Cross references for all filings (not just subsequent)
           cross_references: formData.crossReferenceNumber ? [{
@@ -1548,37 +1546,35 @@ const EFileSubmissionForm: React.FC = () => {
               </div>
             </Card>
 
-            {/* 4. Amount in Controversy (conditional on case type) */}
-            {['174140', '174141', '174143'].includes(formData.caseType) && (
-              <div className="mb-4">
-                <Input
-                  type="number"
-                  name="amountInControversy"
-                  label="Amount in Controversy"
-                  value={formData.amountInControversy}
-                  onChange={handleInputChange}
-                  placeholder="Enter dollar amount"
-                  error={errors.amountInControversy}
-                  data-cy="amount-in-controversy"
-                />
-                <div className="mt-2">
-                  <label className="flex items-center">
-                    <input
-                      id="showAmount"
-                      type="checkbox"
-                      checked={formData.showAmountInControversy}
-                      onChange={e => setFormData(prev => ({ 
-                        ...prev, 
-                        showAmountInControversy: e.target.checked 
-                      }))}
-                      className="mr-2"
-                      data-cy="show-amount-checkbox"
-                    />
-                    Show amount on filing
-                  </label>
-                </div>
+            {/* 4. Amount in Controversy */}
+            <div className="mb-4">
+              <Input
+                type="number"
+                name="amountInControversy"
+                label="Amount in Controversy"
+                value={formData.amountInControversy}
+                onChange={handleInputChange}
+                placeholder="Enter dollar amount (e.g., 5000.00)"
+                error={errors.amountInControversy}
+                data-cy="amount-in-controversy"
+              />
+              <div className="mt-2">
+                <label className="flex items-center">
+                  <input
+                    id="showAmount"
+                    type="checkbox"
+                    checked={formData.showAmountInControversy}
+                    onChange={e => setFormData(prev => ({ 
+                      ...prev, 
+                      showAmountInControversy: e.target.checked 
+                    }))}
+                    className="mr-2"
+                    data-cy="show-amount-checkbox"
+                  />
+                  Show amount on filing
+                </label>
               </div>
-            )}
+            </div>
           </>
         )}
 
