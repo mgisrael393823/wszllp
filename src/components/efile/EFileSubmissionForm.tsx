@@ -171,6 +171,7 @@ interface FormData {
     firstName?: string;
     lastName?: string;
     addressLine1: string;
+    addressLine2?: string; // Added address line 2
     city: string;
     state: string;
     zipCode: string;
@@ -181,11 +182,21 @@ interface FormData {
     firstName: string;
     lastName: string;
     addressLine1: string;
+    addressLine2?: string; // Added address line 2
     city: string;
     state: string;
     zipCode: string;
   }>;
-  files: FileList | null;
+  // Separate file uploads for each document type
+  complaintFile: File | null;
+  summonsFile: File | null;
+  affidavitFile: File | null;
+  // Cross references
+  crossReferenceType?: string;
+  crossReferenceNumber?: string;
+  // Unknown Occupants toggle
+  includeUnknownOccupants: boolean;
+  files: FileList | null; // Keep for backward compatibility
   referenceId: string;
 }
 
@@ -206,6 +217,11 @@ interface FormErrors {
   'defendants.0.firstName'?: string;
   'defendants.0.lastName'?: string;
   'defendants.0.zipCode'?: string;
+  complaintFile?: string;
+  summonsFile?: string;
+  affidavitFile?: string;
+  crossReferenceType?: string;
+  crossReferenceNumber?: string;
   files?: string;
 }
 
@@ -228,6 +244,7 @@ const EFileSubmissionForm: React.FC = () => {
       firstName: '',
       lastName: '',
       addressLine1: '',
+      addressLine2: '',
       city: '',
       state: 'IL',
       zipCode: '',
@@ -238,10 +255,17 @@ const EFileSubmissionForm: React.FC = () => {
       firstName: '',
       lastName: '',
       addressLine1: '',
+      addressLine2: '',
       city: '',
       state: 'IL',
       zipCode: ''
     }],
+    complaintFile: null,
+    summonsFile: null,
+    affidavitFile: null,
+    crossReferenceType: '',
+    crossReferenceNumber: '',
+    includeUnknownOccupants: false,
     files: null,
     referenceId: `WSZ-${Date.now()}`,
   });
@@ -432,6 +456,7 @@ const EFileSubmissionForm: React.FC = () => {
           firstName: '',
           lastName: '',
           addressLine1: '',
+          addressLine2: '', // Include address line 2 in reset
           city: '',
           state: 'IL',
           zipCode: '',
@@ -442,10 +467,19 @@ const EFileSubmissionForm: React.FC = () => {
           firstName: '',
           lastName: '',
           addressLine1: '',
+          addressLine2: '', // Include address line 2 in reset
           city: '',
           state: 'IL',
           zipCode: ''
         }],
+        // Reset individual file uploads
+        complaintFile: null,
+        summonsFile: null,
+        affidavitFile: null,
+        // Reset cross references
+        crossReferenceType: '',
+        crossReferenceNumber: '',
+        includeUnknownOccupants: false,
         files: null,
         referenceId: `WSZ-${Date.now()}`
       });
@@ -586,17 +620,41 @@ const EFileSubmissionForm: React.FC = () => {
     }
   };
 
-  const handleDefendantChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDefendantChange = (index: number, field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({
       ...prev,
-      defendants: prev.defendants.map((defendant, index) => 
-        index === 0 ? { ...defendant, [field]: e.target.value } : defendant
+      defendants: prev.defendants.map((defendant, i) => 
+        i === index ? { ...defendant, [field]: e.target.value } : defendant
       )
     }));
     // Clear validation errors for this field
-    const errorKey = `defendants.0.${field}` as keyof FormErrors;
+    const errorKey = `defendants.${index}.${field}` as keyof FormErrors;
     if (errors[errorKey]) {
       setErrors(prev => ({ ...prev, [errorKey]: undefined }));
+    }
+  };
+
+  const addDefendant = () => {
+    setFormData(prev => ({
+      ...prev,
+      defendants: [...prev.defendants, {
+        firstName: '',
+        lastName: '',
+        addressLine1: '',
+        addressLine2: '',
+        city: '',
+        state: 'IL',
+        zipCode: ''
+      }]
+    }));
+  };
+
+  const removeDefendant = (index: number) => {
+    if (formData.defendants.length > 1) {
+      setFormData(prev => ({
+        ...prev,
+        defendants: prev.defendants.filter((_, i) => i !== index)
+      }));
     }
   };
 
@@ -654,6 +712,24 @@ const EFileSubmissionForm: React.FC = () => {
     }
   };
 
+  const handleSingleFileChange = (fileType: 'complaintFile' | 'summonsFile' | 'affidavitFile') => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    
+    if (file) {
+      const validation = validateFile(file);
+      if (!validation.valid) {
+        setErrors(prev => ({ ...prev, [fileType]: validation.error }));
+        e.target.value = '';
+        return;
+      }
+    }
+    
+    setFormData(prev => ({ ...prev, [fileType]: file }));
+    if (errors[fileType]) {
+      setErrors(prev => ({ ...prev, [fileType]: undefined }));
+    }
+  };
+
   const validateForm = () => {
     const newErrors: FormErrors = {};
     let isValid = true;
@@ -693,8 +769,21 @@ const EFileSubmissionForm: React.FC = () => {
       newErrors.attorneyId = 'Please enter an attorney ID';
       isValid = false;
     }
-    if (!formData.files || formData.files.length === 0) {
-      newErrors.files = 'Please upload at least one document';
+    // File validation - require all three document types
+    if (!formData.complaintFile) {
+      newErrors.complaintFile = 'Please upload the eviction complaint';
+      isValid = false;
+    }
+    // Summons and Affidavit are now optional
+    // Only validate if one is provided but not the other
+    
+    // Cross references are now optional - only validate if partially filled
+    if (formData.crossReferenceType && !formData.crossReferenceNumber) {
+      newErrors.crossReferenceNumber = 'Please enter a cross reference number';
+      isValid = false;
+    }
+    if (formData.crossReferenceNumber && !formData.crossReferenceType) {
+      newErrors.crossReferenceType = 'Please select a cross reference type';
       isValid = false;
     }
 
@@ -737,22 +826,23 @@ const EFileSubmissionForm: React.FC = () => {
         }
       }
 
-      // Defendants validation
+      // Defendants validation - validate all defendants
       if (formData.defendants?.length > 0) {
-        const defendant = formData.defendants[0];
-        if (!defendant.firstName?.trim()) {
-          newErrors['defendants.0.firstName'] = 'First name is required';
-          isValid = false;
-        }
-        if (!defendant.lastName?.trim()) {
-          newErrors['defendants.0.lastName'] = 'Last name is required';
-          isValid = false;
-        }
-        // ZIP code validation for defendant
-        if (defendant.zipCode && !/^\d{5}(-\d{4})?$/.test(defendant.zipCode)) {
-          newErrors['defendants.0.zipCode'] = 'Valid ZIP code required';
-          isValid = false;
-        }
+        formData.defendants.forEach((defendant, index) => {
+          if (!defendant.firstName?.trim()) {
+            newErrors[`defendants.${index}.firstName` as keyof FormErrors] = 'First name is required';
+            isValid = false;
+          }
+          if (!defendant.lastName?.trim()) {
+            newErrors[`defendants.${index}.lastName` as keyof FormErrors] = 'Last name is required';
+            isValid = false;
+          }
+          // ZIP code validation for defendant
+          if (defendant.zipCode && !/^\d{5}(-\d{4})?$/.test(defendant.zipCode)) {
+            newErrors[`defendants.${index}.zipCode` as keyof FormErrors] = 'Valid ZIP code required';
+            isValid = false;
+          }
+        });
       }
 
       // Amount in controversy validation (required for certain case types)
@@ -805,38 +895,51 @@ const EFileSubmissionForm: React.FC = () => {
       
       // Process files with proper error handling
       try {
-        // Process files into EFileDocument array with proper filing codes
-        const files: EFileDocument[] = await Promise.all(
-          Array.from(formData.files as FileList).map((file, index) =>
-            fileToBase64(file)
-              .then(b64 => {
-                // Determine filing code based on file name or position
-                let code = '174403'; // Default: Complaint/Petition
-                let description = 'Complaint / Petition - Eviction - Residential - Joint Action';
-                
-                // Check if file name indicates summons
-                if (file.name.toLowerCase().includes('summons')) {
-                  code = '189495';
-                  description = 'Summons - Issued And Returnable';
-                } else if (file.name.toLowerCase().includes('affidavit')) {
-                  code = '189259';
-                  description = 'Affidavit Filed';
-                }
-                
-                return {
-                  code,
-                  description,
-                  file: `base64://${b64}`, // Tyler API expects base64:// prefix
-                  file_name: file.name,
-                  doc_type: '189705', // Document type code
-                };
-              })
-              .catch(error => {
-                // Add specific file error to the form
-                throw new Error(`Error processing file ${file.name}: ${error.message}`);
-              })
-          )
-        );
+        // Process individual files into EFileDocument array
+        const files: EFileDocument[] = [];
+        
+        // Calculate quantity for optional services based on defendant count
+        const defendantCount = formData.defendants.length + (formData.includeUnknownOccupants ? 1 : 0);
+        
+        // Process complaint file
+        if (formData.complaintFile) {
+          const complaintB64 = await fileToBase64(formData.complaintFile);
+          files.push({
+            code: '174403',
+            description: 'Complaint / Petition - Eviction - Residential - Joint Action',
+            file: `base64://${complaintB64}`,
+            file_name: formData.complaintFile.name,
+            doc_type: '189705',
+            optional_services: [{
+              quantity: defendantCount.toString(),
+              code: '282616'
+            }]
+          });
+        }
+        
+        // Process summons file
+        if (formData.summonsFile) {
+          const summonsB64 = await fileToBase64(formData.summonsFile);
+          files.push({
+            code: '189495',
+            description: 'Summons - Issued And Returnable',
+            file: `base64://${summonsB64}`,
+            file_name: formData.summonsFile.name,
+            doc_type: '189705'
+          });
+        }
+        
+        // Process affidavit file
+        if (formData.affidavitFile) {
+          const affidavitB64 = await fileToBase64(formData.affidavitFile);
+          files.push({
+            code: '189259',
+            description: 'Affidavit Filed',
+            file: `base64://${affidavitB64}`,
+            file_name: formData.affidavitFile.name,
+            doc_type: '189705'
+          });
+        }
         
         // Create case parties for Phase A enhanced filing
         const caseParties = ENHANCED_EFILING_PHASE_A && formData.petitioner && formData.defendants?.length > 0 ? [
@@ -853,35 +956,38 @@ const EFileSubmissionForm: React.FC = () => {
               is_business: 'false'
             }),
             address_line_1: formData.petitioner.addressLine1,
+            address_line_2: formData.petitioner.addressLine2 || '',
             city: formData.petitioner.city,
             state: formData.petitioner.state,
             zip_code: formData.petitioner.zipCode,
             lead_attorney: formData.petitioner.leadAttorneyId
           },
-          // Defendant
-          {
-            id: 'Party_60273353',
+          // Map all defendants
+          ...formData.defendants.map((defendant, index) => ({
+            id: `Party_${60273353 + index}`,
             type: '189131', // Defendant type code
-            first_name: formData.defendants[0].firstName,
-            last_name: formData.defendants[0].lastName,
-            address_line_1: formData.defendants[0].addressLine1,
-            city: formData.defendants[0].city,
-            state: formData.defendants[0].state,
-            zip_code: formData.defendants[0].zipCode,
+            first_name: defendant.firstName,
+            last_name: defendant.lastName,
+            address_line_1: defendant.addressLine1,
+            address_line_2: defendant.addressLine2 || '',
+            city: defendant.city,
+            state: defendant.state,
+            zip_code: defendant.zipCode,
             is_business: 'false'
-          },
-          // Unknown Occupants (always included as second defendant)
-          {
+          })),
+          // Unknown Occupants (conditionally included as last defendant)
+          ...(formData.includeUnknownOccupants ? [{
             id: 'Party_10518212',
             type: '189131', // Defendant type code
             first_name: 'All',
             last_name: 'Unknown Occupants',
             address_line_1: formData.defendants[0].addressLine1, // Use same address as primary defendant
+            address_line_2: formData.defendants[0].addressLine2 || '',
             city: formData.defendants[0].city,
             state: formData.defendants[0].state,
             zip_code: formData.defendants[0].zipCode,
             is_business: 'false'
-          }
+          }] : [])
         ] : undefined;
 
         // Create a properly typed submission payload
@@ -894,16 +1000,18 @@ const EFileSubmissionForm: React.FC = () => {
           filings: files,
           filing_type: 'EFile',
           payment_account_id: ENHANCED_EFILING_PHASE_A ? (formData.paymentAccountId || 'demo') : 'demo',
-          filing_attorney_id: formData.attorneyId,
+          filing_attorney_id: ENHANCED_EFILING_PHASE_A && formData.petitioner?.leadAttorneyId ? formData.petitioner.leadAttorneyId : formData.attorneyId,
           filing_party_id: 'Party_25694092',
           ...(ENHANCED_EFILING_PHASE_A && formData.amountInControversy && {
             amount_in_controversy: formData.amountInControversy,
             show_amount_in_controversy: formData.showAmountInControversy ? 'true' : 'false'
           }),
           is_initial_filing: formData.filingType === 'initial',
-          ...(formData.filingType === 'subsequent' && {
-            cross_references: [{ type: 'CASE_NUMBER', number: formData.existingCaseNumber }]
-          })
+          // Cross references for all filings (not just subsequent)
+          cross_references: formData.crossReferenceNumber ? [{
+            number: formData.crossReferenceNumber,
+            code: formData.crossReferenceType || '190860'
+          }] : []
         };
         
         // Add audit log entry for submission attempt
@@ -1059,6 +1167,38 @@ const EFileSubmissionForm: React.FC = () => {
           error={errors.attorneyId}
         />
         
+        {/* Cross References Section - Optional */}
+        <Card className="p-4 mb-4" data-cy="cross-references-card">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Case Cross References <span className="text-sm font-normal text-gray-500">(Optional)</span></h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Select
+              name="crossReferenceType"
+              label="Cross Reference Type"
+              options={[
+                { value: '', label: 'Select a type (optional)' },
+                { value: '190860', label: 'Case Number' },
+                { value: '190861', label: 'Prior Case' },
+                { value: '190862', label: 'Related Case' },
+                { value: '190863', label: 'Appeal Case' }
+              ]}
+              value={formData.crossReferenceType}
+              onChange={handleSelectChange('crossReferenceType')}
+              error={errors.crossReferenceType}
+              data-cy="cross-reference-type"
+            />
+            <Input
+              name="crossReferenceNumber"
+              label="Cross Reference ID"
+              type="text"
+              value={formData.crossReferenceNumber}
+              onChange={handleInputChange}
+              placeholder="Enter reference number (optional)"
+              error={errors.crossReferenceNumber}
+              data-cy="cross-reference-number"
+            />
+          </div>
+        </Card>
+        
         {/* Phase A: Enhanced E-Filing Fields */}
         {ENHANCED_EFILING_PHASE_A && (
           <>
@@ -1172,6 +1312,15 @@ const EFileSubmissionForm: React.FC = () => {
                     data-cy="petitioner-address"
                   />
                 </div>
+                <div className="sm:col-span-2">
+                  <Input
+                    name="addressLine2"
+                    label="Address Line 2 (Optional)"
+                    value={formData.petitioner?.addressLine2 || ''}
+                    onChange={handlePetitionerChange('addressLine2')}
+                    data-cy="petitioner-address-2"
+                  />
+                </div>
                 <Input
                   name="city"
                   label="City"
@@ -1263,86 +1412,139 @@ const EFileSubmissionForm: React.FC = () => {
 
             {/* 3. Defendant Section */}
             <Card className="p-4 mb-4" data-cy="defendant-card">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Defendant Information</h3>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Input
-                  name="firstName"
-                  label="First Name"
-                  value={formData.defendants[0]?.firstName || ''}
-                  onChange={handleDefendantChange('firstName')}
-                  required
-                  error={errors['defendants.0.firstName']}
-                  data-cy="defendant-first-name"
-                />
-                <Input
-                  name="lastName"
-                  label="Last Name"
-                  value={formData.defendants[0]?.lastName || ''}
-                  onChange={handleDefendantChange('lastName')}
-                  required
-                  error={errors['defendants.0.lastName']}
-                  data-cy="defendant-last-name"
-                />
-                <div className="sm:col-span-2">
-                  <Input
-                    name="addressLine1"
-                    label="Address Line 1"
-                    value={formData.defendants[0]?.addressLine1 || ''}
-                    onChange={handleDefendantChange('addressLine1')}
-                    required
-                    data-cy="defendant-address"
-                  />
-                </div>
-                <Input
-                  name="city"
-                  label="City"
-                  value={formData.defendants[0]?.city || ''}
-                  onChange={handleDefendantChange('city')}
-                  required
-                  data-cy="defendant-city"
-                />
-                <Input
-                  name="state"
-                  label="State"
-                  value={formData.defendants[0]?.state || ''}
-                  onChange={handleDefendantChange('state')}
-                  required
-                  data-cy="defendant-state"
-                />
-                <Input
-                  name="zipCode"
-                  label="ZIP Code"
-                  value={formData.defendants[0]?.zipCode || ''}
-                  onChange={handleDefendantChange('zipCode')}
-                  required
-                  error={errors['defendants.0.zipCode']}
-                  aria-describedby={errors['defendants.0.zipCode'] ? 'defendant-zip-error' : undefined}
-                  data-cy="defendant-zip"
-                />
-                {errors['defendants.0.zipCode'] && (
-                  <p id="defendant-zip-error" className="text-sm text-red-600" role="alert">
-                    {errors['defendants.0.zipCode']}
-                  </p>
-                )}
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Defendant Information</h3>
+                <button
+                  type="button"
+                  onClick={addDefendant}
+                  className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
+                  data-cy="add-defendant-button"
+                >
+                  + Add Another Defendant
+                </button>
               </div>
               
-              {/* Second Defendant - Unknown Occupants (Read-only display) */}
-              <div className="mt-6 p-4 bg-gray-50 rounded-md border border-gray-200">
-                <h4 className="text-sm font-medium text-gray-700 mb-3">Second Defendant (Automatically Included)</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <span className="font-medium text-gray-600">Name:</span>
-                    <span className="ml-2 text-gray-900">All Unknown Occupants</span>
+              {formData.defendants.map((defendant, index) => (
+                <div key={index} className="mb-6 p-4 border border-gray-200 rounded-md">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-md font-medium text-gray-700">Defendant {index + 1}</h4>
+                    {formData.defendants.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeDefendant(index)}
+                        className="text-sm text-red-600 hover:text-red-700"
+                      >
+                        Remove
+                      </button>
+                    )}
                   </div>
-                  <div>
-                    <span className="font-medium text-gray-600">Address:</span>
-                    <span className="ml-2 text-gray-900">Same as primary defendant</span>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Input
+                      name="firstName"
+                      label="First Name"
+                      value={defendant.firstName || ''}
+                      onChange={handleDefendantChange(index, 'firstName')}
+                      required
+                      error={errors[`defendants.${index}.firstName` as keyof FormErrors]}
+                      data-cy={`defendant-${index}-first-name`}
+                    />
+                    <Input
+                      name="lastName"
+                      label="Last Name"
+                      value={defendant.lastName || ''}
+                      onChange={handleDefendantChange(index, 'lastName')}
+                      required
+                      error={errors[`defendants.${index}.lastName` as keyof FormErrors]}
+                      data-cy={`defendant-${index}-last-name`}
+                    />
+                    <div className="sm:col-span-2">
+                      <Input
+                        name="addressLine1"
+                        label="Address Line 1"
+                        value={defendant.addressLine1 || ''}
+                        onChange={handleDefendantChange(index, 'addressLine1')}
+                        required
+                        data-cy={`defendant-${index}-address`}
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <Input
+                        name="addressLine2"
+                        label="Address Line 2 (Optional)"
+                        value={defendant.addressLine2 || ''}
+                        onChange={handleDefendantChange(index, 'addressLine2')}
+                        data-cy={`defendant-${index}-address-2`}
+                      />
+                    </div>
+                    <Input
+                      name="city"
+                      label="City"
+                      value={defendant.city || ''}
+                      onChange={handleDefendantChange(index, 'city')}
+                      required
+                      data-cy={`defendant-${index}-city`}
+                    />
+                    <Input
+                      name="state"
+                      label="State"
+                      value={defendant.state || ''}
+                      onChange={handleDefendantChange(index, 'state')}
+                      required
+                      data-cy={`defendant-${index}-state`}
+                    />
+                    <Input
+                      name="zipCode"
+                      label="ZIP Code"
+                      value={defendant.zipCode || ''}
+                      onChange={handleDefendantChange(index, 'zipCode')}
+                      required
+                      error={errors[`defendants.${index}.zipCode` as keyof FormErrors]}
+                      aria-describedby={errors[`defendants.${index}.zipCode` as keyof FormErrors] ? `defendant-${index}-zip-error` : undefined}
+                      data-cy={`defendant-${index}-zip`}
+                    />
+                    {errors[`defendants.${index}.zipCode` as keyof FormErrors] && (
+                      <p id={`defendant-${index}-zip-error`} className="text-sm text-red-600" role="alert">
+                        {errors[`defendants.${index}.zipCode` as keyof FormErrors]}
+                      </p>
+                    )}
                   </div>
                 </div>
-                <p className="mt-2 text-xs text-gray-500 italic">
-                  "All Unknown Occupants" is automatically added as a second defendant to ensure proper notice to all parties who may have an interest in the property.
-                </p>
+              ))}
+              
+              {/* Unknown Occupants Option */}
+              <div className="mt-6 p-4 bg-gray-50 rounded-md border border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700">Include Unknown Occupants</h4>
+                    <p className="mt-1 text-xs text-gray-500">
+                      Add "All Unknown Occupants" as an additional defendant to ensure proper notice to all parties
+                    </p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.includeUnknownOccupants}
+                      onChange={(e) => setFormData(prev => ({ ...prev, includeUnknownOccupants: e.target.checked }))}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+                  </label>
+                </div>
+                {formData.includeUnknownOccupants && (
+                  <div className="mt-3 p-3 bg-white rounded border border-gray-200">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                      <div>
+                        <span className="font-medium text-gray-600">Name:</span>
+                        <span className="ml-2 text-gray-900">All Unknown Occupants</span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-600">Address:</span>
+                        <span className="ml-2 text-gray-900">Same as primary defendant</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </Card>
 
@@ -1380,60 +1582,118 @@ const EFileSubmissionForm: React.FC = () => {
           </>
         )}
 
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Documents <span className="text-error-600">*</span>
-          </label>
-          <div className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 ${errors.files ? 'border-error-500' : 'border-gray-300'} border-dashed rounded-md`}>
-            <div className="space-y-1 text-center">
-              <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
-                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              <div className="flex text-sm text-gray-600">
-                <label htmlFor="file-upload" className="relative cursor-pointer rounded-md font-medium text-primary-600 hover:text-primary-500">
-                  <span>Upload files</span>
-                  <input id="file-upload" name="files" type="file" multiple className="sr-only" onChange={handleFileChange} required />
-                </label>
-                <p className="pl-1">or drag and drop</p>
-              </div>
-              <p className="text-xs text-gray-500">PDF, DOCX up to 10MB each</p>
-            </div>
-          </div>
-          {errors.files && <p className="mt-1 text-sm text-error-600">{errors.files}</p>}
-          {formData.files && (
-            <div className="mt-4 bg-green-50 border border-green-200 rounded-md p-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+        {/* Document Upload Section - Three separate uploads */}
+        <Card className="p-4 mb-4" data-cy="documents-card">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Required Documents</h3>
+          
+          {/* Complaint Upload */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Upload Eviction Complaint <span className="text-error-600">*</span>
+            </label>
+            <div className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 ${errors.complaintFile ? 'border-error-500' : 'border-gray-300'} border-dashed rounded-md`}>
+              {!formData.complaintFile ? (
+                <div className="space-y-1 text-center">
+                  <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-green-800">
-                    {Array.from(formData.files).length} document{Array.from(formData.files).length > 1 ? 's' : ''} ready to submit
-                  </h3>
-                  <div className="mt-2 text-sm text-green-700">
-                    <ul className="list-disc pl-5 space-y-1">
-                      {Array.from(formData.files).map((file, index) => (
-                        <li key={index} className="flex items-center justify-between">
-                          <span>{file.name}</span>
-                          <span className="text-xs text-green-600 ml-2">
-                            {file.name.toLowerCase().includes('summons') && '(Summons)'}
-                            {file.name.toLowerCase().includes('affidavit') && '(Affidavit)'}
-                            {!file.name.toLowerCase().includes('summons') && !file.name.toLowerCase().includes('affidavit') && '(Complaint)'}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
+                  <div className="flex text-sm text-gray-600">
+                    <label htmlFor="complaint-upload" className="relative cursor-pointer rounded-md font-medium text-primary-600 hover:text-primary-500">
+                      <span>Upload complaint</span>
+                      <input id="complaint-upload" name="complaint" type="file" className="sr-only" onChange={handleSingleFileChange('complaintFile')} accept=".pdf,.docx" />
+                    </label>
+                    <p className="pl-1">or drag and drop</p>
                   </div>
-                  <p className="mt-2 text-xs text-green-600">
-                    All documents will be converted to base64 and submitted to Tyler E-Filing system
-                  </p>
+                  <p className="text-xs text-gray-500">PDF or DOCX up to 10MB</p>
                 </div>
-              </div>
+              ) : (
+                <div className="text-center">
+                  <p className="text-sm text-green-600">✓ {formData.complaintFile.name}</p>
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, complaintFile: null }))}
+                    className="mt-2 text-sm text-red-600 hover:text-red-700"
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+            {errors.complaintFile && <p className="mt-1 text-sm text-error-600">{errors.complaintFile}</p>}
+          </div>
+
+          {/* Summons Upload - Optional */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Upload Summons <span className="text-sm font-normal text-gray-500">(Optional)</span>
+            </label>
+            <div className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 ${errors.summonsFile ? 'border-error-500' : 'border-gray-300'} border-dashed rounded-md`}>
+              {!formData.summonsFile ? (
+                <div className="space-y-1 text-center">
+                  <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <div className="flex text-sm text-gray-600">
+                    <label htmlFor="summons-upload" className="relative cursor-pointer rounded-md font-medium text-primary-600 hover:text-primary-500">
+                      <span>Upload summons</span>
+                      <input id="summons-upload" name="summons" type="file" className="sr-only" onChange={handleSingleFileChange('summonsFile')} accept=".pdf,.docx" />
+                    </label>
+                    <p className="pl-1">or drag and drop</p>
+                  </div>
+                  <p className="text-xs text-gray-500">PDF or DOCX up to 10MB</p>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <p className="text-sm text-green-600">✓ {formData.summonsFile.name}</p>
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, summonsFile: null }))}
+                    className="mt-2 text-sm text-red-600 hover:text-red-700"
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
+            </div>
+            {errors.summonsFile && <p className="mt-1 text-sm text-error-600">{errors.summonsFile}</p>}
+          </div>
+
+          {/* Affidavit Upload - Optional */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Upload Affidavit <span className="text-sm font-normal text-gray-500">(Optional)</span>
+            </label>
+            <div className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 ${errors.affidavitFile ? 'border-error-500' : 'border-gray-300'} border-dashed rounded-md`}>
+              {!formData.affidavitFile ? (
+                <div className="space-y-1 text-center">
+                  <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <div className="flex text-sm text-gray-600">
+                    <label htmlFor="affidavit-upload" className="relative cursor-pointer rounded-md font-medium text-primary-600 hover:text-primary-500">
+                      <span>Upload affidavit</span>
+                      <input id="affidavit-upload" name="affidavit" type="file" className="sr-only" onChange={handleSingleFileChange('affidavitFile')} accept=".pdf,.docx" />
+                    </label>
+                    <p className="pl-1">or drag and drop</p>
+                  </div>
+                  <p className="text-xs text-gray-500">PDF or DOCX up to 10MB</p>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <p className="text-sm text-green-600">✓ {formData.affidavitFile.name}</p>
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, affidavitFile: null }))}
+                    className="mt-2 text-sm text-red-600 hover:text-red-700"
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
+            </div>
+            {errors.affidavitFile && <p className="mt-1 text-sm text-error-600">{errors.affidavitFile}</p>}
+          </div>
+        </Card>
         <div className="mt-6">
           <Button type="submit" variant="primary" fullWidth disabled={isSubmitting || isSavingCase}>
             {isSubmitting ? (

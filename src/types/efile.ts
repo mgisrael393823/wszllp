@@ -13,10 +13,11 @@ export interface EFileDocument {
   file: string; // Base64 encoded file content
   file_name: string;
   doc_type: string;
+  optional_services?: OptionalService[]; // Optional services for the filing
 }
 
 export interface CrossReference {
-  type: string;                   // Reference type (e.g., "CASE_NUMBER")
+  code: string;                   // Reference type code (e.g., "190860" for CASE_NUMBER)
   number: string;                 // Reference number/value
 }
 
