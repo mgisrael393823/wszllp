@@ -189,7 +189,7 @@ interface FormData {
   }>;
   // Separate file uploads for each document type
   complaintFile: File | null;
-  summonsFile: File | null;
+  summonsFiles: File[]; // Multiple summons files
   affidavitFile: File | null;
   // Cross references
   crossReferenceType?: string;
@@ -218,7 +218,7 @@ interface FormErrors {
   'defendants.0.lastName'?: string;
   'defendants.0.zipCode'?: string;
   complaintFile?: string;
-  summonsFile?: string;
+  summonsFiles?: string;
   affidavitFile?: string;
   crossReferenceType?: string;
   crossReferenceNumber?: string;
@@ -261,7 +261,7 @@ const EFileSubmissionForm: React.FC = () => {
       zipCode: ''
     }],
     complaintFile: null,
-    summonsFile: null,
+    summonsFiles: [],
     affidavitFile: null,
     crossReferenceType: '',
     crossReferenceNumber: '',
@@ -474,7 +474,7 @@ const EFileSubmissionForm: React.FC = () => {
         }],
         // Reset individual file uploads
         complaintFile: null,
-        summonsFile: null,
+        summonsFiles: [],
         affidavitFile: null,
         // Reset cross references
         crossReferenceType: '',
@@ -712,7 +712,7 @@ const EFileSubmissionForm: React.FC = () => {
     }
   };
 
-  const handleSingleFileChange = (fileType: 'complaintFile' | 'summonsFile' | 'affidavitFile') => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSingleFileChange = (fileType: 'complaintFile' | 'affidavitFile') => (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     
     if (file) {
@@ -728,6 +728,38 @@ const EFileSubmissionForm: React.FC = () => {
     if (errors[fileType]) {
       setErrors(prev => ({ ...prev, [fileType]: undefined }));
     }
+  };
+
+  const handleSummonsFileAdd = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    
+    if (file) {
+      const validation = validateFile(file);
+      if (!validation.valid) {
+        setErrors(prev => ({ ...prev, summonsFiles: validation.error }));
+        e.target.value = '';
+        return;
+      }
+      
+      setFormData(prev => ({ 
+        ...prev, 
+        summonsFiles: [...prev.summonsFiles, file] 
+      }));
+      
+      if (errors.summonsFiles) {
+        setErrors(prev => ({ ...prev, summonsFiles: undefined }));
+      }
+      
+      // Clear the input
+      e.target.value = '';
+    }
+  };
+
+  const removeSummonsFile = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      summonsFiles: prev.summonsFiles.filter((_, i) => i !== index)
+    }));
   };
 
   const validateForm = () => {
@@ -917,14 +949,15 @@ const EFileSubmissionForm: React.FC = () => {
           });
         }
         
-        // Process summons file
-        if (formData.summonsFile) {
-          const summonsB64 = await fileToBase64(formData.summonsFile);
+        // Process summons files (multiple)
+        for (let i = 0; i < formData.summonsFiles.length; i++) {
+          const summonsFile = formData.summonsFiles[i];
+          const summonsB64 = await fileToBase64(summonsFile);
           files.push({
             code: '189495',
             description: 'Summons - Issued And Returnable',
             file: `base64://${summonsB64}`,
-            file_name: formData.summonsFile.name,
+            file_name: summonsFile.name,
             doc_type: '189705'
           });
         }
@@ -1618,40 +1651,57 @@ const EFileSubmissionForm: React.FC = () => {
             {errors.complaintFile && <p className="mt-1 text-sm text-error-600">{errors.complaintFile}</p>}
           </div>
 
-          {/* Summons Upload - Optional */}
+          {/* Summons Upload - Multiple Files Optional */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Upload Summons <span className="text-sm font-normal text-gray-500">(Optional)</span>
-            </label>
-            <div className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 ${errors.summonsFile ? 'border-error-500' : 'border-gray-300'} border-dashed rounded-md`}>
-              {!formData.summonsFile ? (
-                <div className="space-y-1 text-center">
-                  <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
-                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  <div className="flex text-sm text-gray-600">
-                    <label htmlFor="summons-upload" className="relative cursor-pointer rounded-md font-medium text-primary-600 hover:text-primary-500">
-                      <span>Upload summons</span>
-                      <input id="summons-upload" name="summons" type="file" className="sr-only" onChange={handleSingleFileChange('summonsFile')} accept=".pdf,.docx" />
-                    </label>
-                    <p className="pl-1">or drag and drop</p>
-                  </div>
-                  <p className="text-xs text-gray-500">PDF or DOCX up to 10MB</p>
-                </div>
-              ) : (
-                <div className="text-center">
-                  <p className="text-sm text-green-600">✓ {formData.summonsFile.name}</p>
-                  <button
-                    type="button"
-                    onClick={() => setFormData(prev => ({ ...prev, summonsFile: null }))}
-                    className="mt-2 text-sm text-red-600 hover:text-red-700"
-                  >
-                    Remove
-                  </button>
-                </div>
-              )}
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm font-medium text-gray-700">
+                Upload Summons <span className="text-sm font-normal text-gray-500">(Optional - Multiple allowed)</span>
+              </label>
+              <span className="text-sm text-gray-500">
+                {formData.summonsFiles.length} file{formData.summonsFiles.length !== 1 ? 's' : ''} uploaded
+              </span>
             </div>
-            {errors.summonsFile && <p className="mt-1 text-sm text-error-600">{errors.summonsFile}</p>}
+            
+            {/* Show uploaded summons files */}
+            {formData.summonsFiles.length > 0 && (
+              <div className="mb-4 space-y-2">
+                {formData.summonsFiles.map((file, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                    <div className="flex items-center">
+                      <svg className="h-5 w-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      <span className="text-sm text-gray-900">{file.name}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeSummonsFile(index)}
+                      className="text-sm text-red-600 hover:text-red-700"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {/* Upload new summons */}
+            <div className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 ${errors.summonsFiles ? 'border-error-500' : 'border-gray-300'} border-dashed rounded-md`}>
+              <div className="space-y-1 text-center">
+                <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                  <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <div className="flex text-sm text-gray-600">
+                  <label htmlFor="summons-upload" className="relative cursor-pointer rounded-md font-medium text-primary-600 hover:text-primary-500">
+                    <span>Add summons file</span>
+                    <input id="summons-upload" name="summons" type="file" className="sr-only" onChange={handleSummonsFileAdd} accept=".pdf,.docx" />
+                  </label>
+                  <p className="pl-1">or drag and drop</p>
+                </div>
+                <p className="text-xs text-gray-500">PDF or DOCX up to 10MB each</p>
+              </div>
+            </div>
+            {errors.summonsFiles && <p className="mt-1 text-sm text-error-600">{errors.summonsFiles}</p>}
           </div>
 
           {/* Affidavit Upload - Optional */}
