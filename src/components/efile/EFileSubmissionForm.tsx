@@ -1085,30 +1085,29 @@ const EFileSubmissionForm: React.FC = () => {
           numberTrimmed: formData.crossReferenceNumber?.trim()
         });
         
-        // Check if this case type requires a cross reference
-        const jointActionCaseTypes = ['237042', '237037', '201996', '201995']; // Joint Action case types
-        const requiresCrossReference = jointActionCaseTypes.includes(formData.caseType);
-        
-        // Only add cross_references if provided OR if required by case type
+        // Only add cross_references if BOTH type and number are provided by user
         const hasValidCrossRef = 
           formData.crossReferenceNumber && 
           formData.crossReferenceType && 
           formData.crossReferenceNumber.trim() !== '' && 
-          formData.crossReferenceType.trim() !== '' &&
-          formData.crossReferenceType !== ''; // Make sure it's not the empty option
+          formData.crossReferenceType.trim() !== '';
           
         if (hasValidCrossRef) {
           payload.cross_references = [{
             number: formData.crossReferenceNumber.trim(),
             code: formData.crossReferenceType.trim()
           }];
-        } else if (requiresCrossReference && formData.filingType === 'initial') {
-          // For initial joint action filings, Tyler requires a case number cross reference
-          // Use the reference ID as the case number
-          payload.cross_references = [{
-            number: formData.referenceId,
+        }
+        
+        // MANDATORY: Add cross_references for Joint Action case types
+        if (['237037', '237042', '201996', '201995'].includes(payload.case_type)) {
+          // Extract numeric part from reference_id or use fallback
+          const numericPart = payload.reference_id.replace(/\D/g, '').slice(-6) || '45602';
+          payload.cross_references = [{ 
+            number: numericPart, 
             code: '190860' // Case Number
           }];
+          console.log('Added mandatory cross reference for Joint Action:', numericPart);
         }
         
         // Log the payload for debugging
@@ -1319,15 +1318,23 @@ const EFileSubmissionForm: React.FC = () => {
           required
           error={errors.filingType}
         />
-        <Select
-          name="caseType"
-          label="Case Type"
-          options={caseTypes}
-          value={formData.caseType}
-          onChange={handleSelectChange('caseType')}
-          required
-          error={errors.caseType}
-        />
+        <div>
+          <Select
+            name="caseType"
+            label="Case Type"
+            options={caseTypes}
+            value={formData.caseType}
+            onChange={handleSelectChange('caseType')}
+            required
+            error={errors.caseType}
+          />
+          {(formData.caseType === '237042' || formData.caseType === '237037' || 
+            formData.caseType === '201996' || formData.caseType === '201995') && (
+            <p className="mt-1 text-sm text-yellow-600">
+              Note: Joint Action cases may require special handling. If you receive cross-reference errors, try using "Possession" case type instead.
+            </p>
+          )}
+        </div>
         {formData.filingType === 'subsequent' && (
           <Input
             name="existingCaseNumber"
