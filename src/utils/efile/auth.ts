@@ -88,20 +88,36 @@ export async function ensureAuth(
   const username = import.meta.env.VITE_EFILE_USERNAME;
   const password = import.meta.env.VITE_EFILE_PASSWORD;
   
-  if (!username || !password) {
-    console.error('[E-File Auth] Missing credentials in environment variables');
-    throw new Error('E-Filing credentials not configured');
+  console.info('[E-File Auth] Token expired or missing, re-authenticating...');
+  
+  // If credentials are available (dev environment), use them directly
+  if (username && password) {
+    const token = await authenticate(username, password);
+    const expiry = Date.now() + 60 * 60 * 1000;
+    dispatch({ type: 'SET_TOKEN', token, expires: expiry });
+    storeToken(token, 3600);
+    return token;
   }
   
-  console.info('[E-File Auth] Token expired or missing, re-authenticating...');
-  const token = await authenticate(username, password);
-  
-  // Docs do not specify expiration; assume 1 hour
-  const expiry = Date.now() + 60 * 60 * 1000;
-  dispatch({ type: 'SET_TOKEN', token, expires: expiry });
-  
-  // Also store in localStorage for persistence
-  storeToken(token, 3600);
-  
-  return token;
+  // In production, use the API endpoint to authenticate
+  console.info('[E-File Auth] Using API endpoint for authentication');
+  try {
+    const response = await fetch('/api/tyler/authenticate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Authentication failed');
+    }
+    
+    const data = await response.json();
+    dispatch({ type: 'SET_TOKEN', token: data.token, expires: data.expires });
+    storeToken(data.token, 3600);
+    return data.token;
+  } catch (error) {
+    console.error('[E-File Auth] API authentication failed:', error);
+    throw new Error('E-Filing authentication service unavailable');
+  }
 }
