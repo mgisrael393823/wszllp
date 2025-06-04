@@ -60,6 +60,16 @@ const ContactList: React.FC<ContactListProps> = ({
   const totalCount = data?.total || 0;
   const totalPages = Math.ceil(totalCount / itemsPerPage);
   
+  // Debug logging
+  console.log('ContactList pagination state:', {
+    currentPage,
+    itemsPerPage,
+    totalCount,
+    totalPages,
+    contactsLength: contacts.length,
+    filters,
+  });
+  
   // Handle delete contact
   const handleDeleteContact = (id: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent row click
