@@ -332,11 +332,26 @@ const EFileSubmissionForm: React.FC = () => {
   };
 
   const createDocumentRecords = async (caseId: string, tylerData: any) => {
-    if (!caseId || !formData.files || !tylerData?.item) return;
+    if (!caseId || !tylerData?.item) return;
 
     try {
+      // Collect all files from the new individual file fields
+      const allFiles: { file: File; type: string }[] = [];
+      
+      if (formData.complaintFile) {
+        allFiles.push({ file: formData.complaintFile, type: 'complaint' });
+      }
+      
+      formData.summonsFiles.forEach(file => {
+        allFiles.push({ file, type: 'summons' });
+      });
+      
+      if (formData.affidavitFile) {
+        allFiles.push({ file: formData.affidavitFile, type: 'affidavit' });
+      }
+      
       // Create document records for each filed document
-      const documentPromises = Array.from(formData.files).map(async (file, index) => {
+      const documentPromises = allFiles.map(async ({ file, type }, index) => {
         const filing = tylerData.item.filings?.[index];
         if (!filing) return;
 
@@ -350,7 +365,7 @@ const EFileSubmissionForm: React.FC = () => {
             envelopeId: tylerData.item.id,
             filingId: filing.id,
             fileName: file.name,
-            docType: filing.code || 'document',
+            docType: filing.code || type,
             status: filing.status || 'submitted',
             timestamp: new Date().toISOString()
           }),
@@ -900,17 +915,40 @@ const EFileSubmissionForm: React.FC = () => {
       
       // Create a draft in the context before sending
       const draftId = uuidv4();
+      
+      // Collect all files for the draft
+      const draftFiles: any[] = [];
+      if (formData.complaintFile) {
+        draftFiles.push({
+          id: uuidv4(),
+          name: formData.complaintFile.name,
+          size: formData.complaintFile.size,
+          type: formData.complaintFile.type
+        });
+      }
+      formData.summonsFiles.forEach(file => {
+        draftFiles.push({
+          id: uuidv4(),
+          name: file.name,
+          size: file.size,
+          type: file.type
+        });
+      });
+      if (formData.affidavitFile) {
+        draftFiles.push({
+          id: uuidv4(),
+          name: formData.affidavitFile.name,
+          size: formData.affidavitFile.size,
+          type: formData.affidavitFile.type
+        });
+      }
+      
       const draftData = {
         jurisdiction: formData.jurisdiction,
         county: formData.county,
         caseNumber: formData.existingCaseNumber || 'NEW',
         attorneyId: formData.attorneyId,
-        files: Array.from(formData.files as FileList).map(file => ({
-          id: uuidv4(),
-          name: file.name,
-          size: file.size,
-          type: file.type
-        }))
+        files: draftFiles
       };
       
       // Save draft for offline recovery
