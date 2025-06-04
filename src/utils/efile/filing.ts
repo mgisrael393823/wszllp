@@ -30,3 +30,32 @@ export async function getFilingStatus(envelopeId: string, token: string) {
   );
   return data;
 }
+
+/**
+ * Check filing status and return formatted data for the UI
+ * @param envelopeId ID to check
+ * @param token Auth token
+ */
+export async function checkFilingStatus(envelopeId: string, token: string) {
+  try {
+    const response = await getFilingStatus(envelopeId, token);
+    
+    if (response.message_code === 0 && response.item) {
+      const filing = response.item.filings?.[0];
+      return {
+        status: filing?.status || 'unknown',
+        stampedDocument: filing?.stamped_document,
+        reviewerComment: filing?.reviewer_comment,
+        statusReason: filing?.status_reason,
+        caseNumber: response.item.case_number,
+        caseTrackingId: response.item.case_tracking_id,
+        // Could add party info if available in the response
+        parties: undefined
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error('Error checking filing status:', error);
+    return null;
+  }
+}

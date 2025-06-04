@@ -1,9 +1,9 @@
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { EFileProvider } from '@/context/EFileContext';
+import { EFileProvider } from '../../context/EFileContext';
 import EFileSubmissionForm from './EFileSubmissionForm';
-import EFileStatusList from './EFileStatusList';
-import PageCard from '@/components/ui/PageCard';
+import EFileStatusListSimple from './EFileStatusListSimple';
+import PageCard from '../ui/PageCard';
 
 // Create with v5 API format
 const queryClient = new QueryClient({
@@ -65,7 +65,7 @@ const EFilePage: React.FC = () => {
             maxWidth="4xl"
             withBackground={false}
           >
-            <EFileStatusList />
+            <EFileStatusListSimple />
           </PageCard>
         </div>
       </EFileProvider>

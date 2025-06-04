@@ -6,6 +6,8 @@ interface EnvelopeInfo {
   status: string;
   stampedDocument?: string;
   reviewerComment?: string;
+  addedAt?: string;
+  isExternal?: boolean;
 }
 
 interface FormDataDraft {
