@@ -15,10 +15,13 @@ export default async function handler(req, res) {
   try {
     // Use server-side Tyler authentication with Vercel environment variables
     // Note: Vercel Functions cannot access VITE_ prefixed variables, only build process can
-    const BASE_URL = process.env.TYLER_API_BASE_URL || 'https://api.uslegalpro.com/v4';
-    const CLIENT_TOKEN = process.env.TYLER_API_CLIENT_TOKEN || 'EVICT87';
-    const USERNAME = process.env.TYLER_API_USERNAME;
-    const PASSWORD = process.env.TYLER_API_PASSWORD;
+    const BASE_URL = process.env.TYLER_API_BASE_URL || process.env.VITE_EFILE_BASE_URL || 'https://api.uslegalpro.com/v4';
+    const CLIENT_TOKEN = (process.env.TYLER_API_CLIENT_TOKEN || process.env.VITE_EFILE_CLIENT_TOKEN || 'EVICT87')
+      .replace(/\\n/g, '').replace(/[\r\n\t]/g, '').trim();
+    const USERNAME = (process.env.TYLER_API_USERNAME || process.env.VITE_EFILE_USERNAME || '')
+      .replace(/\\n/g, '').replace(/[\r\n\t]/g, '').trim();
+    const PASSWORD = (process.env.TYLER_API_PASSWORD || process.env.VITE_EFILE_PASSWORD || '')
+      .replace(/\\n/g, '').replace(/[\r\n\t]/g, '').trim();
 
     // Check if credentials are available
     if (!USERNAME || !PASSWORD) {

@@ -8,13 +8,23 @@ export default async function handler(req, res) {
   }
 
   // Direct test of Tyler API authentication
-  const username = 'czivin@wolfsolovy.com';
-  const password = 'Zuj90820*';
-  const clientToken = 'EVICT87';
-  const url = 'https://api.uslegalpro.com/v4/il/user/authenticate';
+  const username = (process.env.TYLER_API_USERNAME || process.env.VITE_EFILE_USERNAME || '')
+    .replace(/\\n/g, '').replace(/[\r\n\t]/g, '').trim();
+  const password = (process.env.TYLER_API_PASSWORD || process.env.VITE_EFILE_PASSWORD || '')
+    .replace(/\\n/g, '').replace(/[\r\n\t]/g, '').trim();
+  const clientToken = (process.env.TYLER_API_CLIENT_TOKEN || process.env.VITE_EFILE_CLIENT_TOKEN || 'EVICT87')
+    .replace(/\\n/g, '').replace(/[\r\n\t]/g, '').trim();
+  const url = process.env.TYLER_API_BASE_URL || process.env.VITE_EFILE_BASE_URL || 'https://api.uslegalpro.com/v4';
+  
+  if (!username || !password) {
+    return res.status(400).json({
+      error: 'Missing credentials',
+      message: 'Tyler API credentials not configured'
+    });
+  }
 
   try {
-    const response = await fetch(url, {
+    const response = await fetch(`${url}/il/user/authenticate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
