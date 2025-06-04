@@ -26,10 +26,10 @@ export default async function handler(req, res) {
     const clientToken = process.env.VITE_EFILE_CLIENT_TOKEN || 'EVICT87';
     const baseUrl = process.env.VITE_EFILE_BASE_URL || 'https://api.uslegalpro.com/v4';
 
-    // Clean up any newlines or spaces
-    const cleanUsername = username.trim();
-    const cleanPassword = password.trim();
-    const cleanClientToken = clientToken.trim();
+    // Clean up any newlines or spaces - handle both actual newlines and literal \n strings
+    const cleanUsername = username.replace(/\\n/g, '').replace(/[\r\n\t]/g, '').trim();
+    const cleanPassword = password.replace(/\\n/g, '').replace(/[\r\n\t]/g, '').trim();
+    const cleanClientToken = clientToken.replace(/\\n/g, '').replace(/[\r\n\t]/g, '').trim();
 
     if (!cleanUsername || !cleanPassword) {
       console.error('[Tyler Auth API] Missing credentials in environment');
@@ -42,7 +42,18 @@ export default async function handler(req, res) {
     console.log('[Tyler Auth API] Authenticating with Tyler API...');
     console.log('[Tyler Auth API] Username:', cleanUsername.substring(0, 3) + '***');
     console.log('[Tyler Auth API] Client Token:', cleanClientToken);
+    console.log('[Tyler Auth API] Client Token length:', cleanClientToken.length);
+    console.log('[Tyler Auth API] Client Token chars:', [...cleanClientToken].map(c => c.charCodeAt(0)));
     
+    // Extra safety - ensure clientToken is valid
+    if (!cleanClientToken || cleanClientToken.includes('\n')) {
+      console.error('[Tyler Auth API] Invalid client token detected');
+      return res.status(500).json({
+        error: 'Configuration error',
+        message: 'Invalid client token format'
+      });
+    }
+
     const response = await fetch(`${baseUrl}/il/user/authenticate`, {
       method: 'POST',
       headers: {
