@@ -371,9 +371,9 @@ const EFileSubmissionForm: React.FC = () => {
         summonsFiles: [],
         affidavitFile: null,
         files: null,
-        // Clear cross references if they contain invalid codes
-        crossReferenceType: (draftData.crossReferenceType === '190860' || draftData.crossReferenceType === '190864') ? '' : (draftData.crossReferenceType || ''),
-        crossReferenceNumber: (draftData.crossReferenceType === '190860' || draftData.crossReferenceType === '190864') ? '' : (draftData.crossReferenceNumber || '')
+        // Keep cross references from draft
+        crossReferenceType: draftData.crossReferenceType || '',
+        crossReferenceNumber: draftData.crossReferenceNumber || ''
       });
       
       return; // Don't show the toast if loading from drafts page
