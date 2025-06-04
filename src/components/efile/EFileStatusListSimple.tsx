@@ -36,6 +36,19 @@ const EFileStatusListSimple: React.FC = () => {
     localStorage.setItem('efile_external_envelopes', JSON.stringify(externalEnvelopes));
   }, [externalEnvelopes]);
 
+  // Restore external envelopes to context on mount
+  useEffect(() => {
+    externalEnvelopes.forEach(envelopeId => {
+      if (!state.envelopes[envelopeId]) {
+        dispatch({ 
+          type: 'ADD_ENVELOPE', 
+          caseId: `external-${envelopeId}`, 
+          envelopeId 
+        });
+      }
+    });
+  }, []); // Only run on mount
+
   // Combine all envelopes and limit to recent 10
   const allEnvelopes = [...new Set([...envelopeIds, ...externalEnvelopes])].slice(0, 10);
 

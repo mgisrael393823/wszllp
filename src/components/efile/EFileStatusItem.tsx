@@ -14,8 +14,8 @@ interface Props {
 const EFileStatusItem: React.FC<Props> = ({ envelopeId }) => {
   const { state, dispatch } = useContext(EFileContext);
   const { addToast } = useToast();
-  const info = state.envelopes[envelopeId];
-  const lastStatus = useRef(info.status);
+  const info = state.envelopes[envelopeId] || { status: 'checking', caseId: `external-${envelopeId}` };
+  const lastStatus = useRef(info?.status || 'checking');
 
   const { data, error } = useQuery({
     queryKey: ['efile-status', envelopeId],
