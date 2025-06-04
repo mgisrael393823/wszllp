@@ -607,6 +607,14 @@ const EFileSubmissionForm: React.FC = () => {
         [name]: value,
         county: counties[value as keyof typeof counties]?.[0]?.value || '',
       }));
+    } else if (name === 'attorneyId') {
+      // When attorney ID changes, auto-populate cross reference if Cook County Attorney Code is selected
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        // Auto-populate cross reference number if type is Cook County Attorney Code
+        ...(prev.crossReferenceType === '190864' && { crossReferenceNumber: value })
+      }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
@@ -621,6 +629,13 @@ const EFileSubmissionForm: React.FC = () => {
         ...prev,
         [name]: value,
         county: counties[value as keyof typeof counties]?.[0]?.value || '',
+      }));
+    } else if (name === 'crossReferenceType' && value === '190864') {
+      // When Cook County Attorney Code is selected, auto-populate with attorney ID
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        crossReferenceNumber: prev.attorneyId || ''
       }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
