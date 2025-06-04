@@ -20,11 +20,11 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Use server-side environment variables
-    const username = process.env.VITE_EFILE_USERNAME || '';
-    const password = process.env.VITE_EFILE_PASSWORD || '';
-    const clientToken = process.env.VITE_EFILE_CLIENT_TOKEN || 'EVICT87';
-    const baseUrl = process.env.VITE_EFILE_BASE_URL || 'https://api.uslegalpro.com/v4';
+    // Use server-side environment variables - try multiple possible names
+    const username = process.env.VITE_EFILE_USERNAME || process.env.TYLER_API_USERNAME || '';
+    const password = process.env.VITE_EFILE_PASSWORD || process.env.TYLER_API_PASSWORD || '';
+    const clientToken = process.env.VITE_EFILE_CLIENT_TOKEN || process.env.TYLER_API_CLIENT_TOKEN || 'EVICT87';
+    const baseUrl = process.env.VITE_EFILE_BASE_URL || process.env.TYLER_API_BASE_URL || 'https://api.uslegalpro.com/v4';
 
     // Clean up any newlines or spaces - handle both actual newlines and literal \n strings
     const cleanUsername = username.replace(/\\n/g, '').replace(/[\r\n\t]/g, '').trim();
@@ -33,6 +33,9 @@ export default async function handler(req, res) {
 
     if (!cleanUsername || !cleanPassword) {
       console.error('[Tyler Auth API] Missing credentials in environment');
+      console.error('[Tyler Auth API] Available env vars:', Object.keys(process.env).filter(k => 
+        k.includes('TYLER') || k.includes('EFILE') || k.includes('VITE')
+      ).sort());
       return res.status(500).json({ 
         error: 'E-Filing service not configured',
         message: 'Authentication credentials are not available' 
