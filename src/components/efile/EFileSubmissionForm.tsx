@@ -1121,8 +1121,7 @@ const EFileSubmissionForm: React.FC = () => {
   };
 
   return (
-    <Card>
-      <form onSubmit={handleSubmit} noValidate>
+    <form onSubmit={handleSubmit} noValidate className="space-y-6">
         <Select
           name="jurisdiction"
           label="State or Jurisdiction"
@@ -1763,8 +1762,7 @@ const EFileSubmissionForm: React.FC = () => {
             )}
           </Button>
         </div>
-      </form>
-    </Card>
+    </form>
   );
 };
 
