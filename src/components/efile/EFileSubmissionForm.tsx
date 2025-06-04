@@ -1085,34 +1085,36 @@ const EFileSubmissionForm: React.FC = () => {
           numberTrimmed: formData.crossReferenceNumber?.trim()
         });
         
-        // Helper for generating placeholder
-        const makePlaceholder = () => Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit fallback
-        
-        // Handle cross references - ONE block only
-        if (['237037', '237042', '201996', '201995'].includes(payload.case_type)) {
-          // MANDATORY for Joint Action case types
-          // Priority: user value → digits from reference_id → random placeholder
-          const idDigits = payload.reference_id.replace(/\D/g, '').slice(-10); // up to 10 digits
-          const number =
-            (formData.crossReferenceNumber && /^\d{3,20}$/.test(formData.crossReferenceNumber))
-              ? formData.crossReferenceNumber.trim()
-              : idDigits || makePlaceholder();
+        // helpers -----------------------------------------------------------------
+        const jointActionTypes = ['237037', '237042', '201996', '201995'];
+        const makePlaceholder = () => 
+          Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit
 
-          payload.cross_references = [
-            { number, code: '190860' }  // ONE assignment only
-          ];
-          console.log('Cross-reference applied:', number);
-        } else if (formData.crossReferenceNumber && formData.crossReferenceType) {
-          // Optional cross references for other case types
-          const trimmedNumber = formData.crossReferenceNumber.trim();
-          const trimmedType = formData.crossReferenceType.trim();
-          
-          if (trimmedNumber && trimmedType) {
-            payload.cross_references = [{
-              number: trimmedNumber,
-              code: trimmedType
-            }];
+        // build cross_references *once* ------------------------------------------
+        let crossRefNumber: string | undefined;
+        let crossRefCode: string | undefined;
+
+        // 1️⃣ user input always wins
+        if (formData.crossReferenceNumber?.trim() && 
+            formData.crossReferenceType?.trim()) {
+          // For user input, validate number format
+          if (/^\d{3,20}$/.test(formData.crossReferenceNumber.trim())) {
+            crossRefNumber = formData.crossReferenceNumber.trim();
+            crossRefCode = formData.crossReferenceType.trim();
           }
+        }
+
+        // 2️⃣ joint-action fallback (only if no user input)
+        if (!crossRefNumber && jointActionTypes.includes(payload.case_type)) {
+          const digitsFromRef = payload.reference_id.replace(/\D/g, '').slice(-10);
+          crossRefNumber = digitsFromRef || makePlaceholder();
+          crossRefCode = '190860'; // Case Number for Joint Actions
+        }
+
+        // 3️⃣ attach only when we have a valid number AND code
+        if (crossRefNumber && crossRefCode) {
+          payload.cross_references = [{ number: crossRefNumber, code: crossRefCode }];
+          console.log('Cross-reference applied:', { number: crossRefNumber, code: crossRefCode });
         }
         
         // Log the payload for debugging
