@@ -1080,14 +1080,19 @@ const EFileSubmissionForm: React.FC = () => {
           filing_party_id: 'Party_25694092',
           amount_in_controversy: formData.amountInControversy || '',
           show_amount_in_controversy: formData.showAmountInControversy ? 'true' : 'false',
-          is_initial_filing: formData.filingType === 'initial',
-          // Cross references for all filings (not just subsequent)
-          // Only include if BOTH type and number are provided
-          cross_references: (formData.crossReferenceNumber && formData.crossReferenceType) ? [{
-            number: formData.crossReferenceNumber,
-            code: formData.crossReferenceType
-          }] : []
+          is_initial_filing: formData.filingType === 'initial'
         };
+        
+        // Only add cross_references if BOTH type and number are provided
+        if (formData.crossReferenceNumber?.trim() && formData.crossReferenceType?.trim()) {
+          payload.cross_references = [{
+            number: formData.crossReferenceNumber.trim(),
+            code: formData.crossReferenceType.trim()
+          }];
+        }
+        
+        // Log the payload for debugging
+        console.log('E-File Submission Payload:', JSON.stringify(payload, null, 2));
         
         // Add audit log entry for submission attempt
         if (state.userPermissions.includes('efile:submit')) {
@@ -1333,14 +1338,16 @@ const EFileSubmissionForm: React.FC = () => {
               name="crossReferenceType"
               label="Cross Reference Type"
               options={[
-                { value: '', label: 'Select a type (optional)' }
+                { value: '', label: 'Select a type (optional)' },
+                { value: '190860', label: 'Case Number' },
+                { value: '190861', label: 'Prior Case' },
+                { value: '190862', label: 'Related Case' },
+                { value: '190863', label: 'Appeal Case' }
               ]}
               value={formData.crossReferenceType}
               onChange={handleSelectChange('crossReferenceType')}
               error={errors.crossReferenceType}
               data-cy="cross-reference-type"
-              disabled
-              placeholder="Cross references temporarily disabled"
             />
             <Input
               name="crossReferenceNumber"
@@ -1348,10 +1355,9 @@ const EFileSubmissionForm: React.FC = () => {
               type="text"
               value={formData.crossReferenceNumber}
               onChange={handleInputChange}
-              placeholder="Cross references temporarily disabled"
+              placeholder="Enter reference number (optional)"
               error={errors.crossReferenceNumber}
               data-cy="cross-reference-number"
-              disabled
             />
           </div>
         </Card>

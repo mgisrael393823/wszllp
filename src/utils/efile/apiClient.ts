@@ -11,6 +11,10 @@ export const apiClient = axios.create({
   timeout: DEFAULT_TIMEOUT,
   maxContentLength: MAX_CONTENT_SIZE,
   maxBodyLength: MAX_CONTENT_SIZE,
+  headers: {
+    'clienttoken': import.meta.env.VITE_EFILE_CLIENT_TOKEN || 'EVICT87',
+    'Content-Type': 'application/json'
+  }
 });
 
 // Add request interceptor for timeout and logging
