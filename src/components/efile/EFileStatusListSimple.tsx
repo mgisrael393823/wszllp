@@ -1,11 +1,12 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { Plus, RefreshCw, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Plus, RefreshCw, Clock, CheckCircle, XCircle, AlertCircle, LogIn } from 'lucide-react';
 import { EFileContext } from '../../context/EFileContext';
 import EFileStatusItem from './EFileStatusItem';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Modal from '../ui/Modal';
 import { checkFilingStatus } from '../../utils/efile/filing';
+import { ensureAuth } from '../../utils/efile/auth';
 import { useToast } from '../../context/ToastContext';
 
 interface RecentEnvelope {
@@ -20,6 +21,7 @@ const EFileStatusListSimple: React.FC = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [externalEnvelopeId, setExternalEnvelopeId] = useState('');
   const [isAddingExternal, setIsAddingExternal] = useState(false);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
 
   // Get all envelope IDs and sort by most recent (for now, just show all)
   const envelopeIds = Object.keys(state.envelopes);
@@ -36,6 +38,21 @@ const EFileStatusListSimple: React.FC = () => {
 
   // Combine all envelopes and limit to recent 10
   const allEnvelopes = [...new Set([...envelopeIds, ...externalEnvelopes])].slice(0, 10);
+
+  const handleAuthenticate = async () => {
+    setIsAuthenticating(true);
+    try {
+      const token = await ensureAuth(state.authToken, state.tokenExpires, dispatch);
+      if (token) {
+        showToast('Authentication successful', 'success');
+      }
+    } catch (error) {
+      console.error('Authentication error:', error);
+      showToast('Authentication failed. Please check your credentials.', 'error');
+    } finally {
+      setIsAuthenticating(false);
+    }
+  };
 
   const handleAddExternal = async () => {
     if (!externalEnvelopeId.trim()) {
@@ -91,14 +108,27 @@ const EFileStatusListSimple: React.FC = () => {
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-medium">Recent Filings (Last 10)</h3>
-        <Button
-          size="sm"
-          variant="outline"
-          icon={<Plus size={14} />}
-          onClick={() => setIsAddModalOpen(true)}
-        >
-          Track External Filing
-        </Button>
+        <div className="flex gap-2">
+          {!state.authToken && (
+            <Button
+              size="sm"
+              variant="outline"
+              icon={<LogIn size={14} />}
+              onClick={handleAuthenticate}
+              disabled={isAuthenticating}
+            >
+              {isAuthenticating ? 'Authenticating...' : 'Authenticate'}
+            </Button>
+          )}
+          <Button
+            size="sm"
+            variant="outline"
+            icon={<Plus size={14} />}
+            onClick={() => setIsAddModalOpen(true)}
+          >
+            Track External Filing
+          </Button>
+        </div>
       </div>
 
       {/* Status list */}
