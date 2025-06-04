@@ -23,13 +23,20 @@ const EFileStatusItem: React.FC<Props> = ({ envelopeId }) => {
     enabled: !!state.authToken && !!envelopeId,
     refetchInterval: data => (data?.item?.filings?.some(f => f.status !== 'submitting') ? false : 5000),
     retry: 2,
-    onError: (err) => {
+    onError: (err: any) => {
       console.error('Error fetching filing status:', err);
-      // Only show error for external filings that aren't found
+      // Update status to show error
+      dispatch({
+        type: 'UPDATE_ENVELOPE_STATUS',
+        envelopeId,
+        status: 'not_found',
+        reviewerComment: 'Envelope does not exist in Tyler system'
+      });
+      // Only show error toast for external filings
       if (info.caseId?.startsWith('external-')) {
         addToast({
           type: 'error',
-          message: `Filing ${envelopeId} not found. Please check the envelope ID.`,
+          message: `Envelope ${envelopeId} not found in Tyler system. Please verify the envelope ID.`,
         });
       }
     }
