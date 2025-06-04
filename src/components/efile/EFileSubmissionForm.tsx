@@ -1103,9 +1103,10 @@ const EFileSubmissionForm: React.FC = () => {
           show_amount_in_controversy: formData.showAmountInControversy ? 'true' : 'false',
           is_initial_filing: formData.filingType === 'initial',
           // Cross references for all filings (not just subsequent)
-          cross_references: formData.crossReferenceNumber ? [{
+          // Only include if BOTH type and number are provided
+          cross_references: (formData.crossReferenceNumber && formData.crossReferenceType) ? [{
             number: formData.crossReferenceNumber,
-            code: formData.crossReferenceType || '190860'
+            code: formData.crossReferenceType
           }] : []
         };
         
