@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { Plus, RefreshCw, Clock, CheckCircle, XCircle, AlertCircle, LogIn } from 'lucide-react';
+import { Plus, RefreshCw, Clock, CheckCircle, XCircle, AlertCircle, LogIn, Trash2 } from 'lucide-react';
 import { EFileContext } from '../../context/EFileContext';
 import EFileStatusItem from './EFileStatusItem';
 import Button from '../ui/Button';
@@ -77,6 +77,27 @@ const EFileStatusListSimple: React.FC = () => {
     } finally {
       setIsAuthenticating(false);
     }
+  };
+
+  const handleClearExternal = () => {
+    // Remove external envelopes from state
+    externalEnvelopes.forEach(envelopeId => {
+      // Only remove if it's an external filing (not filed through our platform)
+      const info = state.envelopes[envelopeId];
+      if (info?.caseId?.startsWith('external-')) {
+        // We don't have a REMOVE_ENVELOPE action, so we'll just clear from localStorage
+        // The envelopes will disappear on next render
+      }
+    });
+    
+    // Clear from localStorage
+    setExternalEnvelopes([]);
+    localStorage.removeItem('efile_external_envelopes');
+    
+    addToast({ 
+      message: 'External filings cleared', 
+      type: 'info' 
+    });
   };
 
   const handleAddExternal = async () => {
@@ -164,6 +185,17 @@ const EFileStatusListSimple: React.FC = () => {
           >
             Track External Filing
           </Button>
+          {externalEnvelopes.length > 0 && (
+            <Button
+              size="sm"
+              variant="outline"
+              icon={<Trash2 size={14} />}
+              onClick={handleClearExternal}
+              title="Clear external filings only"
+            >
+              Clear External
+            </Button>
+          )}
         </div>
       </div>
 
