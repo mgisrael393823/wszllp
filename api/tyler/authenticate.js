@@ -1,18 +1,37 @@
 import fetch from 'node-fetch';
 
 export default async function handler(req, res) {
+  // Enable CORS
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+  );
+
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
     // Use server-side environment variables
-    const username = process.env.VITE_EFILE_USERNAME;
-    const password = process.env.VITE_EFILE_PASSWORD;
+    const username = process.env.VITE_EFILE_USERNAME || '';
+    const password = process.env.VITE_EFILE_PASSWORD || '';
     const clientToken = process.env.VITE_EFILE_CLIENT_TOKEN || 'EVICT87';
     const baseUrl = process.env.VITE_EFILE_BASE_URL || 'https://api.uslegalpro.com/v4';
 
-    if (!username || !password) {
+    // Clean up any newlines or spaces
+    const cleanUsername = username.trim();
+    const cleanPassword = password.trim();
+    const cleanClientToken = clientToken.trim();
+
+    if (!cleanUsername || !cleanPassword) {
       console.error('[Tyler Auth API] Missing credentials in environment');
       return res.status(500).json({ 
         error: 'E-Filing service not configured',
@@ -21,19 +40,35 @@ export default async function handler(req, res) {
     }
 
     console.log('[Tyler Auth API] Authenticating with Tyler API...');
+    console.log('[Tyler Auth API] Username:', cleanUsername.substring(0, 3) + '***');
+    console.log('[Tyler Auth API] Client Token:', cleanClientToken);
     
     const response = await fetch(`${baseUrl}/il/user/authenticate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'clienttoken': clientToken,
+        'clienttoken': cleanClientToken,
       },
       body: JSON.stringify({
-        data: { username, password }
+        data: { 
+          username: cleanUsername, 
+          password: cleanPassword 
+        }
       }),
     });
 
-    const data = await response.json();
+    const responseText = await response.text();
+    let data;
+    
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      console.error('[Tyler Auth API] Invalid JSON response:', responseText);
+      return res.status(500).json({
+        error: 'Invalid response from Tyler API',
+        message: 'The authentication service returned an invalid response'
+      });
+    }
 
     if (response.ok && data.message_code === 0) {
       console.log('[Tyler Auth API] Authentication successful');
@@ -44,7 +79,7 @@ export default async function handler(req, res) {
       });
     } else {
       console.error('[Tyler Auth API] Authentication failed:', data);
-      res.status(response.status).json({
+      res.status(response.status || 400).json({
         error: 'Authentication failed',
         message: data.message || 'Invalid credentials',
         code: data.message_code
@@ -54,7 +89,7 @@ export default async function handler(req, res) {
     console.error('[Tyler Auth API] Error:', error);
     res.status(500).json({ 
       error: 'Authentication service error',
-      message: error.message 
+      message: error.message || 'An unexpected error occurred'
     });
   }
 }
