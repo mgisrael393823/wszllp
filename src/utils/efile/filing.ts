@@ -53,9 +53,86 @@ export async function checkFilingStatus(envelopeId: string, token: string) {
         parties: undefined
       };
     }
-    return null;
-  } catch (error) {
+    
+    // Handle non-zero message codes (like 400 for "Envelope does not exist")
+    if (response.message_code === 400) {
+      return {
+        status: 'not_found',
+        error: response.message || 'Envelope does not exist',
+        stampedDocument: undefined,
+        reviewerComment: response.message || 'Envelope not found in Tyler system',
+        statusReason: 'envelope_not_found',
+        caseNumber: undefined,
+        caseTrackingId: undefined,
+        parties: undefined
+      };
+    }
+    
+    // Handle other error codes
+    return {
+      status: 'error',
+      error: response.message || 'Unknown error occurred',
+      stampedDocument: undefined,
+      reviewerComment: response.message || 'Error retrieving status',
+      statusReason: 'api_error',
+      caseNumber: undefined,
+      caseTrackingId: undefined,
+      parties: undefined
+    };
+  } catch (error: any) {
     console.error('Error checking filing status:', error);
-    return null;
+    
+    // Handle different types of errors more gracefully
+    if (error.response?.status === 400) {
+      const errorData = error.response.data;
+      return {
+        status: 'not_found',
+        error: errorData?.message || 'Envelope does not exist',
+        stampedDocument: undefined,
+        reviewerComment: errorData?.message || 'Envelope not found in Tyler system',
+        statusReason: 'envelope_not_found',
+        caseNumber: undefined,
+        caseTrackingId: undefined,
+        parties: undefined
+      };
+    }
+    
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      return {
+        status: 'auth_error',
+        error: 'Authentication failed',
+        stampedDocument: undefined,
+        reviewerComment: 'Please re-authenticate with Tyler',
+        statusReason: 'authentication_failed',
+        caseNumber: undefined,
+        caseTrackingId: undefined,
+        parties: undefined
+      };
+    }
+    
+    if (error.response?.status >= 500) {
+      return {
+        status: 'server_error',
+        error: 'Tyler API server error',
+        stampedDocument: undefined,
+        reviewerComment: 'Tyler API is experiencing issues. Please try again later.',
+        statusReason: 'server_error',
+        caseNumber: undefined,
+        caseTrackingId: undefined,
+        parties: undefined
+      };
+    }
+    
+    // Network or other errors
+    return {
+      status: 'network_error',
+      error: error.message || 'Network error',
+      stampedDocument: undefined,
+      reviewerComment: 'Unable to connect to Tyler API. Please check your connection.',
+      statusReason: 'network_error',
+      caseNumber: undefined,
+      caseTrackingId: undefined,
+      parties: undefined
+    };
   }
 }
