@@ -98,9 +98,15 @@ apiClient.interceptors.response.use(
       }
       
       if (status === 500) {
-        // Specific handling for server errors
+        // Tyler API bug: Sometimes returns 500 with a 400 message_code
+        if (data?.message_code === 400) {
+          // Treat as a 400 error despite the 500 status
+          return Promise.reject(new EFileError(data.message || 'Bad request', 400));
+        }
+        
+        // Specific handling for actual server errors
         const errorMsg = data?.message || 'Server error encountered';
-        const errorCode = data?.code || 5001;
+        const errorCode = data?.code || data?.message_code || 5001;
         
         // Check if this was a file submission endpoint
         if (error.config?.url?.includes('/efile')) {

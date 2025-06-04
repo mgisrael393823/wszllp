@@ -26,10 +26,30 @@ const EFileStatusItem: React.FC<Props> = ({ envelopeId }) => {
     onError: (err: any) => {
       console.error('Error fetching filing status:', err);
       
-      const status = 'not_found';
-      const reviewerComment = 'Envelope does not exist in Tyler system';
-      const toastType = 'warning';
-      const toastMessage = `Envelope ${envelopeId} not found in Tyler system. Please verify the envelope ID.`;
+      let status = 'error';
+      let reviewerComment = 'Error retrieving status';
+      let toastType: 'error' | 'warning' = 'error';
+      let toastMessage = 'Error retrieving filing status';
+      
+      // Handle specific error types (check both response status and error code)
+      if (err?.response?.status === 400 || err?.code === 400) {
+        status = 'not_found';
+        reviewerComment = 'Envelope does not exist in Tyler system';
+        toastType = 'warning';
+        toastMessage = `Envelope ${envelopeId} not found in Tyler system. Please verify the envelope ID.`;
+      } else if (err?.response?.status === 401 || err?.response?.status === 403) {
+        status = 'auth_error';
+        reviewerComment = 'Authentication failed - please re-authenticate';
+        toastMessage = 'Authentication failed. Please re-authenticate with Tyler.';
+      } else if (err?.response?.status >= 500) {
+        status = 'server_error';
+        reviewerComment = 'Tyler API server error - please try again later';
+        toastMessage = 'Tyler API is experiencing issues. Please try again later.';
+      } else if (err.code === 'NETWORK_ERROR' || !err?.response) {
+        status = 'network_error';
+        reviewerComment = 'Network error - please check your connection';
+        toastMessage = 'Unable to connect to Tyler API. Please check your connection.';
+      }
       
       dispatch({
         type: 'UPDATE_ENVELOPE_STATUS',
@@ -41,9 +61,9 @@ const EFileStatusItem: React.FC<Props> = ({ envelopeId }) => {
       if (info.caseId?.startsWith('external-')) {
         addToast({
           type: toastType,
-          title: 'Envelope Not Found',
+          title: status === 'not_found' ? 'Envelope Not Found' : 'Filing Status Error',
           message: toastMessage,
-          duration: 8000
+          duration: status === 'not_found' ? 8000 : 6000
         });
       }
     }

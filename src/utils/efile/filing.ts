@@ -83,13 +83,13 @@ export async function checkFilingStatus(envelopeId: string, token: string) {
     console.error('Error checking filing status:', error);
     
     // Handle different types of errors more gracefully
-    if (error.response?.status === 400) {
-      const errorData = error.response.data;
+    if (error.response?.status === 400 || error.code === 400) {
+      const errorData = error.response?.data;
       return {
         status: 'not_found',
-        error: errorData?.message || 'Envelope does not exist',
+        error: errorData?.message || error.message || 'Envelope does not exist',
         stampedDocument: undefined,
-        reviewerComment: errorData?.message || 'Envelope not found in Tyler system',
+        reviewerComment: errorData?.message || error.message || 'Envelope not found in Tyler system',
         statusReason: 'envelope_not_found',
         caseNumber: undefined,
         caseTrackingId: undefined,
