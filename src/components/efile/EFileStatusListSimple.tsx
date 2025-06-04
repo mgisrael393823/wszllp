@@ -17,7 +17,7 @@ interface RecentEnvelope {
 
 const EFileStatusListSimple: React.FC = () => {
   const { state, dispatch } = useContext(EFileContext);
-  const { showToast } = useToast();
+  const { addToast } = useToast();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [externalEnvelopeId, setExternalEnvelopeId] = useState('');
   const [isAddingExternal, setIsAddingExternal] = useState(false);
@@ -44,11 +44,23 @@ const EFileStatusListSimple: React.FC = () => {
     try {
       const token = await ensureAuth(state.authToken, state.tokenExpires, dispatch);
       if (token) {
-        showToast('Authentication successful', 'success');
+        addToast({ message: 'Authentication successful', type: 'success' });
       }
     } catch (error) {
       console.error('Authentication error:', error);
-      showToast('Authentication failed. Please check your credentials.', 'error');
+      
+      // Handle specific error types
+      let errorMessage = 'Authentication failed. Please check your credentials.';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('SOAP Fault') || error.message.includes('500')) {
+          errorMessage = 'Tyler server error. Please try again later.';
+        } else if (error.message.includes('credentials')) {
+          errorMessage = 'Invalid credentials. Please check your username and password.';
+        }
+      }
+      
+      addToast({ message: errorMessage, type: 'error' });
     } finally {
       setIsAuthenticating(false);
     }
@@ -56,12 +68,12 @@ const EFileStatusListSimple: React.FC = () => {
 
   const handleAddExternal = async () => {
     if (!externalEnvelopeId.trim()) {
-      showToast('Please enter an envelope ID', 'error');
+      addToast({ message: 'Please enter an envelope ID', type: 'error' });
       return;
     }
 
     if (!state.authToken) {
-      showToast('Please authenticate first', 'error');
+      addToast({ message: 'Please authenticate first', type: 'error' });
       return;
     }
 
@@ -77,14 +89,22 @@ const EFileStatusListSimple: React.FC = () => {
       // Add to external list
       setExternalEnvelopes(prev => [externalEnvelopeId, ...prev].slice(0, 20));
 
-      showToast('External filing added. Checking status...', 'info');
+      addToast({ message: 'External filing added. Checking status...', type: 'info' });
       setIsAddModalOpen(false);
       setExternalEnvelopeId('');
       
       // Status will be checked by the EFileStatusItem component
     } catch (error) {
       console.error('Error adding external filing:', error);
-      showToast('Failed to add external filing', 'error');
+      
+      let errorMessage = 'Failed to add external filing';
+      if (error instanceof Error) {
+        if (error.message.includes('SOAP Fault') || error.message.includes('500')) {
+          errorMessage = 'Tyler server error. Please try again later.';
+        }
+      }
+      
+      addToast({ message: errorMessage, type: 'error' });
     } finally {
       setIsAddingExternal(false);
     }
