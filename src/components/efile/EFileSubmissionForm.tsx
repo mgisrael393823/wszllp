@@ -358,58 +358,34 @@ const EFileSubmissionForm: React.FC = () => {
   
   // Check for saved drafts when component mounts
   useEffect(() => {
+    // Check if a draft should be loaded (from drafts page)
+    const draftToLoad = localStorage.getItem('efileDraftsToLoad');
+    if (draftToLoad) {
+      const draftData = JSON.parse(draftToLoad);
+      localStorage.removeItem('efileDraftsToLoad');
+      
+      setFormData({
+        ...draftData,
+        // Reconstruct file objects (note: actual file data is lost, user will need to re-upload)
+        complaintFile: null,
+        summonsFiles: [],
+        affidavitFile: null,
+        files: null
+      });
+      
+      return; // Don't show the toast if loading from drafts page
+    }
+    
     // Check localStorage for drafts
     const savedDrafts = JSON.parse(localStorage.getItem('efileDrafts') || '[]');
     
     if (savedDrafts.length > 0) {
-      const latestDraft = savedDrafts[savedDrafts.length - 1];
-      
-      // Create a div element for the toast action
-      const actionDiv = document.createElement('div');
-      actionDiv.innerHTML = `
-        <button 
-          class="ml-2 text-sm font-medium text-blue-600 hover:text-blue-500 underline"
-          onclick="window.loadEfileDraft = true;"
-        >
-          Load Draft
-        </button>
-      `;
-      
       addToast({
         type: 'info',
-        title: 'Draft Available',
-        message: `You have a saved draft from ${new Date(latestDraft.createdAt).toLocaleString()}.`,
-        duration: 10000
+        title: 'Saved Drafts Available',
+        message: `You have ${savedDrafts.length} saved draft${savedDrafts.length > 1 ? 's' : ''}. Check the Saved Drafts section above to load them.`,
+        duration: 8000
       });
-      
-      // Check if user clicked load draft
-      const checkInterval = setInterval(() => {
-        if ((window as any).loadEfileDraft) {
-          clearInterval(checkInterval);
-          delete (window as any).loadEfileDraft;
-          
-          // Load the draft data
-          const draftData = latestDraft.data;
-          setFormData({
-            ...draftData,
-            // Reconstruct file objects (note: actual file data is lost, user will need to re-upload)
-            complaintFile: null,
-            summonsFiles: [],
-            affidavitFile: null,
-            files: null
-          });
-          
-          addToast({
-            type: 'success',
-            title: 'Draft Loaded',
-            message: 'Draft loaded successfully. Please re-upload any files.',
-            duration: 5000
-          });
-        }
-      }, 100);
-      
-      // Clear interval after 10 seconds
-      setTimeout(() => clearInterval(checkInterval), 10000);
     }
   }, []);
 
