@@ -829,15 +829,7 @@ const EFileSubmissionForm: React.FC = () => {
     // Summons and Affidavit are now optional
     // Only validate if one is provided but not the other
     
-    // Cross references are now optional - only validate if partially filled
-    if (formData.crossReferenceType && !formData.crossReferenceNumber) {
-      newErrors.crossReferenceNumber = 'Please enter a cross reference number';
-      isValid = false;
-    }
-    if (formData.crossReferenceNumber && !formData.crossReferenceType) {
-      newErrors.crossReferenceType = 'Please select a cross reference type';
-      isValid = false;
-    }
+    // Cross references are completely optional - no validation needed
 
     // Phase A: Enhanced validations
     if (ENHANCED_EFILING_PHASE_A) {
