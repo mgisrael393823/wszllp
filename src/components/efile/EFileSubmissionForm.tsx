@@ -246,7 +246,7 @@ const EFileSubmissionForm: React.FC = () => {
       addressLine1: '',
       addressLine2: '',
       city: '',
-      state: 'IL',
+      state: '',
       zipCode: '',
       leadAttorneyId: ''
     },
@@ -257,7 +257,7 @@ const EFileSubmissionForm: React.FC = () => {
       addressLine1: '',
       addressLine2: '',
       city: '',
-      state: 'IL',
+      state: '',
       zipCode: ''
     }],
     complaintFile: null,
@@ -458,7 +458,7 @@ const EFileSubmissionForm: React.FC = () => {
           addressLine1: '',
           addressLine2: '', // Include address line 2 in reset
           city: '',
-          state: 'IL',
+          state: '',
           zipCode: '',
           leadAttorneyId: ''
         },
@@ -643,7 +643,7 @@ const EFileSubmissionForm: React.FC = () => {
         addressLine1: '',
         addressLine2: '',
         city: '',
-        state: 'IL',
+        state: '',
         zipCode: ''
       }]
     }));
@@ -988,11 +988,11 @@ const EFileSubmissionForm: React.FC = () => {
               last_name: formData.petitioner.lastName,
               is_business: 'false'
             }),
-            address_line_1: formData.petitioner.addressLine1,
+            address_line_1: formData.petitioner.addressLine1 || '',
             address_line_2: formData.petitioner.addressLine2 || '',
-            city: formData.petitioner.city,
-            state: formData.petitioner.state,
-            zip_code: formData.petitioner.zipCode,
+            city: formData.petitioner.city || '',
+            state: formData.petitioner.state || '',
+            zip_code: formData.petitioner.zipCode || '',
             lead_attorney: formData.petitioner.leadAttorneyId
           },
           // Map all defendants
@@ -1001,11 +1001,11 @@ const EFileSubmissionForm: React.FC = () => {
             type: '189131', // Defendant type code
             first_name: defendant.firstName,
             last_name: defendant.lastName,
-            address_line_1: defendant.addressLine1,
+            address_line_1: defendant.addressLine1 || '',
             address_line_2: defendant.addressLine2 || '',
-            city: defendant.city,
-            state: defendant.state,
-            zip_code: defendant.zipCode,
+            city: defendant.city || '',
+            state: defendant.state || '',
+            zip_code: defendant.zipCode || '',
             is_business: 'false'
           })),
           // Unknown Occupants (conditionally included as last defendant)
@@ -1014,11 +1014,11 @@ const EFileSubmissionForm: React.FC = () => {
             type: '189131', // Defendant type code
             first_name: 'All',
             last_name: 'Unknown Occupants',
-            address_line_1: formData.defendants[0].addressLine1, // Use same address as primary defendant
+            address_line_1: formData.defendants[0].addressLine1 || '', // Use same address as primary defendant
             address_line_2: formData.defendants[0].addressLine2 || '',
-            city: formData.defendants[0].city,
-            state: formData.defendants[0].state,
-            zip_code: formData.defendants[0].zipCode,
+            city: formData.defendants[0].city || '',
+            state: formData.defendants[0].state || '',
+            zip_code: formData.defendants[0].zipCode || '',
             is_business: 'false'
           }] : [])
         ] : undefined;
@@ -1335,10 +1335,9 @@ const EFileSubmissionForm: React.FC = () => {
                 <div className="sm:col-span-2">
                   <Input
                     name="addressLine1"
-                    label="Address Line 1"
+                    label="Address Line 1 (Optional)"
                     value={formData.petitioner?.addressLine1 || ''}
                     onChange={handlePetitionerChange('addressLine1')}
-                    required
                     data-cy="petitioner-address"
                   />
                 </div>
@@ -1353,26 +1352,23 @@ const EFileSubmissionForm: React.FC = () => {
                 </div>
                 <Input
                   name="city"
-                  label="City"
+                  label="City (Optional)"
                   value={formData.petitioner?.city || ''}
                   onChange={handlePetitionerChange('city')}
-                  required
                   data-cy="petitioner-city"
                 />
                 <Input
                   name="state"
-                  label="State"
+                  label="State (Optional)"
                   value={formData.petitioner?.state || ''}
                   onChange={handlePetitionerChange('state')}
-                  required
                   data-cy="petitioner-state"
                 />
                 <Input
                   name="zipCode"
-                  label="ZIP Code"
+                  label="ZIP Code (Optional)"
                   value={formData.petitioner?.zipCode || ''}
                   onChange={handlePetitionerChange('zipCode')}
-                  required
                   error={errors['petitioner.zipCode']}
                   aria-describedby={errors['petitioner.zipCode'] ? 'petitioner-zip-error' : undefined}
                   data-cy="petitioner-zip"
@@ -1491,10 +1487,9 @@ const EFileSubmissionForm: React.FC = () => {
                     <div className="sm:col-span-2">
                       <Input
                         name="addressLine1"
-                        label="Address Line 1"
+                        label="Address Line 1 (Optional)"
                         value={defendant.addressLine1 || ''}
                         onChange={handleDefendantChange(index, 'addressLine1')}
-                        required
                         data-cy={`defendant-${index}-address`}
                       />
                     </div>
@@ -1509,26 +1504,23 @@ const EFileSubmissionForm: React.FC = () => {
                     </div>
                     <Input
                       name="city"
-                      label="City"
+                      label="City (Optional)"
                       value={defendant.city || ''}
                       onChange={handleDefendantChange(index, 'city')}
-                      required
                       data-cy={`defendant-${index}-city`}
                     />
                     <Input
                       name="state"
-                      label="State"
+                      label="State (Optional)"
                       value={defendant.state || ''}
                       onChange={handleDefendantChange(index, 'state')}
-                      required
                       data-cy={`defendant-${index}-state`}
                     />
                     <Input
                       name="zipCode"
-                      label="ZIP Code"
+                      label="ZIP Code (Optional)"
                       value={defendant.zipCode || ''}
                       onChange={handleDefendantChange(index, 'zipCode')}
-                      required
                       error={errors[`defendants.${index}.zipCode` as keyof FormErrors]}
                       aria-describedby={errors[`defendants.${index}.zipCode` as keyof FormErrors] ? `defendant-${index}-zip-error` : undefined}
                       data-cy={`defendant-${index}-zip`}
