@@ -150,6 +150,7 @@ const ContactList: React.FC<ContactListProps> = ({
   // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLocalSearchTerm(e.target.value);
+    setCurrentPage(1); // Reset to first page when searching
   };
   
   return (
@@ -216,7 +217,8 @@ const ContactList: React.FC<ContactListProps> = ({
             <div className="p-4 border-t border-gray-200">
               <Pagination
                 currentPage={currentPage}
-                totalPages={totalPages}
+                totalItems={totalCount}
+                itemsPerPage={itemsPerPage}
                 onPageChange={setCurrentPage}
               />
             </div>
