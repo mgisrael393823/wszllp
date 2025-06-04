@@ -107,6 +107,7 @@ const AppContent = () => {
           } />
         </Route>
         <Route path="/cases/:id" element={<CaseDetail />} />
+        <Route path="/dashboard/cases/:id" element={<CaseDetail />} />
         <Route path="/hearings" element={<HearingsPage />} />
         <Route path="/hearings/new" element={
           <div className="page-container">

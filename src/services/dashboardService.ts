@@ -103,7 +103,14 @@ class DashboardService {
 
       if (error) {
         console.error('Error fetching dashboard metrics:', error);
-        throw error;
+        // If table doesn't exist, fall back to direct queries
+        if (error.code === '42P01' || error.message?.includes('does not exist')) {
+          console.log('Dashboard metrics table not found, using direct queries...');
+          return await this.getDashboardMetricsDirect();
+        }
+        // For any error, try direct queries as fallback
+        console.log('Falling back to direct queries due to error');
+        return await this.getDashboardMetricsDirect();
       }
 
       return {
@@ -265,8 +272,8 @@ class DashboardService {
       // Get recent case updates
       const { data: caseUpdates } = await supabase
         .from('cases')
-        .select('id, plaintiff, defendant, updated_at, created_at')
-        .order('updated_at', { ascending: false })
+        .select('id, plaintiff, defendant, updatedat, createdat')
+        .order('updatedat', { ascending: false })
         .limit(limit);
 
       // Get recent hearing updates
@@ -288,12 +295,12 @@ class DashboardService {
 
       // Process case updates
       caseUpdates?.forEach(item => {
-        const isNew = new Date(item.updated_at).getTime() === new Date(item.created_at).getTime();
+        const isNew = new Date(item.updatedat).getTime() === new Date(item.createdat).getTime();
         activities.push({
           id: `case-${item.id}`,
           title: isNew ? 'New Case Created' : 'Case Updated',
           description: `${item.plaintiff} v. ${item.defendant}`,
-          timestamp: item.updated_at,
+          timestamp: item.updatedat,
           entityType: 'Case',
           entityId: item.id,
           action: isNew ? 'Create' : 'Update'
@@ -364,6 +371,168 @@ class DashboardService {
   isDashboardDataStale(lastRefreshed: string): boolean {
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
     return new Date(lastRefreshed) < oneHourAgo;
+  }
+
+  /**
+   * Get dashboard metrics directly from tables (fallback when materialized view doesn't exist)
+   */
+  private async getDashboardMetricsDirect(): Promise<DashboardMetrics> {
+    try {
+      const now = new Date();
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+      // Fetch case metrics
+      const { data: cases } = await supabase
+        .from('cases')
+        .select('*');
+      
+      const totalCases = cases?.length || 0;
+      const activeCases = cases?.filter(c => !['CLOSED', 'DISMISSED'].includes(c.status)).length || 0;
+      const intakeCases = cases?.filter(c => c.status === 'INTAKE').length || 0;
+      const closedCases = cases?.filter(c => ['CLOSED', 'DISMISSED'].includes(c.status)).length || 0;
+      const newCasesLast30Days = cases?.filter(c => new Date(c.createdat) >= thirtyDaysAgo).length || 0;
+      const newCasesLast7Days = cases?.filter(c => new Date(c.createdat) >= sevenDaysAgo).length || 0;
+      const casesUpdatedLast24h = cases?.filter(c => new Date(c.updatedat) >= twentyFourHoursAgo).length || 0;
+      const casesUpdatedLast7Days = cases?.filter(c => new Date(c.updatedat) >= sevenDaysAgo).length || 0;
+
+      // Calculate average case duration for closed cases
+      const closedCasesWithDuration = cases?.filter(c => 
+        ['CLOSED', 'DISMISSED'].includes(c.status) && c.createdat && c.updatedat
+      ) || [];
+      
+      const avgCaseDurationDays = closedCasesWithDuration.length > 0
+        ? closedCasesWithDuration.reduce((sum, c) => {
+            const duration = (new Date(c.updatedat).getTime() - new Date(c.createdat).getTime()) / (1000 * 60 * 60 * 24);
+            return sum + duration;
+          }, 0) / closedCasesWithDuration.length
+        : 0;
+
+      // Fetch hearing metrics
+      const { data: hearings } = await supabase
+        .from('hearings')
+        .select('*');
+      
+      const totalHearings = hearings?.length || 0;
+      const upcomingHearings = hearings?.filter(h => new Date(h.hearing_date) > now).length || 0;
+      const hearingsNext30Days = hearings?.filter(h => {
+        const hearingDate = new Date(h.hearing_date);
+        return hearingDate > now && hearingDate <= new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+      }).length || 0;
+      const hearingsNext7Days = hearings?.filter(h => {
+        const hearingDate = new Date(h.hearing_date);
+        return hearingDate > now && hearingDate <= new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      }).length || 0;
+      const hearingsNext24Hours = hearings?.filter(h => {
+        const hearingDate = new Date(h.hearing_date);
+        return hearingDate > now && hearingDate <= new Date(now.getTime() + 24 * 60 * 60 * 1000);
+      }).length || 0;
+      const completedHearings = hearings?.filter(h => h.status === 'COMPLETED').length || 0;
+      const missedHearings = hearings?.filter(h => 
+        h.status === 'MISSED' || (new Date(h.hearing_date) < now && h.status === 'SCHEDULED')
+      ).length || 0;
+      const hearingsUpdatedLast24h = hearings?.filter(h => new Date(h.updated_at) >= twentyFourHoursAgo).length || 0;
+      const hearingsUpdatedLast7Days = hearings?.filter(h => new Date(h.updated_at) >= sevenDaysAgo).length || 0;
+
+      // Fetch document metrics
+      const { data: documents } = await supabase
+        .from('documents')
+        .select('*');
+      
+      const totalDocuments = documents?.length || 0;
+      const pendingDocuments = documents?.filter(d => d.status === 'PENDING').length || 0;
+      const servedDocuments = documents?.filter(d => d.status === 'SERVED').length || 0;
+      const failedDocuments = documents?.filter(d => d.status === 'FAILED').length || 0;
+      const newDocumentsLast30Days = documents?.filter(d => new Date(d.created_at) >= thirtyDaysAgo).length || 0;
+      const newDocumentsLast7Days = documents?.filter(d => new Date(d.created_at) >= sevenDaysAgo).length || 0;
+      const casesWithDocuments = new Set(documents?.map(d => d.case_id)).size || 0;
+      const complaintDocuments = documents?.filter(d => d.type === 'COMPLAINT').length || 0;
+      const summonsDocuments = documents?.filter(d => d.type === 'SUMMONS').length || 0;
+      const motionDocuments = documents?.filter(d => d.type === 'MOTION').length || 0;
+      const documentsUpdatedLast24h = documents?.filter(d => new Date(d.updated_at) >= twentyFourHoursAgo).length || 0;
+      const documentsUpdatedLast7Days = documents?.filter(d => new Date(d.updated_at) >= sevenDaysAgo).length || 0;
+
+      // Fetch contact metrics
+      const { data: contacts } = await supabase
+        .from('contacts')
+        .select('*');
+      
+      const totalContacts = contacts?.length || 0;
+      const clientContacts = contacts?.filter(c => c.type === 'CLIENT').length || 0;
+      const opposingPartyContacts = contacts?.filter(c => c.type === 'OPPOSING_PARTY').length || 0;
+      const attorneyContacts = contacts?.filter(c => c.type === 'ATTORNEY').length || 0;
+      const courtContacts = contacts?.filter(c => c.type === 'COURT').length || 0;
+      const newContactsLast30Days = contacts?.filter(c => new Date(c.created_at) >= thirtyDaysAgo).length || 0;
+      const newContactsLast7Days = contacts?.filter(c => new Date(c.created_at) >= sevenDaysAgo).length || 0;
+
+      // Calculate computed metrics
+      const totalActivityLast24h = casesUpdatedLast24h + hearingsUpdatedLast24h + documentsUpdatedLast24h;
+      const activeCasesPercentage = totalCases > 0 ? (activeCases / totalCases) * 100 : 0;
+      const pendingDocumentsPercentage = totalDocuments > 0 ? (pendingDocuments / totalDocuments) * 100 : 0;
+      const hearingsNext30DaysPercentage = totalHearings > 0 ? (hearingsNext30Days / totalHearings) * 100 : 0;
+
+      return {
+        // Cases
+        totalCases,
+        activeCases,
+        intakeCases,
+        closedCases,
+        newCasesLast30Days,
+        newCasesLast7Days,
+        avgCaseDurationDays,
+        
+        // Hearings
+        totalHearings,
+        upcomingHearings,
+        hearingsNext30Days,
+        hearingsNext7Days,
+        hearingsNext24Hours,
+        completedHearings,
+        missedHearings,
+        
+        // Documents
+        totalDocuments,
+        pendingDocuments,
+        servedDocuments,
+        failedDocuments,
+        newDocumentsLast30Days,
+        newDocumentsLast7Days,
+        casesWithDocuments,
+        complaintDocuments,
+        summonsDocuments,
+        motionDocuments,
+        
+        // Contacts
+        totalContacts,
+        clientContacts,
+        opposingPartyContacts,
+        attorneyContacts,
+        courtContacts,
+        newContactsLast30Days,
+        newContactsLast7Days,
+        
+        // Activity
+        casesUpdatedLast24h,
+        casesUpdatedLast7Days,
+        hearingsUpdatedLast24h,
+        hearingsUpdatedLast7Days,
+        documentsUpdatedLast24h,
+        documentsUpdatedLast7Days,
+        totalActivityLast24h,
+        
+        // Computed KPIs
+        activeCasesPercentage,
+        pendingDocumentsPercentage,
+        hearingsNext30DaysPercentage,
+        
+        // Metadata
+        lastRefreshed: new Date().toISOString(),
+      };
+    } catch (error) {
+      console.error('Error fetching direct metrics:', error);
+      return this.getEmptyMetrics();
+    }
   }
 
   /**

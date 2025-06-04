@@ -199,7 +199,7 @@ const CaseList: React.FC = () => {
                     },
                   ]}
                   data={paginatedCases}
-                  onRowClick={(row) => navigate(`/dashboard/cases/${row.caseId}`)}
+                  onRowClick={(row) => navigate(`/cases/${row.caseId}`)}
                 />
 
                 {totalPages > 1 && (
