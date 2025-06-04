@@ -37,7 +37,11 @@ export function useAttorneys() {
   useEffect(() => {
     async function fetchAttorneys() {
       try {
-        const res = await fetch('/api/tyler/attorneys');
+        // Use production URL if in development to bypass proxy issues
+        const apiUrl = import.meta.env.DEV 
+          ? 'https://wszllp.vercel.app/api/tyler/attorneys'
+          : '/api/tyler/attorneys';
+        const res = await fetch(apiUrl);
         
         // Check if response has content
         const contentType = res.headers.get('content-type');
@@ -85,7 +89,11 @@ export function usePaymentAccounts() {
   useEffect(() => {
     async function fetchAccounts() {
       try {
-        const res = await fetch('/api/tyler/payment-accounts');
+        // Use production URL if in development to bypass proxy issues
+        const apiUrl = import.meta.env.DEV 
+          ? 'https://wszllp.vercel.app/api/tyler/payment-accounts'
+          : '/api/tyler/payment-accounts';
+        const res = await fetch(apiUrl);
         
         // Check if response has content
         const contentType = res.headers.get('content-type');
