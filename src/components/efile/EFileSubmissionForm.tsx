@@ -1085,7 +1085,11 @@ const EFileSubmissionForm: React.FC = () => {
           numberTrimmed: formData.crossReferenceNumber?.trim()
         });
         
-        // Only add cross_references if BOTH type and number are provided and non-empty after trim
+        // Check if this case type requires a cross reference
+        const jointActionCaseTypes = ['237042', '237037', '201996', '201995']; // Joint Action case types
+        const requiresCrossReference = jointActionCaseTypes.includes(formData.caseType);
+        
+        // Only add cross_references if provided OR if required by case type
         const hasValidCrossRef = 
           formData.crossReferenceNumber && 
           formData.crossReferenceType && 
@@ -1097,6 +1101,13 @@ const EFileSubmissionForm: React.FC = () => {
           payload.cross_references = [{
             number: formData.crossReferenceNumber.trim(),
             code: formData.crossReferenceType.trim()
+          }];
+        } else if (requiresCrossReference && formData.filingType === 'initial') {
+          // For initial joint action filings, Tyler requires a case number cross reference
+          // Use the reference ID as the case number
+          payload.cross_references = [{
+            number: formData.referenceId,
+            code: '190860' // Case Number
           }];
         }
         
