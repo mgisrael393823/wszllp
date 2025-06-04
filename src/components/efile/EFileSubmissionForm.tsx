@@ -370,7 +370,10 @@ const EFileSubmissionForm: React.FC = () => {
         complaintFile: null,
         summonsFiles: [],
         affidavitFile: null,
-        files: null
+        files: null,
+        // Clear cross references if they contain invalid codes
+        crossReferenceType: (draftData.crossReferenceType === '190860' || draftData.crossReferenceType === '190864') ? '' : (draftData.crossReferenceType || ''),
+        crossReferenceNumber: (draftData.crossReferenceType === '190860' || draftData.crossReferenceType === '190864') ? '' : (draftData.crossReferenceNumber || '')
       });
       
       return; // Don't show the toast if loading from drafts page
@@ -1330,17 +1333,14 @@ const EFileSubmissionForm: React.FC = () => {
               name="crossReferenceType"
               label="Cross Reference Type"
               options={[
-                { value: '', label: 'Select a type (optional)' },
-                { value: '190860', label: 'Case Number' },
-                { value: '190861', label: 'Prior Case' },
-                { value: '190862', label: 'Related Case' },
-                { value: '190863', label: 'Appeal Case' },
-                { value: '190864', label: 'Cook County Attorney Code' }
+                { value: '', label: 'Select a type (optional)' }
               ]}
               value={formData.crossReferenceType}
               onChange={handleSelectChange('crossReferenceType')}
               error={errors.crossReferenceType}
               data-cy="cross-reference-type"
+              disabled
+              placeholder="Cross references temporarily disabled"
             />
             <Input
               name="crossReferenceNumber"
@@ -1348,9 +1348,10 @@ const EFileSubmissionForm: React.FC = () => {
               type="text"
               value={formData.crossReferenceNumber}
               onChange={handleInputChange}
-              placeholder="Enter reference number (optional)"
+              placeholder="Cross references temporarily disabled"
               error={errors.crossReferenceNumber}
               data-cy="cross-reference-number"
+              disabled
             />
           </div>
         </Card>
