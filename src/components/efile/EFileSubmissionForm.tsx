@@ -1085,29 +1085,34 @@ const EFileSubmissionForm: React.FC = () => {
           numberTrimmed: formData.crossReferenceNumber?.trim()
         });
         
-        // Only add cross_references if BOTH type and number are provided by user
-        const hasValidCrossRef = 
-          formData.crossReferenceNumber && 
-          formData.crossReferenceType && 
-          formData.crossReferenceNumber.trim() !== '' && 
-          formData.crossReferenceType.trim() !== '';
-          
-        if (hasValidCrossRef) {
-          payload.cross_references = [{
-            number: formData.crossReferenceNumber.trim(),
-            code: formData.crossReferenceType.trim()
-          }];
-        }
+        // Helper for generating placeholder
+        const makePlaceholder = () => Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit fallback
         
-        // MANDATORY: Add cross_references for Joint Action case types
+        // Handle cross references - ONE block only
         if (['237037', '237042', '201996', '201995'].includes(payload.case_type)) {
-          // Extract numeric part from reference_id or use fallback
-          const numericPart = payload.reference_id.replace(/\D/g, '').slice(-6) || '45602';
-          payload.cross_references = [{ 
-            number: numericPart, 
-            code: '190860' // Case Number
-          }];
-          console.log('Added mandatory cross reference for Joint Action:', numericPart);
+          // MANDATORY for Joint Action case types
+          // Priority: user value → digits from reference_id → random placeholder
+          const idDigits = payload.reference_id.replace(/\D/g, '').slice(-10); // up to 10 digits
+          const number =
+            (formData.crossReferenceNumber && /^\d{3,20}$/.test(formData.crossReferenceNumber))
+              ? formData.crossReferenceNumber.trim()
+              : idDigits || makePlaceholder();
+
+          payload.cross_references = [
+            { number, code: '190860' }  // ONE assignment only
+          ];
+          console.log('Cross-reference applied:', number);
+        } else if (formData.crossReferenceNumber && formData.crossReferenceType) {
+          // Optional cross references for other case types
+          const trimmedNumber = formData.crossReferenceNumber.trim();
+          const trimmedType = formData.crossReferenceType.trim();
+          
+          if (trimmedNumber && trimmedType) {
+            payload.cross_references = [{
+              number: trimmedNumber,
+              code: trimmedType
+            }];
+          }
         }
         
         // Log the payload for debugging
@@ -1330,8 +1335,8 @@ const EFileSubmissionForm: React.FC = () => {
           />
           {(formData.caseType === '237042' || formData.caseType === '237037' || 
             formData.caseType === '201996' || formData.caseType === '201995') && (
-            <p className="mt-1 text-sm text-yellow-600">
-              Note: Joint Action cases may require special handling. If you receive cross-reference errors, try using "Possession" case type instead.
+            <p className="mt-1 text-sm text-blue-600">
+              Note: Joint Action cases require a case reference number. If you don't provide one in the Cross References section below, a temporary reference will be auto-generated.
             </p>
           )}
         </div>
@@ -1360,7 +1365,15 @@ const EFileSubmissionForm: React.FC = () => {
         
         {/* Cross References Section - Optional */}
         <Card className="p-4 mb-4" data-cy="cross-references-card">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Case Cross References <span className="text-sm font-normal text-gray-500">(Optional)</span></h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">
+            Case Cross References 
+            <span className="text-sm font-normal text-gray-500 ml-2">
+              {(formData.caseType === '237042' || formData.caseType === '237037' || 
+                formData.caseType === '201996' || formData.caseType === '201995') 
+                ? '(Required for Joint Action - leave blank to auto-generate)'
+                : '(Optional)'}
+            </span>
+          </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Select
               name="crossReferenceType"
