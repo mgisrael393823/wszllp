@@ -25,15 +25,23 @@ export default async function handler(req, res) {
 
     // Check if credentials are available
     if (!USERNAME || !PASSWORD) {
-      console.log('Tyler API credentials not configured, using fallback data');
+      console.error('Tyler API credentials not configured');
       
-      // Use fallback data for development
-      const { fallbackAttorneys } = await import('./attorneys-fallback.js');
-      
+      // Return attorney ID format for manual entry
       return res.status(200).json({ 
-        attorneys: fallbackAttorneys,
+        attorneys: [
+          {
+            id: '448c583f-aaf7-43d2-8053-2b49c810b66f',
+            firmId: '5f41beaa-13d4-4328-b87b-5d7d852f9491',
+            barNumber: '',
+            firstName: '',
+            middleName: '',
+            lastName: '',
+            displayName: 'Enter Attorney ID Manually'
+          }
+        ],
         error: null,
-        count: fallbackAttorneys.length
+        count: 1
       });
     }
 
@@ -110,22 +118,13 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error('Error fetching attorneys:', error);
     
-    // In production, return fallback data to keep the form functional
-    if (process.env.NODE_ENV === 'production' || !USERNAME || !PASSWORD) {
-      console.log('Using fallback attorney data due to API error');
-      const { fallbackAttorneys } = await import('./attorneys-fallback.js');
-      
-      return res.status(200).json({ 
-        attorneys: fallbackAttorneys,
-        error: null,
-        count: fallbackAttorneys.length
-      });
-    }
+    // Always return the actual error with empty attorneys list
+    console.error('Tyler API error:', error.message);
     
-    // In development, return the actual error
-    res.status(500).json({ 
-      error: 'Failed to fetch attorneys',
-      message: error.message 
+    res.status(200).json({ 
+      attorneys: [],
+      error: `Unable to load attorneys: ${error.message}. Please contact support.`,
+      count: 0
     });
   }
 }
