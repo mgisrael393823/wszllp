@@ -1058,8 +1058,8 @@ const EFileSubmissionForm: React.FC = () => {
           }] : [])
         ] : undefined;
 
-        // Create a properly typed submission payload
-        const payload: EFileSubmission = {
+        // Create a properly typed submission payload WITHOUT cross_references
+        const payload: any = {
           reference_id: formData.referenceId,
           jurisdiction: ENHANCED_EFILING_PHASE_B ? formData.jurisdictionCode! : `${formData.county}:cvd1`,
           case_category: '7', // Category code for evictions
@@ -1075,8 +1075,25 @@ const EFileSubmissionForm: React.FC = () => {
           is_initial_filing: formData.filingType === 'initial'
         };
         
-        // Only add cross_references if BOTH type and number are provided
-        if (formData.crossReferenceNumber?.trim() && formData.crossReferenceType?.trim()) {
+        // Debug cross reference values
+        console.log('Cross Reference Debug:', {
+          type: formData.crossReferenceType,
+          typeLength: formData.crossReferenceType?.length,
+          number: formData.crossReferenceNumber,
+          numberLength: formData.crossReferenceNumber?.length,
+          typeTrimmed: formData.crossReferenceType?.trim(),
+          numberTrimmed: formData.crossReferenceNumber?.trim()
+        });
+        
+        // Only add cross_references if BOTH type and number are provided and non-empty after trim
+        const hasValidCrossRef = 
+          formData.crossReferenceNumber && 
+          formData.crossReferenceType && 
+          formData.crossReferenceNumber.trim() !== '' && 
+          formData.crossReferenceType.trim() !== '' &&
+          formData.crossReferenceType !== ''; // Make sure it's not the empty option
+          
+        if (hasValidCrossRef) {
           payload.cross_references = [{
             number: formData.crossReferenceNumber.trim(),
             code: formData.crossReferenceType.trim()
@@ -1085,6 +1102,7 @@ const EFileSubmissionForm: React.FC = () => {
         
         // Log the payload for debugging
         console.log('E-File Submission Payload:', JSON.stringify(payload, null, 2));
+        console.log('Cross references in payload:', payload.cross_references);
         
         // Add audit log entry for submission attempt
         if (state.userPermissions.includes('efile:submit')) {
