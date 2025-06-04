@@ -91,7 +91,8 @@ export async function ensureAuth(
   console.info('[E-File Auth] Token expired or missing, re-authenticating...');
   
   // If credentials are available (dev environment), use them directly
-  if (username && password) {
+  // Check for actual values, not just truthy (empty strings are truthy)
+  if (username && password && username.length > 0 && password.length > 0) {
     const token = await authenticate(username, password);
     const expiry = Date.now() + 60 * 60 * 1000;
     dispatch({ type: 'SET_TOKEN', token, expires: expiry });
