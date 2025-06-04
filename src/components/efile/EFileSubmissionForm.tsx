@@ -358,19 +358,58 @@ const EFileSubmissionForm: React.FC = () => {
   
   // Check for saved drafts when component mounts
   useEffect(() => {
-    // Get the most recent draft, if any
-    const drafts = Object.values(state.drafts).sort((a, b) => 
-      new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime()
-    );
+    // Check localStorage for drafts
+    const savedDrafts = JSON.parse(localStorage.getItem('efileDrafts') || '[]');
     
-    if (drafts.length > 0) {
-      const latestDraft = drafts[0];
+    if (savedDrafts.length > 0) {
+      const latestDraft = savedDrafts[savedDrafts.length - 1];
+      
+      // Create a div element for the toast action
+      const actionDiv = document.createElement('div');
+      actionDiv.innerHTML = `
+        <button 
+          class="ml-2 text-sm font-medium text-blue-600 hover:text-blue-500 underline"
+          onclick="window.loadEfileDraft = true;"
+        >
+          Load Draft
+        </button>
+      `;
+      
       addToast({
         type: 'info',
         title: 'Draft Available',
-        message: `You have a saved draft from ${new Date(latestDraft.savedAt).toLocaleString()}. Would you like to restore it?`,
+        message: `You have a saved draft from ${new Date(latestDraft.createdAt).toLocaleString()}.`,
         duration: 10000
       });
+      
+      // Check if user clicked load draft
+      const checkInterval = setInterval(() => {
+        if ((window as any).loadEfileDraft) {
+          clearInterval(checkInterval);
+          delete (window as any).loadEfileDraft;
+          
+          // Load the draft data
+          const draftData = latestDraft.data;
+          setFormData({
+            ...draftData,
+            // Reconstruct file objects (note: actual file data is lost, user will need to re-upload)
+            complaintFile: null,
+            summonsFiles: [],
+            affidavitFile: null,
+            files: null
+          });
+          
+          addToast({
+            type: 'success',
+            title: 'Draft Loaded',
+            message: 'Draft loaded successfully. Please re-upload any files.',
+            duration: 5000
+          });
+        }
+      }, 100);
+      
+      // Clear interval after 10 seconds
+      setTimeout(() => clearInterval(checkInterval), 10000);
     }
   }, []);
 
@@ -1130,6 +1169,90 @@ const EFileSubmissionForm: React.FC = () => {
     }
   };
 
+  const handleSaveDraft = () => {
+    try {
+      // Create a draft ID
+      const draftId = uuidv4();
+      
+      // Collect all files for the draft
+      const draftFiles: any[] = [];
+      if (formData.complaintFile) {
+        draftFiles.push({
+          id: uuidv4(),
+          name: formData.complaintFile.name,
+          size: formData.complaintFile.size,
+          type: formData.complaintFile.type
+        });
+      }
+      formData.summonsFiles.forEach(file => {
+        draftFiles.push({
+          id: uuidv4(),
+          name: file.name,
+          size: file.size,
+          type: file.type
+        });
+      });
+      if (formData.affidavitFile) {
+        draftFiles.push({
+          id: uuidv4(),
+          name: formData.affidavitFile.name,
+          size: formData.affidavitFile.size,
+          type: formData.affidavitFile.type
+        });
+      }
+      
+      // Save the entire form data as a draft
+      const draftData = {
+        ...formData,
+        files: draftFiles,
+        savedAt: new Date().toISOString()
+      };
+      
+      // Save to localStorage
+      const existingDrafts = JSON.parse(localStorage.getItem('efileDrafts') || '[]');
+      existingDrafts.push({
+        id: draftId,
+        data: draftData,
+        createdAt: new Date().toISOString()
+      });
+      
+      // Keep only the last 5 drafts
+      if (existingDrafts.length > 5) {
+        existingDrafts.shift();
+      }
+      
+      localStorage.setItem('efileDrafts', JSON.stringify(existingDrafts));
+      
+      // Show success message
+      addToast({
+        type: 'success',
+        title: 'Draft Saved',
+        message: 'Your e-filing draft has been saved successfully.',
+        duration: 3000
+      });
+      
+      // Also save to context if available
+      dispatch({
+        type: 'SAVE_DRAFT',
+        draft: {
+          draftId,
+          formData: draftData,
+          savedAt: new Date().toISOString(),
+          caseId: formData.existingCaseNumber || formData.referenceId,
+          autoSaved: false
+        }
+      });
+    } catch (error) {
+      console.error('Error saving draft:', error);
+      addToast({
+        type: 'error',
+        title: 'Save Failed',
+        message: 'Failed to save draft. Please try again.',
+        duration: 5000
+      });
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-6">
         <Select
@@ -1219,7 +1342,8 @@ const EFileSubmissionForm: React.FC = () => {
                 { value: '190860', label: 'Case Number' },
                 { value: '190861', label: 'Prior Case' },
                 { value: '190862', label: 'Related Case' },
-                { value: '190863', label: 'Appeal Case' }
+                { value: '190863', label: 'Appeal Case' },
+                { value: '190864', label: 'Cook County Attorney Code' }
               ]}
               value={formData.crossReferenceType}
               onChange={handleSelectChange('crossReferenceType')}
@@ -1741,7 +1865,7 @@ const EFileSubmissionForm: React.FC = () => {
             {errors.affidavitFile && <p className="mt-1 text-sm text-error-600">{errors.affidavitFile}</p>}
           </div>
         </Card>
-        <div className="mt-6">
+        <div className="mt-6 space-y-3">
           <Button type="submit" variant="primary" fullWidth disabled={isSubmitting || isSavingCase}>
             {isSubmitting ? (
               <span className="inline-flex items-center">
@@ -1762,6 +1886,15 @@ const EFileSubmissionForm: React.FC = () => {
             ) : (
               'Submit eFile Batch'
             )}
+          </Button>
+          <Button 
+            type="button" 
+            variant="secondary" 
+            fullWidth 
+            onClick={handleSaveDraft}
+            disabled={isSubmitting || isSavingCase}
+          >
+            Save as Draft
           </Button>
         </div>
     </form>
