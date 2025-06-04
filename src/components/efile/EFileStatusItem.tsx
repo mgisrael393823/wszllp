@@ -17,15 +17,26 @@ const EFileStatusItem: React.FC<Props> = ({ envelopeId }) => {
   const info = state.envelopes[envelopeId];
   const lastStatus = useRef(info.status);
 
-  const { data } = useQuery({
+  const { data, error } = useQuery({
     queryKey: ['efile-status', envelopeId],
     queryFn: () => getFilingStatus(envelopeId, state.authToken as string),
-    enabled: !!state.authToken,
-    refetchInterval: data => (data?.item.filings?.some(f => f.status !== 'submitting') ? false : 5000),
+    enabled: !!state.authToken && !!envelopeId,
+    refetchInterval: data => (data?.item?.filings?.some(f => f.status !== 'submitting') ? false : 5000),
+    retry: 2,
+    onError: (err) => {
+      console.error('Error fetching filing status:', err);
+      // Only show error for external filings that aren't found
+      if (info.caseId?.startsWith('external-')) {
+        addToast({
+          type: 'error',
+          message: `Filing ${envelopeId} not found. Please check the envelope ID.`,
+        });
+      }
+    }
   });
 
   useEffect(() => {
-    if (data) {
+    if (data?.item?.filings?.[0]) {
       const filing = data.item.filings[0];
       
       // Update status in context
@@ -67,7 +78,7 @@ const EFileStatusItem: React.FC<Props> = ({ envelopeId }) => {
     }
   }, [data, dispatch, envelopeId, addToast]);
 
-  const status = data?.item.filings[0].status || info.status;
+  const status = data?.item?.filings?.[0]?.status || info.status;
 
   return (
     <li className="mt-2 text-sm text-gray-700">
