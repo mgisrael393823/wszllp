@@ -827,11 +827,7 @@ const EFileSubmissionForm: React.FC = () => {
       newErrors.complaintFile = 'Please upload the eviction complaint';
       isValid = false;
     }
-    if (formData.summonsFiles.length === 0) {
-      newErrors.summonsFiles = 'Please upload a summons';
-      isValid = false;
-    }
-
+    // Summons is optional for all case types
     // Affidavit is optional for all case types
     
     // Cross reference validation for user input
