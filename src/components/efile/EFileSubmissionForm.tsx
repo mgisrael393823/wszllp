@@ -992,27 +992,27 @@ const EFileSubmissionForm: React.FC = () => {
           switch (formData.caseType) {
             case '237042': // Residential Joint Action Jury
             case '237037': // Residential Joint Action Non-Jury
-              filingCode = '174403';
+              filingCode = TYLER_CONFIG.FILING_CODES.COMPLAINT.RESIDENTIAL_JOINT;
               description = 'Complaint / Petition - Eviction - Residential - Joint Action';
               break;
             case '201996': // Commercial Joint Action Jury
             case '201995': // Commercial Joint Action Non-Jury
-              filingCode = '174400'; // Commercial Joint Action code
+              filingCode = TYLER_CONFIG.FILING_CODES.COMPLAINT.COMMERCIAL_JOINT;
               description = 'Complaint / Petition - Eviction - Commercial - Joint Action';
               break;
             case '237041': // Residential Possession Jury
             case '237036': // Residential Possession Non-Jury
-              filingCode = '174402'; // Residential Possession code
+              filingCode = TYLER_CONFIG.FILING_CODES.COMPLAINT.RESIDENTIAL_POSSESSION;
               description = 'Complaint / Petition - Eviction - Residential - Possession';
               break;
             case '201992': // Commercial Possession Jury
             case '201991': // Commercial Possession Non-Jury
-              filingCode = '174399'; // Commercial Possession code
+              filingCode = TYLER_CONFIG.FILING_CODES.COMPLAINT.COMMERCIAL_POSSESSION;
               description = 'Complaint / Petition - Eviction - Commercial - Possession';
               break;
             default:
               // Fallback to residential joint action
-              filingCode = '174403';
+              filingCode = TYLER_CONFIG.FILING_CODES.COMPLAINT.RESIDENTIAL_JOINT;
               description = 'Complaint / Petition - Eviction - Residential - Joint Action';
           }
           
@@ -1022,7 +1022,7 @@ const EFileSubmissionForm: React.FC = () => {
             description: description,
             file: `base64://${complaintB64}`,
             file_name: formData.complaintFile.name,
-            doc_type: '189705'
+            doc_type: TYLER_CONFIG.DOC_TYPE
           };
           
           // TEMPORARILY REMOVED: optional_services due to Tyler API error
@@ -1036,11 +1036,11 @@ const EFileSubmissionForm: React.FC = () => {
         for (const summonsFile of formData.summonsFiles) {
           const summonsB64 = await fileToBase64(summonsFile);
           files.push({
-            code: '189495',
+            code: TYLER_CONFIG.FILING_CODES.SUMMONS,
             description: 'Summons - Issued And Returnable',
             file: `base64://${summonsB64}`,
             file_name: summonsFile.name,
-            doc_type: '189705'
+            doc_type: TYLER_CONFIG.DOC_TYPE
           });
         }
         
@@ -1048,11 +1048,11 @@ const EFileSubmissionForm: React.FC = () => {
         if (formData.affidavitFile) {
           const affidavitB64 = await fileToBase64(formData.affidavitFile);
           files.push({
-            code: '189259',
+            code: TYLER_CONFIG.FILING_CODES.AFFIDAVIT,
             description: 'Affidavit Filed',
             file: `base64://${affidavitB64}`,
             file_name: formData.affidavitFile.name,
-            doc_type: '189705'
+            doc_type: TYLER_CONFIG.DOC_TYPE
           });
         }
         
@@ -1115,7 +1115,7 @@ const EFileSubmissionForm: React.FC = () => {
         const payload: any = {
           reference_id: formData.referenceId,
           jurisdiction: ENHANCED_EFILING_PHASE_B ? formData.jurisdictionCode! : `${formData.county}:cvd1`,
-          case_category: '7', // Category code for evictions
+          case_category: TYLER_CONFIG.CASE_CATEGORY,
           case_type: formData.caseType,
           case_parties: caseParties,
           filings: files,
@@ -1169,6 +1169,12 @@ const EFileSubmissionForm: React.FC = () => {
         // Log the payload for debugging
         console.log('E-File Submission Payload:', JSON.stringify(payload, null, 2));
         console.log('Cross references in payload:', payload.cross_references);
+        
+        // Debug filing codes
+        console.log('Filing codes being sent:');
+        payload.filings.forEach((filing: any, index: number) => {
+          console.log(`Filing ${index + 1}: code="${filing.code}", description="${filing.description}"`);
+        });
         
         // Add audit log entry for submission attempt
         if (state.userPermissions.includes('efile:submit')) {
