@@ -976,9 +976,6 @@ const EFileSubmissionForm: React.FC = () => {
         // Process individual files into EFileDocument array
         const files: EFileDocument[] = [];
         
-        // Calculate quantity for optional services based on defendant count
-        const defendantCount = formData.defendants.length + (formData.includeUnknownOccupants ? 1 : 0);
-        
         // Process complaint file with case-type-specific filing codes
         if (formData.complaintFile) {
           const complaintB64 = await fileToBase64(formData.complaintFile);
@@ -1014,9 +1011,7 @@ const EFileSubmissionForm: React.FC = () => {
               description = 'Complaint / Petition - Eviction - Residential - Joint Action';
           }
           
-          // Only add optional services for Joint Action cases
-          const isJointAction = ['237042', '237037', '201996', '201995'].includes(formData.caseType);
-          
+          // Build the complaint filing document
           const fileDoc: any = {
             code: filingCode,
             description: description,
@@ -1025,13 +1020,9 @@ const EFileSubmissionForm: React.FC = () => {
             doc_type: '189705'
           };
           
-          // Add optional services only for Joint Action cases
-          if (isJointAction) {
-            fileDoc.optional_services = [{
-              quantity: defendantCount.toString(),
-              code: '282616'
-            }];
-          }
+          // TEMPORARILY REMOVED: optional_services due to Tyler API error
+          // The code '282616' is not valid for filing code '174403'
+          // TODO: Confirm correct optional service code with Tyler support
           
           files.push(fileDoc);
         }
