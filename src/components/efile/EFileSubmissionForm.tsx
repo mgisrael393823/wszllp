@@ -832,12 +832,7 @@ const EFileSubmissionForm: React.FC = () => {
       isValid = false;
     }
 
-    // Only require affidavit for Joint Action cases
-    const isJointAction = ['237037', '237042', '201996', '201995'].includes(formData.caseType);
-    if (isJointAction && !formData.affidavitFile) {
-      newErrors.affidavitFile = 'Please upload the affidavit (required for Joint Action cases)';
-      isValid = false;
-    }
+    // Affidavit is optional for all case types
     
     // Cross reference validation for user input
     if (formData.crossReferenceNumber?.trim() && 
