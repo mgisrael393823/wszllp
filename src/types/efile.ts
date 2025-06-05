@@ -13,7 +13,6 @@ export interface EFileDocument {
   file: string; // Base64 encoded file content
   file_name: string;
   doc_type: string;
-  optional_services?: OptionalService[]; // Optional services for the filing
 }
 
 export interface CrossReference {
@@ -36,10 +35,6 @@ export interface CaseParty {
   lead_attorney?: string;         // Lead attorney
 }
 
-export interface OptionalService {
-  quantity: string;               // Service quantity
-  code: string;                   // Service code
-}
 
 export interface EFileSubmission {
   reference_id: string;           // Client-generated unique ID
@@ -49,6 +44,7 @@ export interface EFileSubmission {
   case_parties?: CaseParty[];     // Phase A: Array of case parties
   filings: EFileDocument[];       // Array of documents to file
   filing_type?: string;           // Filing type ("EFile")
+  state: string;                  // State abbreviation
   payment_account_id: string;     // Payment account ID
   filing_attorney_id: string;     // Attorney ID
   filing_party_id: string;        // Party ID

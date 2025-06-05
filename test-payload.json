@@ -1,52 +1,70 @@
 {
-  "reference_id": "WSZ-TEST-1234567890",
-  "jurisdiction": "cook:cvd1",
-  "case_category": "7",
-  "case_type": "237037",
-  "case_parties": [
-    {
-      "id": "Party_25694092",
-      "type": "189138",
-      "business_name": "Test Property Management",
-      "is_business": "true",
-      "address_line_1": "123 Test St",
-      "address_line_2": "",
-      "city": "Chicago",
-      "state": "IL",
-      "zip_code": "60601",
-      "lead_attorney": "448c583f-aaf7-43d2-8053-2b49c810b66f"
-    },
-    {
-      "id": "Party_60273353",
-      "type": "189131",
-      "first_name": "Test",
-      "last_name": "Defendant",
-      "address_line_1": "456 Test Ave",
-      "address_line_2": "",
-      "city": "Chicago",
-      "state": "IL",
-      "zip_code": "60602",
-      "is_business": "false"
-    }
-  ],
-  "filings": [
-    {
-      "code": "174403",
-      "description": "Complaint / Petition - Eviction - Residential - Joint Action",
-      "file": "base64://JVBERi0xLjQKJeLjz9MKNCAwIG9iago8PC9GaWx0ZXIvRmxhdGVEZWNvZGUvTGVuZ3RoIDQ5Pj5zdHJlYW0KeJwr5HIK4TI2U",
-      "file_name": "test_complaint.pdf",
-      "doc_type": "189705",
-      "optional_services": [{
-        "quantity": "1",
-        "code": "282616"
-      }]
-    }
-  ],
-  "filing_type": "EFile",
-  "payment_account_id": "demo",
-  "filing_attorney_id": "448c583f-aaf7-43d2-8053-2b49c810b66f",
-  "filing_party_id": "Party_25694092",
-  "amount_in_controversy": "",
-  "show_amount_in_controversy": "false",
-  "is_initial_filing": true
+  "data": {
+    "reference_id": "DRAFT386392",
+    "jurisdiction": "cook:cvd1",
+    "case_category": "7",
+    "case_type": "237037",
+    "case_parties": [
+      {
+        "id": "Party_653222202",
+        "type": "189138",
+        "is_business": "false",
+        "first_name": "michael",
+        "last_name": "israel",
+        "address_line_1": "943 N Kingsbury St",
+        "city": "Chicago",
+        "state": "IL",
+        "zip_code": "60610",
+        "phone_number": "8479242888",
+        "email": "misrael00@gmail.com",
+        "lead_attorney": "81d6ab59-3c7b-4e2c-8ed6-da4148d6353c"
+      },
+      {
+        "id": "Party_295395702",
+        "type": "189131",
+        "is_business": "false",
+        "first_name": "michael",
+        "last_name": "israel",
+        "address_line_1": "943 N Kingsbury St",
+        "city": "Chicago",
+        "state": "IL",
+        "zip_code": "60610",
+        "phone_number": "8479242888",
+        "email": "misrael00@gmail.com"
+      }
+    ],
+    "cross_references": [
+      { "number": "44113", "code": "190860" }
+    ],
+    "filings": [
+      {
+        "code": "174403",
+        "description": "Complaint / Petition - Eviction - Residential - Joint Action",
+        "file": "base64://<BASE64_ENCODED_COMPLAINT_PDF>",
+        "file_name": "Eviction_Complaint.pdf",
+        "doc_type": "189705"
+      },
+      {
+        "code": "189495",
+        "description": "Summons - Issued And Returnable",
+        "file": "base64://<BASE64_ENCODED_SUMMONS_PDF>",
+        "file_name": "Summons.pdf",
+        "doc_type": "189705"
+      },
+      {
+        "code": "189259",
+        "description": "Affidavit Filed",
+        "file": "base64://<BASE64_ENCODED_AFFIDAVIT_PDF>",
+        "file_name": "Affidavit.pdf",
+        "doc_type": "189705"
+      }
+    ],
+    "filing_type": "EFile",
+    "state": "il",
+    "filing_attorney_id": "81d6ab59-3c7b-4e2c-8ed6-da4148d6353c",
+    "filing_party_id": "Party_653222202",
+    "payment_account_id": "a04b9fd2-ab8f-473c-a080-78857520336b",
+    "amount_in_controversy": "1500",
+    "show_amount_in_controversy": "true"
+  }
 }

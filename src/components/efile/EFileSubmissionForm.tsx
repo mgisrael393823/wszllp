@@ -7,12 +7,14 @@ import { useToast } from '@/context/ToastContext';
 import { useAuth } from '@/context/AuthContext';
 import { ensureAuth, fileToBase64, submitFiling, validateFile } from '@/utils/efile';
 import { EFileSubmission, EFileDocument } from '@/types/efile';
+import { SubmissionError, mapMessageCode } from '@/utils/efile';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
 import { ENHANCED_EFILING_PHASE_A, ENHANCED_EFILING_PHASE_B } from '@/config/features';
 import { JURISDICTIONS, type Jurisdiction } from '@/config/jurisdictions';
+import { TYLER_CONFIG } from '@/config/tyler-api';
 
 interface PaymentAccount { 
   id: string; 
@@ -491,14 +493,20 @@ const EFileSubmissionForm: React.FC = () => {
     },
     onError: err => {
       console.error(err);
-      
+
+      let message = err instanceof Error ? err.message : 'Submission failed';
+
+      if (err instanceof SubmissionError) {
+        message = mapMessageCode(err.code ?? 0) || message;
+      }
+
       // Add to system notifications
       dataDispatch({
         type: 'ADD_NOTIFICATION',
         payload: {
           notificationId: uuidv4(),
           title: 'Filing error',
-          message: err instanceof Error ? err.message : 'Submission failed',
+          message,
           type: 'System',
           priority: 'High',
           isRead: false,
@@ -508,12 +516,11 @@ const EFileSubmissionForm: React.FC = () => {
           updatedAt: new Date().toISOString(),
         },
       });
-      
-      // Show error toast
+
       addToast({
         type: 'error',
         title: 'Filing Error',
-        message: err instanceof Error ? err.message : 'Submission failed. Please try again or contact support.',
+        message,
         duration: 8000
       });
     },
@@ -826,8 +833,15 @@ const EFileSubmissionForm: React.FC = () => {
       newErrors.complaintFile = 'Please upload the eviction complaint';
       isValid = false;
     }
-    // Summons and Affidavit are now optional
-    // Only validate if one is provided but not the other
+    if (formData.summonsFiles.length === 0) {
+      newErrors.summonsFiles = 'Please upload a summons';
+      isValid = false;
+    }
+
+    if (!formData.affidavitFile) {
+      newErrors.affidavitFile = 'Please upload the affidavit';
+      isValid = false;
+    }
     
     // Cross reference validation for user input
     if (formData.crossReferenceNumber?.trim() && 
@@ -983,41 +997,40 @@ const EFileSubmissionForm: React.FC = () => {
           // Determine filing code and description based on case type
           let filingCode: string;
           let description: string;
-          
+
           switch (formData.caseType) {
             case '237042': // Residential Joint Action Jury
             case '237037': // Residential Joint Action Non-Jury
-              filingCode = '174403';
+              filingCode = TYLER_CONFIG.FILING_CODES.COMPLAINT.RESIDENTIAL_JOINT;
               description = 'Complaint / Petition - Eviction - Residential - Joint Action';
               break;
             case '201996': // Commercial Joint Action Jury
             case '201995': // Commercial Joint Action Non-Jury
-              filingCode = '174400'; // Commercial Joint Action code
+              filingCode = TYLER_CONFIG.FILING_CODES.COMPLAINT.COMMERCIAL_JOINT;
               description = 'Complaint / Petition - Eviction - Commercial - Joint Action';
               break;
             case '237041': // Residential Possession Jury
             case '237036': // Residential Possession Non-Jury
-              filingCode = '174402'; // Residential Possession code
+              filingCode = TYLER_CONFIG.FILING_CODES.COMPLAINT.RESIDENTIAL_POSSESSION;
               description = 'Complaint / Petition - Eviction - Residential - Possession';
               break;
             case '201992': // Commercial Possession Jury
             case '201991': // Commercial Possession Non-Jury
-              filingCode = '174399'; // Commercial Possession code
+              filingCode = TYLER_CONFIG.FILING_CODES.COMPLAINT.COMMERCIAL_POSSESSION;
               description = 'Complaint / Petition - Eviction - Commercial - Possession';
               break;
             default:
-              // Fallback to residential joint action
-              filingCode = '174403';
+              filingCode = TYLER_CONFIG.FILING_CODES.COMPLAINT.RESIDENTIAL_JOINT;
               description = 'Complaint / Petition - Eviction - Residential - Joint Action';
           }
           
           // Build the complaint filing document
           const fileDoc: any = {
             code: filingCode,
-            description: description,
+            description,
             file: `base64://${complaintB64}`,
             file_name: formData.complaintFile.name,
-            doc_type: '189705'
+            doc_type: TYLER_CONFIG.DOC_TYPE
           };
           
           // TEMPORARILY REMOVED: optional_services due to Tyler API error
@@ -1027,16 +1040,16 @@ const EFileSubmissionForm: React.FC = () => {
           files.push(fileDoc);
         }
         
-        // Process summons files (multiple)
-        for (let i = 0; i < formData.summonsFiles.length; i++) {
-          const summonsFile = formData.summonsFiles[i];
+        // Process a single summons file
+        if (formData.summonsFiles.length > 0) {
+          const summonsFile = formData.summonsFiles[0];
           const summonsB64 = await fileToBase64(summonsFile);
           files.push({
-            code: '189495',
+            code: TYLER_CONFIG.FILING_CODES.SUMMONS,
             description: 'Summons - Issued And Returnable',
             file: `base64://${summonsB64}`,
             file_name: summonsFile.name,
-            doc_type: '189705'
+            doc_type: TYLER_CONFIG.DOC_TYPE
           });
         }
         
@@ -1044,11 +1057,11 @@ const EFileSubmissionForm: React.FC = () => {
         if (formData.affidavitFile) {
           const affidavitB64 = await fileToBase64(formData.affidavitFile);
           files.push({
-            code: '189259',
+            code: TYLER_CONFIG.FILING_CODES.AFFIDAVIT,
             description: 'Affidavit Filed',
             file: `base64://${affidavitB64}`,
             file_name: formData.affidavitFile.name,
-            doc_type: '189705'
+            doc_type: TYLER_CONFIG.DOC_TYPE
           });
         }
         
@@ -1071,6 +1084,8 @@ const EFileSubmissionForm: React.FC = () => {
             city: formData.petitioner.city || '',
             state: formData.petitioner.state || '',
             zip_code: formData.petitioner.zipCode || '',
+            phone_number: '8479242888',
+            email: 'misrael00@gmail.com',
             lead_attorney: formData.petitioner.leadAttorneyId
           },
           // Map all defendants
@@ -1084,7 +1099,9 @@ const EFileSubmissionForm: React.FC = () => {
             city: defendant.city || '',
             state: defendant.state || '',
             zip_code: defendant.zipCode || '',
-            is_business: 'false'
+            is_business: 'false',
+            phone_number: '8479242888',
+            email: 'misrael00@gmail.com'
           })),
           // Unknown Occupants (conditionally included as last defendant)
           ...(formData.includeUnknownOccupants ? [{
@@ -1097,25 +1114,27 @@ const EFileSubmissionForm: React.FC = () => {
             city: formData.defendants[0].city || '',
             state: formData.defendants[0].state || '',
             zip_code: formData.defendants[0].zipCode || '',
-            is_business: 'false'
+            is_business: 'false',
+            phone_number: '8479242888',
+            email: 'misrael00@gmail.com'
           }] : [])
         ] : undefined;
 
         // Create a properly typed submission payload WITHOUT cross_references
         const payload: any = {
           reference_id: formData.referenceId,
-          jurisdiction: ENHANCED_EFILING_PHASE_B ? formData.jurisdictionCode! : `${formData.county}:cvd1`,
-          case_category: '7', // Category code for evictions
+          jurisdiction: TYLER_CONFIG.JURISDICTION,
+          case_category: TYLER_CONFIG.CASE_CATEGORY,
           case_type: formData.caseType,
           case_parties: caseParties,
           filings: files,
           filing_type: 'EFile',
-          payment_account_id: ENHANCED_EFILING_PHASE_A ? (formData.paymentAccountId || 'demo') : 'demo',
-          filing_attorney_id: ENHANCED_EFILING_PHASE_A && formData.petitioner?.leadAttorneyId ? formData.petitioner.leadAttorneyId : formData.attorneyId,
+          state: TYLER_CONFIG.STATE,
+          payment_account_id: formData.paymentAccountId || TYLER_CONFIG.DEFAULT_PAYMENT_ACCOUNT,
+          filing_attorney_id: formData.petitioner?.leadAttorneyId || formData.attorneyId || TYLER_CONFIG.DEFAULT_ATTORNEY_ID,
           filing_party_id: 'Party_25694092',
-          amount_in_controversy: formData.amountInControversy || '',
-          show_amount_in_controversy: formData.showAmountInControversy ? 'true' : 'false',
-          is_initial_filing: formData.filingType === 'initial'
+          amount_in_controversy: formData.amountInControversy || '1500',
+          show_amount_in_controversy: formData.showAmountInControversy ? 'true' : 'false'
         };
         
         // Debug cross reference values
@@ -1135,20 +1154,17 @@ const EFileSubmissionForm: React.FC = () => {
         let crossRefNumber: string | undefined;
         let crossRefCode: string | undefined;
 
-        // 1️⃣ user input validation - only accept 3-20 digit numbers
-        if (formData.crossReferenceNumber?.trim() && 
-            formData.crossReferenceType?.trim()) {
-          const userNumber = formData.crossReferenceNumber.trim();
-          if (/^\d{3,20}$/.test(userNumber)) {
-            crossRefNumber = userNumber;
-            crossRefCode = formData.crossReferenceType.trim();
-          }
-        }
-
-        // 2️⃣ joint-action fallback - ALWAYS use 44113 (no random placeholders)
-        if (!crossRefNumber && jointActionTypes.includes(payload.case_type)) {
-          crossRefNumber = '44113';
-          crossRefCode = '190860'; // Case Number for Joint Actions
+        // Always include cross reference for joint action cases
+        if (jointActionTypes.includes(payload.case_type)) {
+          crossRefNumber = TYLER_CONFIG.ATTORNEY_CROSS_REF;
+          crossRefCode = TYLER_CONFIG.CROSS_REF_CODE;
+        } else if (
+          formData.crossReferenceNumber?.trim() &&
+          formData.crossReferenceType?.trim() &&
+          /^\d{3,20}$/.test(formData.crossReferenceNumber.trim())
+        ) {
+          crossRefNumber = formData.crossReferenceNumber.trim();
+          crossRefCode = formData.crossReferenceType.trim();
         }
 
         // 3️⃣ attach only when we have a valid number AND code
