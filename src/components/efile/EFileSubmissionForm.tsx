@@ -13,6 +13,7 @@ import Button from '../ui/Button';
 import Card from '../ui/Card';
 import { ENHANCED_EFILING_PHASE_A, ENHANCED_EFILING_PHASE_B } from '@/config/features';
 import { JURISDICTIONS, type Jurisdiction } from '@/config/jurisdictions';
+import { TYLER_CONFIG } from '@/config/tyler-api';
 
 interface PaymentAccount { 
   id: string; 
@@ -821,13 +822,22 @@ const EFileSubmissionForm: React.FC = () => {
       newErrors.attorneyId = 'Please enter an attorney ID';
       isValid = false;
     }
-    // File validation - require all three document types
+    // File validation - require documents based on case type
     if (!formData.complaintFile) {
       newErrors.complaintFile = 'Please upload the eviction complaint';
       isValid = false;
     }
-    // Summons and Affidavit are now optional
-    // Only validate if one is provided but not the other
+    if (formData.summonsFiles.length === 0) {
+      newErrors.summonsFiles = 'Please upload a summons';
+      isValid = false;
+    }
+
+    // Only require affidavit for Joint Action cases
+    const isJointAction = ['237037', '237042', '201996', '201995'].includes(formData.caseType);
+    if (isJointAction && !formData.affidavitFile) {
+      newErrors.affidavitFile = 'Please upload the affidavit (required for Joint Action cases)';
+      isValid = false;
+    }
     
     // Cross reference validation for user input
     if (formData.crossReferenceNumber?.trim() && 
@@ -1027,9 +1037,8 @@ const EFileSubmissionForm: React.FC = () => {
           files.push(fileDoc);
         }
         
-        // Process summons files (multiple)
-        for (let i = 0; i < formData.summonsFiles.length; i++) {
-          const summonsFile = formData.summonsFiles[i];
+        // Process all summons files
+        for (const summonsFile of formData.summonsFiles) {
           const summonsB64 = await fileToBase64(summonsFile);
           files.push({
             code: '189495',
@@ -1071,6 +1080,8 @@ const EFileSubmissionForm: React.FC = () => {
             city: formData.petitioner.city || '',
             state: formData.petitioner.state || '',
             zip_code: formData.petitioner.zipCode || '',
+            phone_number: '',
+            email: '',
             lead_attorney: formData.petitioner.leadAttorneyId
           },
           // Map all defendants
@@ -1084,7 +1095,9 @@ const EFileSubmissionForm: React.FC = () => {
             city: defendant.city || '',
             state: defendant.state || '',
             zip_code: defendant.zipCode || '',
-            is_business: 'false'
+            is_business: 'false',
+            phone_number: '',
+            email: ''
           })),
           // Unknown Occupants (conditionally included as last defendant)
           ...(formData.includeUnknownOccupants ? [{
@@ -1097,7 +1110,9 @@ const EFileSubmissionForm: React.FC = () => {
             city: formData.defendants[0].city || '',
             state: formData.defendants[0].state || '',
             zip_code: formData.defendants[0].zipCode || '',
-            is_business: 'false'
+            is_business: 'false',
+            phone_number: '',
+            email: ''
           }] : [])
         ] : undefined;
 
@@ -1135,20 +1150,19 @@ const EFileSubmissionForm: React.FC = () => {
         let crossRefNumber: string | undefined;
         let crossRefCode: string | undefined;
 
-        // 1️⃣ user input validation - only accept 3-20 digit numbers
-        if (formData.crossReferenceNumber?.trim() && 
-            formData.crossReferenceType?.trim()) {
-          const userNumber = formData.crossReferenceNumber.trim();
-          if (/^\d{3,20}$/.test(userNumber)) {
-            crossRefNumber = userNumber;
-            crossRefCode = formData.crossReferenceType.trim();
-          }
+        // Check user input FIRST (they can override the default)
+        if (
+          formData.crossReferenceNumber?.trim() &&
+          formData.crossReferenceType?.trim() &&
+          /^\d{3,20}$/.test(formData.crossReferenceNumber.trim())
+        ) {
+          crossRefNumber = formData.crossReferenceNumber.trim();
+          crossRefCode = formData.crossReferenceType.trim();
         }
-
-        // 2️⃣ joint-action fallback - ALWAYS use 44113 (no random placeholders)
-        if (!crossRefNumber && jointActionTypes.includes(payload.case_type)) {
-          crossRefNumber = '44113';
-          crossRefCode = '190860'; // Case Number for Joint Actions
+        // THEN fallback to 44113 for joint actions if no user input
+        else if (jointActionTypes.includes(payload.case_type)) {
+          crossRefNumber = TYLER_CONFIG.ATTORNEY_CROSS_REF;
+          crossRefCode = TYLER_CONFIG.CROSS_REF_CODE;
         }
 
         // 3️⃣ attach only when we have a valid number AND code
