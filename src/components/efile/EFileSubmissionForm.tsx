@@ -1167,9 +1167,31 @@ const EFileSubmissionForm: React.FC = () => {
         console.log('Cross references in payload:', payload.cross_references);
         
         // Debug filing codes
+        console.log('===== DEBUGGING FILING CODES =====');
+        console.log('Total filings:', payload.filings.length);
         console.log('Filing codes being sent:');
         payload.filings.forEach((filing: any, index: number) => {
-          console.log(`Filing ${index + 1}: code="${filing.code}", description="${filing.description}"`);
+          console.log(`Filing ${index + 1}:`, {
+            code: filing.code,
+            description: filing.description,
+            file_name: filing.file_name,
+            doc_type: filing.doc_type
+          });
+        });
+        
+        // Check for any filing with code "332"
+        const problematicFiling = payload.filings.find((f: any) => f.code === "332");
+        if (problematicFiling) {
+          console.error('❌ FOUND FILING WITH CODE 332:', problematicFiling);
+          console.error('This filing has file name:', problematicFiling.file_name);
+        }
+        
+        // Also log the formData to see what's being submitted
+        console.log('Form data case type:', formData.caseType);
+        console.log('Files being processed:', {
+          complaint: formData.complaintFile?.name,
+          summons: formData.summonsFiles.map(f => f.name),
+          affidavit: formData.affidavitFile?.name
         });
         
         // Add audit log entry for submission attempt
