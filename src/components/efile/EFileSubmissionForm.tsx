@@ -979,20 +979,61 @@ const EFileSubmissionForm: React.FC = () => {
         // Calculate quantity for optional services based on defendant count
         const defendantCount = formData.defendants.length + (formData.includeUnknownOccupants ? 1 : 0);
         
-        // Process complaint file
+        // Process complaint file with case-type-specific filing codes
         if (formData.complaintFile) {
           const complaintB64 = await fileToBase64(formData.complaintFile);
-          files.push({
-            code: '174403',
-            description: 'Complaint / Petition - Eviction - Residential - Joint Action',
+          
+          // Determine filing code and description based on case type
+          let filingCode: string;
+          let description: string;
+          
+          switch (formData.caseType) {
+            case '237042': // Residential Joint Action Jury
+            case '237037': // Residential Joint Action Non-Jury
+              filingCode = '174403';
+              description = 'Complaint / Petition - Eviction - Residential - Joint Action';
+              break;
+            case '201996': // Commercial Joint Action Jury
+            case '201995': // Commercial Joint Action Non-Jury
+              filingCode = '174400'; // Commercial Joint Action code
+              description = 'Complaint / Petition - Eviction - Commercial - Joint Action';
+              break;
+            case '237041': // Residential Possession Jury
+            case '237036': // Residential Possession Non-Jury
+              filingCode = '174402'; // Residential Possession code
+              description = 'Complaint / Petition - Eviction - Residential - Possession';
+              break;
+            case '201992': // Commercial Possession Jury
+            case '201991': // Commercial Possession Non-Jury
+              filingCode = '174399'; // Commercial Possession code
+              description = 'Complaint / Petition - Eviction - Commercial - Possession';
+              break;
+            default:
+              // Fallback to residential joint action
+              filingCode = '174403';
+              description = 'Complaint / Petition - Eviction - Residential - Joint Action';
+          }
+          
+          // Only add optional services for Joint Action cases
+          const isJointAction = ['237042', '237037', '201996', '201995'].includes(formData.caseType);
+          
+          const fileDoc: any = {
+            code: filingCode,
+            description: description,
             file: `base64://${complaintB64}`,
             file_name: formData.complaintFile.name,
-            doc_type: '189705',
-            optional_services: [{
+            doc_type: '189705'
+          };
+          
+          // Add optional services only for Joint Action cases
+          if (isJointAction) {
+            fileDoc.optional_services = [{
               quantity: defendantCount.toString(),
               code: '282616'
-            }]
-          });
+            }];
+          }
+          
+          files.push(fileDoc);
         }
         
         // Process summons files (multiple)
