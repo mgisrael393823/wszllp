@@ -829,7 +829,18 @@ const EFileSubmissionForm: React.FC = () => {
     // Summons and Affidavit are now optional
     // Only validate if one is provided but not the other
     
-    // Cross references are completely optional - no validation needed
+    // Cross reference validation for user input
+    if (formData.crossReferenceNumber?.trim() && 
+        !formData.crossReferenceType?.trim()) {
+      newErrors.crossReferenceType = 'Cross reference type is required when number is provided';
+      isValid = false;
+    }
+
+    if (formData.crossReferenceNumber?.trim() && 
+        !/^\d{3,20}$/.test(formData.crossReferenceNumber.trim())) {
+      newErrors.crossReferenceNumber = 'Cross reference number must be 3-20 digits';
+      isValid = false;
+    }
 
     // Phase A: Enhanced validations
     if (ENHANCED_EFILING_PHASE_A) {
@@ -1087,27 +1098,24 @@ const EFileSubmissionForm: React.FC = () => {
         
         // helpers -----------------------------------------------------------------
         const jointActionTypes = ['237037', '237042', '201996', '201995'];
-        const makePlaceholder = () => 
-          Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit
 
         // build cross_references *once* ------------------------------------------
         let crossRefNumber: string | undefined;
         let crossRefCode: string | undefined;
 
-        // 1️⃣ user input always wins
+        // 1️⃣ user input validation - only accept 3-20 digit numbers
         if (formData.crossReferenceNumber?.trim() && 
             formData.crossReferenceType?.trim()) {
-          // For user input, validate number format
-          if (/^\d{3,20}$/.test(formData.crossReferenceNumber.trim())) {
-            crossRefNumber = formData.crossReferenceNumber.trim();
+          const userNumber = formData.crossReferenceNumber.trim();
+          if (/^\d{3,20}$/.test(userNumber)) {
+            crossRefNumber = userNumber;
             crossRefCode = formData.crossReferenceType.trim();
           }
         }
 
-        // 2️⃣ joint-action fallback (only if no user input)
+        // 2️⃣ joint-action fallback - ALWAYS use 44113 (no random placeholders)
         if (!crossRefNumber && jointActionTypes.includes(payload.case_type)) {
-          const digitsFromRef = payload.reference_id.replace(/\D/g, '').slice(-10);
-          crossRefNumber = digitsFromRef || makePlaceholder();
+          crossRefNumber = '44113';
           crossRefCode = '190860'; // Case Number for Joint Actions
         }
 
