@@ -2,6 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Sandbox Banner Animations */
+@keyframes gradient-x {
+  0%, 100% {
+    transform: translateX(0%);
+  }
+  50% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-gradient-x {
+  animation: gradient-x 3s linear infinite;
+  background-size: 200% 100%;
+}
+
 /* Shadcn UI CSS Variables */
 @layer base {
   :root {

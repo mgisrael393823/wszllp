@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../ui/Button';
+import { isSandboxUser } from '../../utils/sandbox';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -39,8 +40,8 @@ const LoginPage: React.FC = () => {
         <div>
           <img
             className="mx-auto h-16 w-auto"
-            src="/wszmainlogo.webp"
-            alt="WSZLLP Logo"
+            src={email && isSandboxUser(email) ? "/sandbox/sandboxlogo.png" : "/wszmainlogo.webp"}
+            alt={email && isSandboxUser(email) ? "WSZLLP Sandbox" : "WSZLLP Logo"}
           />
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Sign in to your account

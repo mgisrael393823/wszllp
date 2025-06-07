@@ -3,6 +3,7 @@ import {
   Briefcase, FileText, Users, Settings,
   LayoutDashboard, HelpCircle, Calendar, Activity
 } from 'lucide-react';
+import { useSandboxMode } from '@/hooks/useSandboxMode';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -79,6 +80,9 @@ const Sidebar: React.FC<SidebarProps> = ({
   
   // Navigation structure
   const navStructure = createNavStructure();
+  
+  // Check if in sandbox mode
+  const { isSandbox } = useSandboxMode();
   
   // Helper function to determine if a nav item should be highlighted
   // based on current route (supports child routes)
@@ -224,14 +228,20 @@ const Sidebar: React.FC<SidebarProps> = ({
       {/* Sidebar header with logo and enhanced styling */}
       <div className="h-16 flex items-center justify-center px-6 border-b border-neutral-200/50 bg-gradient-to-r from-white/80 to-neutral-50/80">
         <img 
-          src="/wszmainlogo.webp" 
-          alt={(!isCollapsed || isHovering) ? "WSZLLP - Law Firm Management System" : "WSZLLP"}
+          src={isSandbox ? "/sandbox/sandboxlogo.png" : "/wszmainlogo.webp"} 
+          alt={(!isCollapsed || isHovering) ? "WSZLLP - Sandbox Environment" : "WSZLLP"}
           className={`w-auto object-contain transition-all duration-300 ease-in-out ${
             (!isCollapsed || isHovering) 
               ? "h-12 max-w-[240px]" 
               : "h-10 max-w-[56px]"
           }`}
           loading="eager"
+          onError={(e) => {
+            // Fallback to main logo if sandbox logo doesn't exist
+            if (isSandbox && e.currentTarget.src.includes('sandboxlogo')) {
+              e.currentTarget.src = '/wszmainlogo.webp';
+            }
+          }}
         />
       </div>
       
