@@ -36,6 +36,53 @@ describe('E-Filing Flows', () => {
       }
     }).as('getJurisdictions');
 
+    // Mock Tyler payment accounts API
+    cy.intercept('GET', '/api/tyler/payment-accounts', {
+      statusCode: 200,
+      headers: {
+        'content-type': 'application/json'
+      },
+      body: {
+        accounts: [
+          { id: '203155ef-615f-4b81-a439-d1753e1fdf3b', name: 'CZ&A 2 (VISA)' },
+          { id: '87323cee-d57e-4794-acb8-d899e64b8bbf', name: 'CZ&A (VISA)' },
+          { id: 'e2d6c4ff-581f-4dc6-89bd-e97556bc616a', name: 'WS LAW (CEZ) (VISA)' },
+          { id: '02391463-ccff-4953-99c9-7cb1a632aaa7', name: 'WS LAW (DES) (VISA)' }
+        ]
+      }
+    }).as('getPaymentAccounts');
+
+    // Mock Tyler attorneys API
+    cy.intercept('GET', '/api/tyler/attorneys', {
+      statusCode: 200,
+      headers: {
+        'content-type': 'application/json'
+      },
+      body: {
+        attorneys: [
+          { 
+            id: '448c583f-aaf7-43d2-8053-2b49c810b66f',
+            firmId: '5f41beaa-13d4-4328-b87b-5d7d852f9491',
+            barNumber: '1111111',
+            firstName: 'Sam',
+            middleName: '',
+            lastName: 'Smith',
+            displayName: 'Sam Smith - 1111111'
+          },
+          { 
+            id: '550c684f-bbf8-54e3-9154-3c5ad921c77g',
+            firmId: '5f41beaa-13d4-4328-b87b-5d7d852f9491',
+            barNumber: '2222222',
+            firstName: 'Jane',
+            middleName: 'M',
+            lastName: 'Doe',
+            displayName: 'Jane M Doe - 2222222'
+          }
+        ],
+        count: 2
+      }
+    }).as('getAttorneys');
+
     // Visit e-filing page
     cy.visit('/documents/efile');
     
@@ -91,6 +138,25 @@ describe('E-Filing Flows', () => {
       expect(payload).to.have.property('case_type', '174140');
       expect(payload).to.have.property('filing_attorney_id', 'ATT123');
       expect(payload.filings).to.be.an('array').that.is.not.empty;
+      
+      // Verify file upload format
+      const filing = payload.filings[0];
+      expect(filing).to.have.property('file');
+      expect(filing.file).to.match(/^base64:\/\//); // Should start with base64://
+      expect(filing).to.have.property('file_name');
+      expect(filing).to.have.property('doc_type', '189705');
+      
+      // Verify case parties include Unknown Occupants
+      expect(payload).to.have.property('case_parties');
+      expect(payload.case_parties).to.be.an('array').with.lengthOf.at.least(3);
+      
+      // Find Unknown Occupants in the case parties
+      const unknownOccupants = payload.case_parties.find(
+        party => party.first_name === 'All' && party.last_name === 'Unknown Occupants'
+      );
+      expect(unknownOccupants).to.exist;
+      expect(unknownOccupants.type).to.equal('189131'); // Defendant type code
+      expect(unknownOccupants.is_business).to.equal('false');
     });
   });
 
@@ -174,6 +240,45 @@ describe('E-Filing Flows', () => {
     
     // Verify the selection was made
     cy.get('[data-cy="jurisdiction-select"]').should('contain', 'Municipal Civil – District 3 (Rolling Meadows)');
+  });
+
+  it('should display Unknown Occupants as second defendant', () => {
+    // Fill in state to enable form
+    cy.contains('label', 'State or Jurisdiction').parent().find('button').click({ force: true });
+    cy.contains('[role="option"]', 'Illinois').click({ force: true });
+    
+    // Verify Unknown Occupants section is visible
+    cy.contains('Second Defendant (Automatically Included)').should('be.visible');
+    cy.contains('All Unknown Occupants').should('be.visible');
+    cy.contains('Same as primary defendant').should('be.visible');
+    cy.contains('"All Unknown Occupants" is automatically added as a second defendant').should('be.visible');
+  });
+
+  it('should show lead attorney dropdown and allow selection', () => {
+    // Fill in state to enable form
+    cy.contains('label', 'State or Jurisdiction').parent().find('button').click({ force: true });
+    cy.contains('[role="option"]', 'Illinois').click({ force: true });
+    
+    // Verify Lead Attorney dropdown is visible in petitioner section
+    cy.get('[data-cy="petitioner-card"]').within(() => {
+      cy.contains('Lead Attorney').should('be.visible');
+      
+      // Click on the lead attorney dropdown
+      cy.get('[data-cy="lead-attorney-select"]').click({ force: true });
+      
+      // Verify attorneys are loaded
+      cy.contains('[role="option"]', 'Sam Smith - 1111111').should('be.visible');
+      cy.contains('[role="option"]', 'Jane M Doe - 2222222').should('be.visible');
+      
+      // Select an attorney
+      cy.contains('[role="option"]', 'Jane M Doe - 2222222').click({ force: true });
+      
+      // Verify selection was made
+      cy.get('[data-cy="lead-attorney-select"]').should('contain', 'Jane M Doe - 2222222');
+      
+      // Verify "+ Add Attorney" button is visible
+      cy.contains('+ Add Attorney').should('be.visible');
+    });
   });
 
   it('should conditionally show/hide existing case number input based on filing type', () => {

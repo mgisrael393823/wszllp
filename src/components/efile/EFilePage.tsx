@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { EFileProvider } from '@/context/EFileContext';
+import { EFileProvider } from '../../context/EFileContext';
 import EFileSubmissionForm from './EFileSubmissionForm';
-import EFileStatusList from './EFileStatusList';
-import PageCard from '@/components/ui/PageCard';
+import EFileStatusListSimple from './EFileStatusListSimple';
+import EFileDrafts from './EFileDrafts';
+import PageCard from '../ui/PageCard';
 
 // Create with v5 API format
 const queryClient = new QueryClient({
@@ -27,8 +28,17 @@ console.log("EFilePage: Environment variables check:", {
 });
 
 const EFilePage: React.FC = () => {
-  // console.log('🔥 EFilePage mounted, env flags:', import.meta.env);
-  // return <h1 data-testid="efile-page-test">E-Filing Page Loaded</h1>;
+  const [formKey, setFormKey] = useState(0); // To force form re-render when loading draft
+
+  const handleLoadDraft = (draftData: any) => {
+    // Force form to re-render with new key
+    setFormKey(prev => prev + 1);
+    
+    // The form will load the draft data from localStorage on mount
+    const existingDrafts = JSON.parse(localStorage.getItem('efileDrafts') || '[]');
+    // Add the loaded draft as the most recent
+    localStorage.setItem('efileDraftsToLoad', JSON.stringify(draftData));
+  };
 
   const healthCheckButton = (
     <a
@@ -46,6 +56,17 @@ const EFilePage: React.FC = () => {
     <QueryClientProvider client={queryClient}>
       <EFileProvider>
         <div data-cy="efile-page" className="space-y-6">
+          {/* Saved Drafts Card */}
+          <PageCard
+            data-cy="efile-drafts"
+            title="Saved Drafts"
+            subtitle="Load a previously saved e-filing draft"
+            maxWidth="4xl"
+            withBackground={false}
+          >
+            <EFileDrafts onLoadDraft={handleLoadDraft} />
+          </PageCard>
+
           {/* Main E-Filing Card */}
           <PageCard
             data-cy="efile-form"
@@ -54,7 +75,7 @@ const EFilePage: React.FC = () => {
             primaryAction={healthCheckButton}
             maxWidth="4xl"
           >
-            <EFileSubmissionForm />
+            <EFileSubmissionForm key={formKey} />
           </PageCard>
 
           {/* Status List Card */}
@@ -65,7 +86,7 @@ const EFilePage: React.FC = () => {
             maxWidth="4xl"
             withBackground={false}
           >
-            <EFileStatusList />
+            <EFileStatusListSimple />
           </PageCard>
         </div>
       </EFileProvider>

@@ -149,7 +149,7 @@ const Modal: React.FC<ModalProps> = ({
             e.preventDefault();
           }
         }}
-        showCloseButton={!hideCloseButton}
+        hideCloseButton={hideCloseButton}
       >
         <DialogHeader className={cn(getHeaderStyles(), 'pb-2', headerClassName)}>
           {typeof title === 'string' ? (

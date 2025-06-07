@@ -1,0 +1,122 @@
+<#assign count = 1>
+<#list .data_model?keys as key>
+  <#if key?starts_with("party_first_") && .data_model[key]?has_content>
+    <#assign count = count + 1>
+  </#if>
+</#list>
+{
+  "data": {
+    "reference_id": "${reference_id}",
+    "jurisdiction": "cook:cvd1",
+    "case_category": "7",
+    "case_type": "${case_type_code}",
+    "case_parties": [
+      {
+        "id": "Party_25694092",
+        "type": "189138",
+        "business_name": "${business_name}",
+        "is_business": "true",
+        "lead_attorney": "6b2333a8-5fce-4237-a04b-da966f8c75e5"
+      },
+      {
+        "id": "Party_60273353",
+        "type": "189131",
+        "first_name": "${party_first_name1}",
+        "last_name": "${party_last_name1}",
+        "address_line_1": "${party_address_line_1}",
+        "address_line_2": "${party_address_line_2}",
+        "city": "${party_city}",
+        "state": "${party_state}",
+        "zip_code": "${party_zip_code}",
+        "is_business": "false"
+      },
+      {
+        "id": "Party_10518212",
+        "type": "189131",
+        "first_name": "All",
+        "last_name": "Unknown Occupants",
+        "address_line_1": "${party_address_line_1}",
+        "address_line_2": "${party_address_line_2}",
+        "city": "${party_city}",
+        "state": "${party_state}",
+        "zip_code": "${party_zip_code}",
+        "is_business": "false"
+      } ,
+      {
+        "id": "Party_10518209",
+        "type": "189131",
+        "first_name": "${party_first_name2}",
+        "last_name": "${party_last_name2}",
+        "address_line_1": "${party_address_line_1}",
+        "address_line_2": "${party_address_line_2}",
+        "city": "${party_city}",
+        "state": "${party_state}",
+        "zip_code": "${party_zip_code}",
+        "is_business": "false"
+      } ,
+{
+        "id": "Party_10518210",
+        "type": "189131",
+        "first_name": "${party_first_name3}",
+        "last_name": "${party_last_name3}",
+        "address_line_1": "${party_address_line_1}",
+        "address_line_2": "${party_address_line_2}",
+        "city": "${party_city}",
+        "state": "${party_state}",
+        "zip_code": "${party_zip_code}",
+        "is_business": "false"
+      } ,
+{
+        "id": "Party_10518211",
+        "type": "189131",
+        "first_name": "${party_first_name4}",
+        "last_name": "${party_last_name4}",
+        "address_line_1": "${party_address_line_1}",
+        "address_line_2": "${party_address_line_2}",
+        "city": "${party_city}",
+        "state": "${party_state}",
+        "zip_code": "${party_zip_code}",
+        "is_business": "false"
+      }
+    ],
+    "filings": [
+      {
+        "code": "${filing_code}",
+        "description": "Complaint / Petition - Eviction - Residential - Joint Action",
+        "file": "${petition_file}",
+        "file_name": "${petition_file_name}",
+        "doc_type": "189705",
+"optional_services": [{
+    "quantity": "${count}",
+    "code": "282616"
+}]
+      },
+      {
+        "code": "189495",
+        "description": "Summons - Issued And Returnable",
+        "file": "${certificate_file}",
+        "file_name": "${certificate_file_name}",
+        "doc_type": "189705"
+      },
+      {
+        "code": "189259",
+        "description": "Affidavit Filed",
+        "file": "${affidavit_file}",
+        "file_name": "${affidavit_file_name}",
+        "doc_type": "189705"
+      }
+    ],
+    "filing_type": "EFile",
+    "payment_account_id": "${payment_account_id}",
+    "filing_attorney_id": "6b2333a8-5fce-4237-a04b-da966f8c75e5",
+    "filing_party_id": "Party_25694092",
+    "amount_in_controversy": "${amount_in_controversy}",
+    "show_amount_in_controversy": "true",
+    "cross_references": [
+      {
+        "number": "45602",
+        "code": "190860"
+      }
+    ]
+  }
+}

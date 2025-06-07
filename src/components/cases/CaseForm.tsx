@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useData } from '../../context/DataContext';
 import { caseSchema } from '../../types/schema';
+import { supabase } from '../../lib/supabaseClient';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
@@ -22,8 +23,8 @@ const CaseForm: React.FC<CaseFormProps> = ({ isOpen, onClose, caseId }) => {
     plaintiff: '',
     defendant: '',
     address: '',
-    status: 'Intake',
-    intakeDate: new Date().toISOString().split('T')[0],
+    status: 'SPS NOT SERVED',
+    dateFiled: '',
     createdAt: '',
     updatedAt: '',
   };
@@ -36,8 +37,7 @@ const CaseForm: React.FC<CaseFormProps> = ({ isOpen, onClose, caseId }) => {
       if (existingCase) {
         // Format the date for the input field
         const formattedCase = {
-          ...existingCase,
-          intakeDate: new Date(existingCase.intakeDate).toISOString().split('T')[0]
+          ...existingCase
         };
         setFormData(formattedCase);
       }
@@ -71,49 +71,102 @@ const CaseForm: React.FC<CaseFormProps> = ({ isOpen, onClose, caseId }) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!validateForm()) return;
     
     const now = new Date().toISOString();
     
-    if (caseId) {
-      // Update existing case
-      dispatch({
-        type: 'UPDATE_CASE',
-        payload: {
-          ...formData,
-          updatedAt: now
-        }
-      });
-    } else {
-      // Create new case
-      dispatch({
-        type: 'ADD_CASE',
-        payload: {
-          ...formData,
-          caseId: uuidv4(),
-          createdAt: now,
-          updatedAt: now
-        }
-      });
+    try {
+      if (caseId) {
+        // Update existing case in Supabase
+        const { error } = await supabase
+          .from('cases')
+          .update({
+            plaintiff: formData.plaintiff,
+            defendant: formData.defendant,
+            address: formData.address,
+            status: formData.status,
+            dateFiled: formData.dateFiled || null,
+            updated_at: now
+          })
+          .eq('id', caseId);
+          
+        if (error) throw error;
+        
+        // Also update in local state
+        dispatch({
+          type: 'UPDATE_CASE',
+          payload: {
+            ...formData,
+            updatedAt: now
+          }
+        });
+      } else {
+        // Create new case in Supabase
+        const newCaseId = uuidv4();
+        
+        const { error } = await supabase
+          .from('cases')
+          .insert({
+            id: newCaseId,
+            plaintiff: formData.plaintiff,
+            defendant: formData.defendant,
+            address: formData.address,
+            status: formData.status,
+            dateFiled: formData.dateFiled || null,
+            created_at: now,
+            updated_at: now
+          });
+          
+        if (error) throw error;
+        
+        // Also add to local state
+        dispatch({
+          type: 'ADD_CASE',
+          payload: {
+            ...formData,
+            caseId: newCaseId,
+            createdAt: now,
+            updatedAt: now
+          }
+        });
+      }
+      
+      onClose();
+    } catch (error) {
+      console.error('Error saving case:', error);
+      alert('Failed to save case. Please try again.');
     }
-    
-    onClose();
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (caseId && confirm('Are you sure you want to delete this case? All related records will also be deleted.')) {
-      dispatch({ type: 'DELETE_CASE', payload: caseId });
-      onClose();
+      try {
+        // Delete from Supabase
+        const { error } = await supabase
+          .from('cases')
+          .delete()
+          .eq('id', caseId);
+          
+        if (error) throw error;
+        
+        // Also remove from local state
+        dispatch({ type: 'DELETE_CASE', payload: caseId });
+        onClose();
+      } catch (error) {
+        console.error('Error deleting case:', error);
+        alert('Failed to delete case. Please try again.');
+      }
     }
   };
 
   const statusOptions = [
-    { value: 'Intake', label: 'Intake' },
-    { value: 'Active', label: 'Active' },
-    { value: 'Closed', label: 'Closed' },
+    { value: 'SPS NOT SERVED', label: 'SPS NOT SERVED' },
+    { value: 'SPS PENDING', label: 'SPS PENDING' },
+    { value: 'SEND TO SPS', label: 'SEND TO SPS' },
+    { value: 'SPS SERVED', label: 'SPS SERVED' },
   ];
 
   return (
@@ -174,7 +227,7 @@ const CaseForm: React.FC<CaseFormProps> = ({ isOpen, onClose, caseId }) => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Select
-            label="Status"
+            label="Case Status"
             name="status"
             value={formData.status}
             onChange={handleChange}
@@ -184,13 +237,12 @@ const CaseForm: React.FC<CaseFormProps> = ({ isOpen, onClose, caseId }) => {
           />
           
           <Input
-            label="Intake Date"
-            name="intakeDate"
+            label="Date Filed"
+            name="dateFiled"
             type="date"
-            value={formData.intakeDate}
+            value={formData.dateFiled}
             onChange={handleChange}
-            required
-            error={formErrors.intakeDate}
+            error={formErrors.dateFiled}
           />
         </div>
       </form>

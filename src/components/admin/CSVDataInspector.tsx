@@ -28,25 +28,49 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
 
   // Column mapping options based on expected data
   const fieldOptions = [
-    { value: "caseId", label: "Case ID / File Number" },
-    { value: "plaintiff", label: "Plaintiff / Owner" },
-    { value: "defendant", label: "Defendant / Tenant" },
+    // Case fields (from caseSchema)
+    { value: "caseId", label: "Case ID" },
+    { value: "plaintiff", label: "Plaintiff" },
+    { value: "defendant", label: "Defendant" },
     { value: "address", label: "Property Address" },
-    { value: "filingDate", label: "Filing Date" },
     { value: "status", label: "Case Status" },
-    { value: "costs", label: "Costs / Fees" },
-    { value: "courtDate", label: "Court Date" },
-    { value: "judgmentAmount", label: "Judgment Amount" },
-    { value: "file", label: "File" },
-    { value: "fileId", label: "File ID" },
-    { value: "client", label: "Client" },
-    { value: "caseName", label: "Case Name" },
-    { value: "propertyAddress", label: "Property Address" },
-    { value: "balance", label: "Balance" },
+    { value: "dateFiled", label: "Date Filed" },
+    
+    // Contact fields (from contactSchema)
+    { value: "contactId", label: "Contact ID" },
+    { value: "name", label: "Contact Name" },
+    { value: "role", label: "Contact Role (Attorney/Paralegal/PM/Client/Other)" },
+    { value: "email", label: "Email" },
+    { value: "phone", label: "Phone" },
+    { value: "company", label: "Company" },
+    { value: "contactAddress", label: "Contact Address" },
     { value: "notes", label: "Notes" },
-    { value: "totalCost", label: "Total Cost" },
-    { value: "attorneyFee", label: "Attorney Fee" },
-    { value: "paymentStatus", label: "Payment Status" },
+    
+    // Hearing fields (from hearingSchema)
+    { value: "hearingId", label: "Hearing ID" },
+    { value: "courtName", label: "Court Name" },
+    { value: "hearingDate", label: "Hearing Date" },
+    { value: "outcome", label: "Hearing Outcome" },
+    
+    // Document fields (from documentSchema)
+    { value: "docId", label: "Document ID" },
+    { value: "type", label: "Document Type (Complaint/Summons/Affidavit/Motion/Order/Other)" },
+    { value: "fileURL", label: "File URL" },
+    { value: "serviceDate", label: "Service Date" },
+    
+    // Invoice fields (from invoiceSchema)
+    { value: "invoiceId", label: "Invoice ID" },
+    { value: "amount", label: "Amount" },
+    { value: "issueDate", label: "Issue Date" },
+    { value: "dueDate", label: "Due Date" },
+    { value: "paid", label: "Paid (true/false)" },
+    
+    // Service Log fields (from serviceLogSchema)
+    { value: "logId", label: "Service Log ID" },
+    { value: "method", label: "Service Method (Sheriff/SPS)" },
+    { value: "attemptDate", label: "Attempt Date" },
+    { value: "result", label: "Service Result (Success/Failed)" },
+    
     { value: "notUsed", label: "Not Used" },
   ];
 
@@ -65,31 +89,101 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
     reader.onload = (e) => {
       try {
         const csvContent = e.target?.result as string;
+        console.log('=== CSV FILE CONTENT ===');
+        console.log('Raw content length:', csvContent.length);
+        console.log('First 200 characters:', JSON.stringify(csvContent.substring(0, 200)));
+        console.log('Content preview:', csvContent.substring(0, 200));
         
+        // Function to handle parse results
+        const handleParseResults = (results: any) => {
+          if (results.errors.length > 0) {
+            setErrors(results.errors.map((err: any) => `Error: ${err.message} (row: ${err.row})`));
+          }
+          
+          const parsedHeaders = results.meta.fields || [];
+          console.log('=== PARSED HEADERS ===');
+          console.log('Raw headers array:', parsedHeaders);
+          console.log('Number of headers:', parsedHeaders.length);
+          parsedHeaders.forEach((header, index) => {
+            console.log(`Header ${index}:`, JSON.stringify(header));
+          });
+          
+          setHeaders(parsedHeaders);
+          
+          // Take a sample of the first 5 rows for preview
+          const previewData = results.data.slice(0, 5);
+          console.log('=== PREVIEW DATA ===');
+          console.log('Number of preview rows:', previewData.length);
+          if (previewData.length > 0) {
+            console.log('First row keys:', Object.keys(previewData[0]));
+            console.log('First row values:', previewData[0]);
+          }
+          
+          setDataPreview(previewData);
+          setFileData(results.data);
+            
+          // Detect file type based on column patterns
+          detectFileType(parsedHeaders, previewData);
+            
+          setLoading(false);
+        };
+        
+        // Enhanced delimiter detection
+        const firstLine = csvContent.split('\n')[0] || '';
+        console.log('First line for delimiter detection:', firstLine);
+        
+        let delimiter = ',';
+        
+        // Count potential delimiters outside of quoted strings
+        const commaCount = (firstLine.match(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/g) || []).length;
+        const semiCount = (firstLine.match(/;(?=(?:[^"]*"[^"]*")*[^"]*$)/g) || []).length;
+        const tabCount = (firstLine.match(/\t/g) || []).length;
+        
+        console.log('Delimiter counts:', { commaCount, semiCount, tabCount });
+        
+        if (semiCount > commaCount && semiCount > tabCount) {
+          delimiter = ';';
+        } else if (tabCount > commaCount && tabCount > semiCount) {
+          delimiter = '\t';
+        } else {
+          delimiter = ',';
+        }
+        
+        console.log('Selected delimiter:', delimiter);
+
         Papa.parse(csvContent, {
           header: true,
           skipEmptyLines: true,
-          complete: (results) => {
-            if (results.errors.length > 0) {
-              setErrors(results.errors.map(err => `Error: ${err.message} (row: ${err.row})`));
-            }
-            
-            const parsedHeaders = results.meta.fields || [];
-            setHeaders(parsedHeaders);
-            
-            // Take a sample of the first 5 rows for preview
-            const previewData = results.data.slice(0, 5);
-            setDataPreview(previewData);
-            setFileData(results.data);
-            
-            // Detect file type based on column patterns
-            detectFileType(parsedHeaders, previewData);
-            
-            setLoading(false);
+          delimiter: delimiter,
+          quoteChar: '"',
+          escapeChar: '"',
+          transformHeader: (header) => {
+            // Clean header by removing surrounding quotes and whitespace
+            return header.trim().replace(/^["']|["']$/g, '');
           },
-          error: (error) => {
-            setErrors([`Failed to parse CSV: ${error.message}`]);
-            setLoading(false);
+          complete: (results) => {
+            console.log('Parse results:', results);
+            console.log('Headers found:', results.meta.fields);
+            
+            // Check if parsing failed (only 1 column detected when we expect more)
+            const headers = results.meta.fields || [];
+            if (headers.length === 1 && headers[0] && (headers[0].includes(',') || headers[0].includes(';'))) {
+              console.log('Parsing failed, retrying with different settings');
+              // Parsing failed, try with auto-detection disabled
+              Papa.parse(csvContent, {
+                header: true,
+                skipEmptyLines: true,
+                delimiter: '',  // Let Papa auto-detect
+                quoteChar: '"',
+                escapeChar: '"',
+                transformHeader: (header) => {
+                  return header.trim().replace(/^["']|["']$/g, '');
+                },
+                complete: handleParseResults
+              });
+            } else {
+              handleParseResults(results);
+            }
           }
         });
       } catch (error) {
@@ -160,6 +254,12 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
       fileType = 'complaint';
     } else if (headers.some(h => h.toLowerCase().includes('court') || h.toLowerCase().includes('hearing'))) {
       fileType = 'hearing';
+    } else if (headers.some(h => h.toLowerCase().includes('email') || h.toLowerCase().includes('phone') || h.toLowerCase().includes('contact'))) {
+      fileType = 'contact';
+    } else if (headers.some(h => h.toLowerCase().includes('invoice') || h.toLowerCase().includes('amount') || h.toLowerCase().includes('paid'))) {
+      fileType = 'invoice';
+    } else if (headers.some(h => h.toLowerCase().includes('document') || h.toLowerCase().includes('file'))) {
+      fileType = 'document';
     }
     
     setFileType(fileType);
@@ -181,6 +281,55 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
           initialMappings[col] = 'costs';
         });
       }
+    } else if (fileType === 'contact') {
+      // Auto-map contact fields based on header names
+      headers.forEach(h => {
+        const lower = h.toLowerCase();
+        if (lower.includes('name') && !lower.includes('company')) initialMappings[h] = 'name';
+        if (lower.includes('email')) initialMappings[h] = 'email';
+        if (lower.includes('phone')) initialMappings[h] = 'phone';
+        if (lower.includes('company') || lower.includes('firm')) initialMappings[h] = 'company';
+        if (lower.includes('role') || lower.includes('title')) initialMappings[h] = 'role';
+        if (lower.includes('address')) initialMappings[h] = 'contactAddress';
+        if (lower.includes('note')) initialMappings[h] = 'notes';
+      });
+    } else if (fileType === 'complaint' || fileType === 'hearing') {
+      // Auto-map case/hearing fields
+      headers.forEach(h => {
+        const lower = h.toLowerCase();
+        if (lower.includes('case') && lower.includes('id')) initialMappings[h] = 'caseId';
+        if (lower.includes('case') && lower.includes('no')) initialMappings[h] = 'caseId';
+        if (lower.includes('plaintiff')) initialMappings[h] = 'plaintiff';
+        if (lower.includes('defendant')) initialMappings[h] = 'defendant';
+        if (lower.includes('address')) initialMappings[h] = 'address';
+        if (lower.includes('status') || lower.includes('service status')) initialMappings[h] = 'status';
+        if (lower.includes('date') && lower.includes('filed')) initialMappings[h] = 'dateFiled';
+        if (lower.includes('data') && lower.includes('filed')) initialMappings[h] = 'dateFiled';
+        if (lower.includes('court') && lower.includes('name')) initialMappings[h] = 'courtName';
+        if (lower.includes('hearing') && lower.includes('date')) initialMappings[h] = 'hearingDate';
+        if (lower.includes('outcome')) initialMappings[h] = 'outcome';
+      });
+    } else if (fileType === 'invoice') {
+      // Auto-map invoice fields
+      headers.forEach(h => {
+        const lower = h.toLowerCase();
+        if (lower.includes('invoice') && lower.includes('id')) initialMappings[h] = 'invoiceId';
+        if (lower.includes('case') && lower.includes('id')) initialMappings[h] = 'caseId';
+        if (lower.includes('amount')) initialMappings[h] = 'amount';
+        if (lower.includes('issue') && lower.includes('date')) initialMappings[h] = 'issueDate';
+        if (lower.includes('due') && lower.includes('date')) initialMappings[h] = 'dueDate';
+        if (lower.includes('paid')) initialMappings[h] = 'paid';
+      });
+    } else if (fileType === 'document') {
+      // Auto-map document fields
+      headers.forEach(h => {
+        const lower = h.toLowerCase();
+        if (lower.includes('doc') && lower.includes('id')) initialMappings[h] = 'docId';
+        if (lower.includes('case') && lower.includes('id')) initialMappings[h] = 'caseId';
+        if (lower.includes('type')) initialMappings[h] = 'type';
+        if (lower.includes('url') || lower.includes('file')) initialMappings[h] = 'fileURL';
+        if (lower.includes('service') && lower.includes('date')) initialMappings[h] = 'serviceDate';
+      });
     }
     
     setFieldMappings(initialMappings);
@@ -209,12 +358,24 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
             if (!transformedRow.costs) transformedRow.costs = {};
             transformedRow.costs[sourceField] = row[sourceField];
           } else {
-            transformedRow[targetField] = row[sourceField];
+            // Handle special mapping cases
+            let finalTargetField = targetField;
+            if (targetField === 'contactAddress') {
+              finalTargetField = 'address'; // Map contactAddress back to address in the data
+            }
+            
+            transformedRow[finalTargetField] = row[sourceField];
             
             // For caseId field, also set it as the main identifier
             if (targetField === 'caseId' && row[sourceField]) {
               transformedRow.id = row[sourceField];
               transformedRow.caseId = row[sourceField];
+            }
+            
+            // For contactId field, also set it as the main identifier
+            if (targetField === 'contactId' && row[sourceField]) {
+              transformedRow.id = row[sourceField];
+              transformedRow.contactId = row[sourceField];
             }
           }
         }
@@ -261,8 +422,11 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
                 <h3 className="font-medium">File Analysis Results</h3>
                 <p className="text-sm text-blue-800">
                   {fileType === 'all_evictions_files' && 'All Evictions Files format detected'}
-                  {fileType === 'complaint' && 'Complaint data format detected'}
+                  {fileType === 'complaint' && 'Case/Complaint data format detected'}
                   {fileType === 'hearing' && 'Hearing data format detected'}
+                  {fileType === 'contact' && 'Contact data format detected'}
+                  {fileType === 'invoice' && 'Invoice data format detected'}
+                  {fileType === 'document' && 'Document data format detected'}
                   {fileType === 'unknown' && 'Unknown data format - please manually map columns'}
                 </p>
                 <p className="text-xs text-blue-600 mt-1">

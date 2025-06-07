@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear E-File Data</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        button {
+            background-color: #dc2626;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        button:hover {
+            background-color: #b91c1c;
+        }
+        .success {
+            color: #16a34a;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Clear E-File Data</h1>
+    <p>This utility clears all e-filing related data from localStorage to fix any issues with corrupted drafts or cross reference codes.</p>
+    
+    <button onclick="clearEFileData()">Clear All E-File Data</button>
+    
+    <div id="result"></div>
+    
+    <script>
+        function clearEFileData() {
+            try {
+                // Clear e-file drafts
+                localStorage.removeItem('efileDrafts');
+                localStorage.removeItem('efileDraftsToLoad');
+                
+                // Clear any e-file related keys
+                const keysToRemove = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && (key.includes('efile') || key.includes('EFile') || key.includes('draft'))) {
+                        keysToRemove.push(key);
+                    }
+                }
+                
+                keysToRemove.forEach(key => localStorage.removeItem(key));
+                
+                document.getElementById('result').innerHTML = '<p class="success">✓ E-File data cleared successfully! Removed ' + (keysToRemove.length + 2) + ' items from localStorage.</p>';
+            } catch (error) {
+                document.getElementById('result').innerHTML = '<p style="color: red;">Error: ' + error.message + '</p>';
+            }
+        }
+    </script>
+</body>
+</html>

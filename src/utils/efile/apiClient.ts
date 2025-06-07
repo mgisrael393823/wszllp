@@ -4,13 +4,17 @@ import { EFileError, AuthenticationError, SubmissionError, ServerError } from '.
 // Configuration for different request types
 const DEFAULT_TIMEOUT = 30000; // 30 seconds for regular requests
 const UPLOAD_TIMEOUT = 120000; // 2 minutes for file uploads
-const MAX_CONTENT_SIZE = 10 * 1024 * 1024; // 10MB max file size
+const MAX_CONTENT_SIZE = 50 * 1024 * 1024; // 50MB max for base64 encoded files
 
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_EFILE_BASE_URL,
   timeout: DEFAULT_TIMEOUT,
   maxContentLength: MAX_CONTENT_SIZE,
   maxBodyLength: MAX_CONTENT_SIZE,
+  headers: {
+    'clienttoken': import.meta.env.VITE_EFILE_CLIENT_TOKEN || 'EVICT87',
+    'Content-Type': 'application/json'
+  }
 });
 
 // Add request interceptor for timeout and logging
@@ -21,15 +25,24 @@ apiClient.interceptors.request.use(
       config.timeout = UPLOAD_TIMEOUT;
     }
     
-    // Log the request if in development
-    if (import.meta.env.DEV) {
-      console.info(
-        '[E-File API Request]',
-        config.method?.toUpperCase(),
-        config.url,
-        config.params || {}
-      );
-    }
+    // Log the request (sensitive in production, verbose in dev)
+    const logLevel = import.meta.env.PROD ? 'info' : 'log';
+    console[logLevel](
+      '[E-File API Request]',
+      config.method?.toUpperCase(),
+      config.url,
+      {
+        headers: {
+          ...config.headers,
+          // Mask sensitive headers in logs
+          authtoken: config.headers?.authtoken ? `${config.headers.authtoken.substring(0, 10)}...` : undefined,
+          clienttoken: config.headers?.clienttoken ? `${config.headers.clienttoken.substring(0, 3)}***` : undefined,
+        },
+        params: config.params || {},
+        // Don't log full request body in production
+        hasBody: !!config.data,
+      }
+    );
     
     return config;
   },
@@ -55,13 +68,23 @@ apiClient.interceptors.response.use(
     return response;
   },
   error => {
-    // Log the error
+    // Enhanced error logging
     console.error(
       '[E-File API Error]',
-      error.config?.method?.toUpperCase(),
-      error.config?.url,
-      error.response?.status,
-      error.message
+      {
+        method: error.config?.method?.toUpperCase(),
+        url: error.config?.url,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        message: error.message,
+        responseData: error.response?.data,
+        headers: {
+          ...error.config?.headers,
+          // Mask sensitive headers
+          authtoken: error.config?.headers?.authtoken ? 'present' : 'missing',
+          clienttoken: error.config?.headers?.clienttoken ? 'present' : 'missing',
+        },
+      }
     );
     
     if (error.response) {
@@ -79,9 +102,15 @@ apiClient.interceptors.response.use(
       }
       
       if (status === 500) {
-        // Specific handling for server errors
+        // Tyler API bug: Sometimes returns 500 with a 400 message_code
+        if (data?.message_code === 400) {
+          // Treat as a 400 error despite the 500 status
+          return Promise.reject(new EFileError(data.message || 'Bad request', 400));
+        }
+        
+        // Specific handling for actual server errors
         const errorMsg = data?.message || 'Server error encountered';
-        const errorCode = data?.code || 5001;
+        const errorCode = data?.code || data?.message_code || 5001;
         
         // Check if this was a file submission endpoint
         if (error.config?.url?.includes('/efile')) {

@@ -1,8 +1,14 @@
 ====================================================================================================================================================
 #1 Credentials:
-Client token is: <CLIENT_TOKEN>
-Stage username: <USERNAME>
-Stage password: <PASSWORD>
+Client token is: EVICT87
+Stage username: your_tyler_email@example.com
+Stage password: your_tyler_password
+
+PRODUCTION CREDENTIALS:
+- TYLER_API_USERNAME=czivin@wolfsolovy.com
+- TYLER_API_PASSWORD=Zuj90820*
++ VITE_EFILE_USERNAME=czivin@wolfsolovy.com
++ VITE_EFILE_PASSWORD=Zuj90820*
 ====================================================================================================================================================
 #2 How to eFile:
 
@@ -12,8 +18,8 @@ Stage password: <PASSWORD>
 	Header: clienttoken=RANSTAG
 	{
 		"data":{
-			"username":"your_tyler_email@example.com",
-			"password":"your_tyler_password"
+			"username":"czivin@wolfsolovy.com",
+			"password":"Zuj90820*"
 		}
 	}
 	Response:

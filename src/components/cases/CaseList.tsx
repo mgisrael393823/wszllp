@@ -4,7 +4,9 @@ import { useData } from '../../context/DataContext';
 import { supabase } from '../../lib/supabaseClient';
 import { format, parseISO, isValid } from 'date-fns';
 import { Calendar } from 'lucide-react';
-import { Card, Table, Pagination, FilterBar, LoadingState } from '../ui';
+import { Card, Table, Pagination, FilterBar } from '../ui';
+import { LoadingState } from '../ui/StateComponents';
+import { getStatusColor } from '../../utils/statusColors';
 
 const CaseList: React.FC = () => {
   const navigate = useNavigate();
@@ -29,17 +31,18 @@ const CaseList: React.FC = () => {
           defendant: c.defendant,
           address: c.address || '',
           status: c.status,
-          intakeDate: c.intakeDate,
-          createdAt: c.createdAt,
-          updatedAt: c.updatedAt
+          dateFiled: c.dateFiled || null,
+          createdAt: c.created_at,
+          updatedAt: c.updated_at
         }));
         
-        // Update the local state
-        mappedCases.forEach(caseItem => {
-          dispatch({
-            type: 'ADD_CASE',
-            payload: caseItem
-          });
+        // Clear existing cases and load fresh from database
+        dispatch({
+          type: 'LOAD_DATA',
+          payload: {
+            ...state,
+            cases: mappedCases
+          }
         });
       } catch (error) {
         console.error('Error fetching cases:', error);
@@ -65,7 +68,22 @@ const CaseList: React.FC = () => {
       (c.address || '').toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter ? c.status === statusFilter : true;
-    const matchesDate = dateFilter ? c.intakeDate.startsWith(dateFilter) : true;
+    const matchesDate = dateFilter ? (c.dateFiled && (() => {
+      // Parse the MM/DD/YY date and check if it matches the selected year-month
+      let date = null;
+      if (typeof c.dateFiled === 'string') {
+        date = parseISO(c.dateFiled);
+        if (!isValid(date)) {
+          date = new Date(c.dateFiled);
+        }
+      }
+      
+      if (date && isValid(date)) {
+        const yearMonth = format(date, 'yyyy-MM');
+        return yearMonth === dateFilter;
+      }
+      return false;
+    })()) : true;
     
     return matchesSearch && matchesStatus && matchesDate;
   });
@@ -83,135 +101,122 @@ const CaseList: React.FC = () => {
     currentPage * itemsPerPage
   );
 
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
-  // Generate month/year options for date filter
-  const getDateFilterOptions = () => {
-    const options: {value: string, label: string}[] = [
-      { value: '', label: 'All Dates' }
-    ];
-    
-    const dates = new Set<string>();
-    
-    state.cases.forEach(c => {
-      const date = typeof c.intakeDate === 'string' 
-        ? parseISO(c.intakeDate) 
-        : c.intakeDate instanceof Date 
-        ? c.intakeDate 
-        : null;
-      
-      if (date && isValid(date)) {
-        const yearMonth = format(date, 'yyyy-MM');
-        dates.add(yearMonth);
+  // Get unique status values
+  const statusOptions = Array.from(new Set(state.cases.map(c => c.status))).sort();
+  
+  // Get unique date values (year-month)
+  const dateOptions = Array.from(new Set(state.cases.map(c => {
+    if (!c.dateFiled) return null;
+    let date = null;
+    if (typeof c.dateFiled === 'string') {
+      date = parseISO(c.dateFiled);
+      if (!isValid(date)) {
+        date = new Date(c.dateFiled);
       }
-    });
+    }
     
-    Array.from(dates).sort().reverse().forEach(date => {
-      const [year, month] = date.split('-');
-      options.push({
-        value: date,
-        label: `${new Date(parseInt(year), parseInt(month) - 1).toLocaleString('default', { month: 'long' })} ${year}`
-      });
-    });
-    
-    return options;
-  };
-
-  // Table columns definition
-  const columns = [
-    {
-      header: 'Case ID',
-      accessor: 'caseId',
-      sortable: true,
-    },
-    {
-      header: 'Plaintiff',
-      accessor: 'plaintiff',
-      sortable: true,
-    },
-    {
-      header: 'Defendant',
-      accessor: 'defendant',
-      sortable: true,
-    },
-    {
-      header: 'Status',
-      accessor: (item: typeof state.cases[0]) => (
-        <span 
-          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-            ${item.status === 'Intake' ? 'bg-blue-100 text-blue-800' : 
-              item.status === 'Active' ? 'bg-green-100 text-green-800' : 
-                'bg-neutral-100 text-neutral-800'}`
-          }
-        >
-          {item.status}
-        </span>
-      ),
-      sortable: false,
-    },
-    {
-      header: 'Intake Date',
-      accessor: (item: typeof state.cases[0]) => {
-        const date = typeof item.intakeDate === 'string' 
-          ? parseISO(item.intakeDate) 
-          : item.intakeDate instanceof Date 
-          ? item.intakeDate 
-          : null;
-        
-        return date && isValid(date) 
-          ? format(date, 'MMM d, yyyy') 
-          : 'Invalid Date';
-      },
-      sortable: true,
-    },
-  ];
+    if (date && isValid(date)) {
+      return format(date, 'yyyy-MM');
+    }
+    return null;
+  }).filter(date => date !== null))).sort().reverse();
 
   return (
-    <Card>
-      <FilterBar
-        searchValue={searchTerm}
-        onSearchChange={setSearchTerm}
-        searchPlaceholder="Search cases..."
-        primaryFilter={{
-          value: statusFilter,
-          onChange: setStatusFilter,
-          options: [
-            { value: '', label: 'All Statuses' },
-            { value: 'Intake', label: 'Intake' },
-            { value: 'Active', label: 'Active' },
-            { value: 'Closed', label: 'Closed' }
-          ]
-        }}
-        secondaryFilter={{
-          value: dateFilter,
-          onChange: setDateFilter,
-          options: getDateFilterOptions(),
-          icon: <Calendar className="icon-standard text-neutral-400" />
-        }}
-      />
+    <Card className="min-h-full">
+      {isLoading ? (
+        <LoadingState message="Loading cases..." />
+      ) : (
+        <>
+          <FilterBar
+              searchPlaceholder="Search by plaintiff, defendant, or address..."
+              onSearchChange={setSearchTerm}
+              filters={[
+                {
+                  label: 'Status',
+                  value: statusFilter,
+                  options: statusOptions,
+                  onChange: setStatusFilter,
+                },
+                ...(dateOptions.length > 0 ? [{
+                  label: 'Date Filed',
+                  value: dateFilter,
+                  options: dateOptions.map(date => {
+                    const parsedDate = parseISO(date + '-01');
+                    return {
+                      value: date,
+                      label: format(parsedDate, 'MMMM yyyy')
+                    };
+                  }),
+                  onChange: setDateFilter,
+                }] : [])
+              ]}
+            />
 
-        {isLoading ? (
-          <LoadingState message="Loading cases..." />
-        ) : (
-          <Table
-            data={paginatedCases}
-            columns={columns}
-            keyField="caseId"
-            onRowClick={(item) => navigate(`/cases/${item.caseId}`)}
-            emptyMessage="No cases found. Add a new case to get started."
-          />
-        )}
-        
-        <Pagination
-          totalItems={filteredCases.length}
-          itemsPerPage={itemsPerPage}
-          currentPage={currentPage}
-          onPageChange={handlePageChange}
-        />
-      </Card>
+            {paginatedCases.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                {searchTerm || statusFilter || dateFilter ? 'No cases match your filters.' : 'No cases found.'}
+              </div>
+            ) : (
+              <>
+                <Table
+                  columns={[
+                    { header: 'Plaintiff', accessor: 'plaintiff' },
+                    { header: 'Defendant', accessor: 'defendant' },
+                    { header: 'Address', accessor: 'address' },
+                    { 
+                      header: 'Status', 
+                      accessor: 'status',
+                      cell: (value: string) => (
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(value)}`}>
+                          {value}
+                        </span>
+                      )
+                    },
+                    { 
+                      header: 'Date Filed', 
+                      accessor: 'dateFiled',
+                      cell: (value: string | null) => {
+                        if (!value) return <span className="text-gray-400">Not filed</span>;
+                        
+                        let date = null;
+                        if (typeof value === 'string') {
+                          date = parseISO(value);
+                          if (!isValid(date)) {
+                            date = new Date(value);
+                          }
+                        }
+                        
+                        if (date && isValid(date)) {
+                          return (
+                            <div className="flex items-center gap-1 text-gray-600">
+                              <Calendar className="w-3 h-3" />
+                              <span>{format(date, 'MMM dd, yyyy')}</span>
+                            </div>
+                          );
+                        }
+                        
+                        return <span className="text-gray-400">Invalid date</span>;
+                      }
+                    },
+                  ]}
+                  data={paginatedCases}
+                  onRowClick={(row) => navigate(`/cases/${row.caseId}`)}
+                />
+
+                {totalPages > 1 && (
+                  <div className="mt-4">
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      onPageChange={setCurrentPage}
+                    />
+                  </div>
+                )}
+              </>
+            )}
+        </>
+      )}
+    </Card>
   );
 };
 

@@ -1,0 +1,31 @@
+{
+  "data": {
+    "reference_id": "MOCK-12345",
+    "jurisdiction": "wrong:jurisdiction",
+    "case_type": "999999",
+    "case_parties": [
+      {
+        "id": "Party_001",
+        "type": "189138",
+        "first_name": "John",
+        "last_name": "Landlord"
+      },
+      {
+        "id": "Party_002", 
+        "type": "189131",
+        "first_name": "Jane",
+        "last_name": "Tenant"
+      }
+    ],
+    "filings": [
+      {
+        "file": "https://example.com/complaint.pdf",
+        "file_name": "complaint.pdf"
+      },
+      {
+        "file": "https://example.com/summons.pdf", 
+        "file_name": "summons.pdf"
+      }
+    ]
+  }
+}

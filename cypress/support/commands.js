@@ -37,6 +37,15 @@ Cypress.Commands.add('loginSupabase', () => {
   const email = Cypress.env('TEST_USER_EMAIL');
   const password = Cypress.env('TEST_USER_PASSWORD');
 
+  // In CI with mock credentials, use setupSupabaseSession instead
+  if (!email || !password || (supabaseUrl && supabaseUrl.includes('mock'))) {
+    cy.log('🔧 Using mock authentication for CI');
+    return cy.setupSupabaseSession({
+      email: 'test@example.com',
+      id: 'test-user-ci',
+    });
+  }
+
   const projectRef = new URL(supabaseUrl).hostname.split('.')[0];
   const storageKey = `sb-${projectRef}-auth-token`;
 

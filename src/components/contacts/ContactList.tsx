@@ -6,6 +6,7 @@ import Card from '../ui/Card';
 import Button from '../ui/Button';
 import Table from '../ui/Table';
 import Input from '../ui/Input';
+import Pagination from '../ui/Pagination';
 import { Contact } from '../../types/schema';
 
 interface ContactListProps {
@@ -19,6 +20,8 @@ const ContactList: React.FC<ContactListProps> = ({
 }) => {
   const navigate = useNavigate();
   const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20; // Show 20 contacts per page
   
   // Build filters based on search term and filter type
   const filters = [];
@@ -39,17 +42,23 @@ const ContactList: React.FC<ContactListProps> = ({
     });
   }
   
-  // Use Refine's useList hook to get contacts
+  // Use Refine's useList hook to get contacts with pagination
   const { data, isLoading, isError } = useList<Contact>({
     resource: 'contacts',
     filters,
     sorters: [{ field: 'name', order: 'asc' }],
+    pagination: {
+      current: currentPage,
+      pageSize: itemsPerPage,
+    },
   });
   
   // Set up delete hook
   const { mutate: deleteContact } = useDelete();
   
   const contacts = data?.data || [];
+  const totalCount = data?.total || 0;
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
   
   // Handle delete contact
   const handleDeleteContact = (id: string, e: React.MouseEvent) => {
@@ -141,6 +150,7 @@ const ContactList: React.FC<ContactListProps> = ({
   // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLocalSearchTerm(e.target.value);
+    setCurrentPage(1); // Reset to first page when searching
   };
   
   return (
@@ -196,12 +206,24 @@ const ContactList: React.FC<ContactListProps> = ({
           </div>
         </div>
       ) : (
-        <Table
-          data={contacts}
-          columns={columns}
-          keyField="id"
-          onRowClick={(item) => navigate(`/contacts/${item.id}`)}
-        />
+        <>
+          <Table
+            data={contacts}
+            columns={columns}
+            keyField="id"
+            onRowClick={(item) => navigate(`/contacts/${item.id}`)}
+          />
+          {totalPages > 1 && (
+            <div className="p-4 border-t border-gray-200">
+              <Pagination
+                currentPage={currentPage}
+                totalItems={totalCount}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          )}
+        </>
       )}
     </Card>
   );

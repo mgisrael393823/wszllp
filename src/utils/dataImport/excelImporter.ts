@@ -103,10 +103,21 @@ export async function importFromExcel(files: File[]): Promise<ImportResult> {
       }
     }
     
-    // Step 1: Parse clients/contacts first
-    result.entities.contacts = clientsParser.parseClients(
-      allSheets['PM INFO'] || []
-    );
+    // Step 1: Parse clients/contacts from available sheets
+    let allContactData: any[] = [];
+    
+    Object.keys(allSheets).forEach(sheetName => {
+      const data = allSheets[sheetName] || [];
+      if (data.length === 0) return;
+      
+      const lowerName = sheetName.toLowerCase();
+      if (lowerName.includes('contact') || lowerName.includes('pm') || lowerName.includes('client')) {
+        console.log(`Parsing contacts from ${sheetName}...`);
+        allContactData = [...allContactData, ...data];
+      }
+    });
+    
+    result.entities.contacts = clientsParser.parseClients(allContactData);
     
     // Extract client IDs from all sheets
     const allSheetsArray = Object.entries(allSheets).map(([sheetName, data]) => ({ 
@@ -121,20 +132,35 @@ export async function importFromExcel(files: File[]): Promise<ImportResult> {
       result.entities.contacts
     );
     
-    // Step 2: Parse cases from multiple sheets
-    const casesFromComplaint = casesParser.parseCasesFromComplaint(
-      allSheets['Complaint'] || []
-    );
+    // Step 2: Parse cases from available sheets
+    let allCases: any[] = [];
     
-    const casesFromAllEvictions = casesParser.parseCasesFromAllEvictions(
-      allSheets['ALL EVICTIONS FILES'] || []
-    );
+    // Look for case data in any available sheets
+    Object.keys(allSheets).forEach(sheetName => {
+      const data = allSheets[sheetName] || [];
+      if (data.length === 0) return;
+      
+      console.log(`Checking ${sheetName} for case data...`);
+      
+      // Try to detect if this sheet contains case data
+      const headers = Object.keys(data[0] || {}).map(h => h.toLowerCase());
+      const hasCaseData = headers.some(h => 
+        h.includes('plaintiff') || h.includes('defendant') || h.includes('case')
+      );
+      
+      if (hasCaseData) {
+        console.log(`Parsing cases from ${sheetName}...`);
+        if (sheetName.toLowerCase().includes('complaint')) {
+          const cases = casesParser.parseCasesFromComplaint(data);
+          allCases = [...allCases, ...cases];
+        } else {
+          const cases = casesParser.parseCasesFromAllEvictions(data);
+          allCases = [...allCases, ...cases];
+        }
+      }
+    });
     
-    // Merge cases from different sources
-    result.entities.cases = casesParser.mergeCases([
-      casesFromComplaint,
-      casesFromAllEvictions
-    ]);
+    result.entities.cases = allCases;
     
     // Create a mapping of file ID to case ID for related entities
     const caseIdMapping = new Map<string, string>();
@@ -144,72 +170,129 @@ export async function importFromExcel(files: File[]): Promise<ImportResult> {
       }
     });
     
-    // Step 3: Parse hearings
-    const courtSheets = ['Court 25', 'Court 24'].filter(name => allSheets[name]);
-    
+    // Step 3: Parse hearings from available sheets
     let allHearings: Hearing[] = [];
-    for (const sheetName of courtSheets) {
-      const hearings = hearingsParser.parseHearingsFromCourtSheet(
-        allSheets[sheetName] || [],
-        caseIdMapping
+    
+    // Look for hearing data in any available sheets
+    Object.keys(allSheets).forEach(sheetName => {
+      const data = allSheets[sheetName] || [];
+      if (data.length === 0) return;
+      
+      // Try to detect if this sheet contains hearing data
+      const headers = Object.keys(data[0] || {}).map(h => h.toLowerCase());
+      const hasHearingData = headers.some(h => 
+        h.includes('court') || h.includes('hearing') || h.includes('date')
       );
-      allHearings = [...allHearings, ...hearings];
-    }
+      
+      if (hasHearingData && (sheetName.toLowerCase().includes('court') || sheetName.toLowerCase().includes('hearing'))) {
+        console.log(`Parsing hearings from ${sheetName}...`);
+        const hearings = hearingsParser.parseHearingsFromCourtSheet(data, caseIdMapping);
+        allHearings = [...allHearings, ...hearings];
+      }
+      
+      // Handle zoom/video data separately
+      if (sheetName.toLowerCase().includes('zoom') || sheetName.toLowerCase().includes('video')) {
+        console.log(`Processing zoom data from ${sheetName}...`);
+        const zoomData = hearingsParser.parseZoomData(data);
+        // Merge with existing hearings
+        allHearings = hearingsParser.mergeHearingsWithZoom(allHearings, zoomData);
+      }
+    });
     
-    // Parse zoom data to augment hearings
-    const zoomData = hearingsParser.parseZoomData(
-      allSheets['ZOOM'] || []
-    );
+    result.entities.hearings = allHearings;
     
-    // Merge hearings with zoom information
-    result.entities.hearings = hearingsParser.mergeHearingsWithZoom(
-      allHearings,
-      zoomData
-    );
+    // Step 4: Parse documents from available sheets
+    let complaintDocs: any[] = [];
+    let summonsDocs: any[] = [];
+    let otherDocs: any[] = [];
     
-    // Step 4: Parse documents
-    const documentSheets = {
-      complaint: allSheets['Complaint'] || [],
-      summons: allSheets['Summons'] || [],
-      other: [...(allSheets['ALIAS Summons'] || []), ...(allSheets['Aff of Serv'] || [])]
-    };
+    Object.keys(allSheets).forEach(sheetName => {
+      const data = allSheets[sheetName] || [];
+      if (data.length === 0) return;
+      
+      const lowerName = sheetName.toLowerCase();
+      if (lowerName.includes('complaint')) {
+        console.log(`Parsing complaint documents from ${sheetName}...`);
+        complaintDocs = [...complaintDocs, ...data];
+      } else if (lowerName.includes('summons')) {
+        console.log(`Parsing summons documents from ${sheetName}...`);
+        summonsDocs = [...summonsDocs, ...data];
+      } else if (lowerName.includes('document') || lowerName.includes('affidavit') || lowerName.includes('aff')) {
+        console.log(`Parsing other documents from ${sheetName}...`);
+        otherDocs = [...otherDocs, ...data];
+      }
+    });
     
     result.entities.documents = documentsParser.parseDocumentsFromSheets(
-      documentSheets.complaint,
-      documentSheets.summons,
-      documentSheets.other,
+      complaintDocs,
+      summonsDocs,
+      otherDocs,
       caseIdMapping
     );
     
-    // Step 5: Parse service logs
-    const serviceSheets = {
-      sps: [...(allSheets['SPS 25'] || []), ...(allSheets['SPS & ALIAS'] || [])],
-      sheriff: [...(allSheets['SHERIFF'] || []), ...(allSheets['SHERIFF EVICTIONS'] || [])]
-    };
+    // Step 5: Parse service logs from available sheets
+    let spsData: any[] = [];
+    let sheriffData: any[] = [];
+    
+    Object.keys(allSheets).forEach(sheetName => {
+      const data = allSheets[sheetName] || [];
+      if (data.length === 0) return;
+      
+      const lowerName = sheetName.toLowerCase();
+      if (lowerName.includes('sps')) {
+        console.log(`Parsing SPS service logs from ${sheetName}...`);
+        spsData = [...spsData, ...data];
+      } else if (lowerName.includes('sheriff')) {
+        console.log(`Parsing Sheriff service logs from ${sheetName}...`);
+        sheriffData = [...sheriffData, ...data];
+      }
+    });
     
     result.entities.serviceLogs = documentsParser.parseServiceLogs(
-      serviceSheets.sps,
-      serviceSheets.sheriff,
+      spsData,
+      sheriffData,
       result.entities.documents
     );
     
-    // Step 6: Parse invoices
-    const invoiceSheets = {
-      outstanding: allSheets['Outstanding Invoices'] || [],
-      newInvoices: allSheets['New Invoice List'] || [],
-      finalInvoices: allSheets['Final Invoices'] || []
-    };
+    // Step 6: Parse invoices from available sheets
+    let outstandingInvoices: any[] = [];
+    let newInvoices: any[] = [];
+    let finalInvoices: any[] = [];
+    let paymentPlans: any[] = [];
+    
+    Object.keys(allSheets).forEach(sheetName => {
+      const data = allSheets[sheetName] || [];
+      if (data.length === 0) return;
+      
+      const lowerName = sheetName.toLowerCase();
+      if (lowerName.includes('invoice')) {
+        console.log(`Parsing invoices from ${sheetName}...`);
+        if (lowerName.includes('outstanding')) {
+          outstandingInvoices = [...outstandingInvoices, ...data];
+        } else if (lowerName.includes('new')) {
+          newInvoices = [...newInvoices, ...data];
+        } else if (lowerName.includes('final')) {
+          finalInvoices = [...finalInvoices, ...data];
+        } else {
+          // Generic invoice data
+          outstandingInvoices = [...outstandingInvoices, ...data];
+        }
+      } else if (lowerName.includes('payment') && lowerName.includes('plan')) {
+        console.log(`Parsing payment plans from ${sheetName}...`);
+        paymentPlans = [...paymentPlans, ...data];
+      }
+    });
     
     result.entities.invoices = invoicesParser.parseInvoices(
-      invoiceSheets.outstanding,
-      invoiceSheets.newInvoices,
-      invoiceSheets.finalInvoices,
+      outstandingInvoices,
+      newInvoices,
+      finalInvoices,
       caseIdMapping
     );
     
     // Step 7: Parse payment plans
     result.entities.paymentPlans = invoicesParser.parsePaymentPlans(
-      allSheets['Payment Plan'] || [],
+      paymentPlans,
       result.entities.invoices
     );
     
