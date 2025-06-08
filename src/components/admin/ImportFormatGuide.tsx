@@ -35,7 +35,7 @@ const ImportFormatGuide: React.FC<ImportFormatGuideProps> = ({
             </h2>
             <button 
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 flex-shrink-0"
+              className="text-neutral-500 hover:text-neutral-700 flex-shrink-0"
               aria-label="Close"
             >
               <X className="w-5 h-5" />
@@ -48,7 +48,7 @@ const ImportFormatGuide: React.FC<ImportFormatGuideProps> = ({
           </DialogTitle>
 
           <div className="prose prose-sm max-w-none mb-6">
-            <p className="text-gray-700">
+            <p className="text-neutral-700">
               The import system uses intelligent content detection to automatically identify and process your data. You can use any file/sheet names - the system will detect the data type based on your column headers.
             </p>
             
@@ -79,10 +79,10 @@ const ImportFormatGuide: React.FC<ImportFormatGuideProps> = ({
             <div className="overflow-x-auto mb-4">
               <table className="min-w-full divide-y divide-gray-300 text-xs">
                 <thead>
-                  <tr className="bg-gray-100">
-                    <th className="px-3 py-2 text-left font-medium text-gray-600">Data Type</th>
-                    <th className="px-3 py-2 text-left font-medium text-gray-600">Required Fields</th>
-                    <th className="px-3 py-2 text-left font-medium text-gray-600">Optional Fields</th>
+                  <tr className="bg-neutral-100">
+                    <th className="px-3 py-2 text-left font-medium text-neutral-600">Data Type</th>
+                    <th className="px-3 py-2 text-left font-medium text-neutral-600">Required Fields</th>
+                    <th className="px-3 py-2 text-left font-medium text-neutral-600">Optional Fields</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -133,10 +133,10 @@ const ImportFormatGuide: React.FC<ImportFormatGuideProps> = ({
             <div className="overflow-x-auto mb-4">
               <table className="min-w-full divide-y divide-gray-300 text-xs">
                 <thead>
-                  <tr className="bg-gray-100">
-                    <th className="px-3 py-2 text-left font-medium text-gray-600">Data Type</th>
-                    <th className="px-3 py-2 text-left font-medium text-gray-600">Detection Triggers</th>
-                    <th className="px-3 py-2 text-left font-medium text-gray-600">Example Headers</th>
+                  <tr className="bg-neutral-100">
+                    <th className="px-3 py-2 text-left font-medium text-neutral-600">Data Type</th>
+                    <th className="px-3 py-2 text-left font-medium text-neutral-600">Detection Triggers</th>
+                    <th className="px-3 py-2 text-left font-medium text-neutral-600">Example Headers</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -174,7 +174,7 @@ const ImportFormatGuide: React.FC<ImportFormatGuideProps> = ({
             <div className="space-y-3">
               <div>
                 <h4 className="font-medium text-sm mb-1">📋 Cases Example:</h4>
-                <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto">
+                <pre className="bg-neutral-100 p-2 rounded text-xs overflow-x-auto">
 {`Case ID,Plaintiff,Defendant,Property Address,Status,Intake Date
 "WSZ-2023-001","Smith Property LLC","John Doe","123 Main St #4","Active","2023-09-15"
 "WSZ-2023-002","ABC Apartments","Jane Smith","456 Oak Ave #2","Intake","2023-09-16"`}
@@ -183,7 +183,7 @@ const ImportFormatGuide: React.FC<ImportFormatGuideProps> = ({
               
               <div>
                 <h4 className="font-medium text-sm mb-1">👥 Contacts Example:</h4>
-                <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto">
+                <pre className="bg-neutral-100 p-2 rounded text-xs overflow-x-auto">
 {`Contact Name,Role,Email,Phone,Company,Notes
 "John Smith","Attorney","john@lawfirm.com","555-1234","Smith & Associates","Primary contact"
 "Mary Johnson","PM","mary@properties.com","555-5678","ABC Properties","Property manager"`}
@@ -192,7 +192,7 @@ const ImportFormatGuide: React.FC<ImportFormatGuideProps> = ({
               
               <div>
                 <h4 className="font-medium text-sm mb-1">⚖️ Hearings Example:</h4>
-                <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto">
+                <pre className="bg-neutral-100 p-2 rounded text-xs overflow-x-auto">
 {`Hearing ID,Case ID,Court Name,Hearing Date,Outcome
 "H-001","WSZ-2023-001","Municipal Court Dept 1","2023-10-15","Judgment for Plaintiff"
 "H-002","WSZ-2023-002","Municipal Court Dept 2","2023-10-20",""`}

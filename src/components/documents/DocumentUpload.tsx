@@ -173,8 +173,8 @@ const DocumentUpload: React.FC<DocumentUploadProps> = () => {
           Back to Documents
         </Button>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Upload Document</h1>
-          <p className="text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-neutral-900">Upload Document</h1>
+          <p className="text-sm text-neutral-500">
             Upload a new legal document and associate it with a case
           </p>
         </div>
@@ -186,25 +186,25 @@ const DocumentUpload: React.FC<DocumentUploadProps> = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* File Upload */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
                 Document File *
               </label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary-400 transition-colors">
-                <FileText size={48} className="mx-auto text-gray-400 mb-4" />
+              <div className="border-2 border-dashed border-neutral-300 rounded-lg p-6 text-center hover:border-primary-400 transition-colors">
+                <FileText size={48} className="mx-auto text-neutral-400 mb-4" />
                 <div className="space-y-2">
                   {selectedFile ? (
                     <div>
-                      <p className="text-sm font-medium text-gray-900">{selectedFile.name}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-sm font-medium text-neutral-900">{selectedFile.name}</p>
+                      <p className="text-xs text-neutral-500">
                         {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                       </p>
                     </div>
                   ) : (
                     <div>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-neutral-600">
                         Click to select a file or drag and drop
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-neutral-500">
                         PDF, DOC, DOCX files up to 10MB
                       </p>
                     </div>
@@ -233,7 +233,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = () => {
             {/* Document Details */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
                   Associated Case *
                 </label>
                 <Select
@@ -250,7 +250,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
                   Document Type *
                 </label>
                 <Select
@@ -261,7 +261,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
                   Status
                 </label>
                 <Select
@@ -272,7 +272,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
                   Service Date
                 </label>
                 <Input
@@ -285,14 +285,14 @@ const DocumentUpload: React.FC<DocumentUploadProps> = () => {
             
             {/* Notes */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
                 Notes
               </label>
               <textarea
                 value={formData.notes}
                 onChange={(e) => handleInputChange('notes', e.target.value)}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                className="w-full px-3 py-2 border border-neutral-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                 placeholder="Additional notes about this document..."
               />
             </div>

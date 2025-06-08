@@ -1,5 +1,6 @@
 import React from 'react';
 import Button from './Button';
+import Typography from './Typography';
 
 interface PageHeaderProps {
   title: string;
@@ -46,12 +47,12 @@ const PageHeader: React.FC<PageHeaderProps> = ({
     <div className={`page-header ${className}`}>
       {/* Title Section */}
       <div className="flex-1">
-        <h1 className="page-title">{title}</h1>
-        {subtitle && <p className="page-subtitle">{subtitle}</p>}
+        <Typography variant="h1" className="page-title">{title}</Typography>
+        {subtitle && <Typography variant="h2" className="page-subtitle">{subtitle}</Typography>}
         {description && (
-          <p className="text-sm text-neutral-600 mt-2 max-w-2xl">
+          <Typography variant="caption" color="medium" className="mt-2 max-w-2xl">
             {description}
-          </p>
+          </Typography>
         )}
         {children}
       </div>

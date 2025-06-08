@@ -90,8 +90,8 @@ const ContactList: React.FC<ContactListProps> = ({
             {item.name.substring(0, 2).toUpperCase()}
           </div>
           <div className="ml-4">
-            <div className="font-medium text-gray-900">{item.name}</div>
-            <div className="text-sm text-gray-500">{item.role || 'Contact'}</div>
+            <div className="font-medium text-neutral-900">{item.name}</div>
+            <div className="text-sm text-neutral-500">{item.role || 'Contact'}</div>
           </div>
         </div>
       ),
@@ -101,7 +101,7 @@ const ContactList: React.FC<ContactListProps> = ({
       header: 'Email',
       accessor: (item: Contact) => (
         <div className="flex items-center">
-          <Mail size={16} className="text-gray-400 mr-2" />
+          <Mail size={16} className="text-neutral-400 mr-2" />
           <span>{item.email || '—'}</span>
         </div>
       ),
@@ -111,7 +111,7 @@ const ContactList: React.FC<ContactListProps> = ({
       header: 'Phone',
       accessor: (item: Contact) => (
         <div className="flex items-center">
-          <Phone size={16} className="text-gray-400 mr-2" />
+          <Phone size={16} className="text-neutral-400 mr-2" />
           <span>{item.phone || '—'}</span>
         </div>
       ),
@@ -156,10 +156,10 @@ const ContactList: React.FC<ContactListProps> = ({
   return (
     <Card>
       {/* Search bar within the list component */}
-      <div className="p-4 border-b border-gray-200">
+      <div className="p-4 border-b border-neutral-200">
         <div className="relative max-w-md">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search size={18} className="text-gray-400" />
+            <Search size={18} className="text-neutral-400" />
           </div>
           <Input
             type="text"
@@ -176,22 +176,22 @@ const ContactList: React.FC<ContactListProps> = ({
       {isLoading ? (
         <div className="p-8 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500 mx-auto"></div>
-          <p className="mt-4 text-gray-500">Loading contacts...</p>
+          <p className="mt-4 text-neutral-500">Loading contacts...</p>
         </div>
       ) : isError ? (
         <div className="p-8 text-center">
           <div className="text-error-500 bg-error-50 p-4 rounded-md inline-flex items-center mb-2">
             <span className="mr-2">⚠️</span> Error loading contacts
           </div>
-          <p className="text-gray-500">Please try again later</p>
+          <p className="text-neutral-500">Please try again later</p>
         </div>
       ) : contacts.length === 0 ? (
         <div className="p-8 text-center">
-          <div className="mx-auto h-24 w-24 text-gray-400">
+          <div className="mx-auto h-24 w-24 text-neutral-400">
             <Users size={64} className="mx-auto" />
           </div>
-          <h3 className="mt-2 text-lg font-medium text-gray-900">No contacts found</h3>
-          <p className="mt-1 text-gray-500">
+          <h3 className="mt-2 text-lg font-medium text-neutral-900">No contacts found</h3>
+          <p className="mt-1 text-neutral-500">
             {localSearchTerm
               ? `No results found for "${localSearchTerm}"`
               : "Get started by adding your first contact"}
@@ -214,7 +214,7 @@ const ContactList: React.FC<ContactListProps> = ({
             onRowClick={(item) => navigate(`/contacts/${item.id}`)}
           />
           {totalPages > 1 && (
-            <div className="p-4 border-t border-gray-200">
+            <div className="p-4 border-t border-neutral-200">
               <Pagination
                 currentPage={currentPage}
                 totalItems={totalCount}

@@ -44,10 +44,10 @@ const Pagination: React.FC<PaginationProps> = ({
   };
   
   return (
-    <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
+    <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-neutral-200 sm:px-6">
       <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm text-gray-700">
+          <p className="text-sm text-neutral-700">
             Showing <span className="font-medium">{Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)}</span> to{' '}
             <span className="font-medium">{Math.min(currentPage * itemsPerPage, totalItems)}</span> of{' '}
             <span className="font-medium">{totalItems}</span> results
@@ -58,10 +58,10 @@ const Pagination: React.FC<PaginationProps> = ({
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
+              className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-neutral-300 bg-white text-sm font-medium ${
                 currentPage === 1
-                  ? 'text-gray-300 cursor-not-allowed'
-                  : 'text-gray-500 hover:bg-gray-50'
+                  ? 'text-neutral-300 cursor-not-allowed'
+                  : 'text-neutral-500 hover:bg-neutral-50'
               }`}
             >
               <span className="sr-only">Previous</span>
@@ -75,7 +75,7 @@ const Pagination: React.FC<PaginationProps> = ({
                 className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
                   currentPage === page
                     ? 'z-10 bg-primary-50 border-primary-500 text-primary-600'
-                    : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                    : 'bg-white border-neutral-300 text-neutral-500 hover:bg-neutral-50'
                 }`}
               >
                 {page}
@@ -85,10 +85,10 @@ const Pagination: React.FC<PaginationProps> = ({
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
+              className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-neutral-300 bg-white text-sm font-medium ${
                 currentPage === totalPages
-                  ? 'text-gray-300 cursor-not-allowed'
-                  : 'text-gray-500 hover:bg-gray-50'
+                  ? 'text-neutral-300 cursor-not-allowed'
+                  : 'text-neutral-500 hover:bg-neutral-50'
               }`}
             >
               <span className="sr-only">Next</span>

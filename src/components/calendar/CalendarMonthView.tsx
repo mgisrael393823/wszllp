@@ -9,7 +9,7 @@ const CalendarMonthView: React.FC = () => {
   return (
     <Card className="p-6">
       <h2 className="text-xl font-semibold mb-4">Calendar Month View</h2>
-      <p className="text-gray-500">
+      <p className="text-neutral-500">
         Calendar month view will be available in a future update.
       </p>
     </Card>

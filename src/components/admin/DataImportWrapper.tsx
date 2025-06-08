@@ -26,10 +26,10 @@ const DataImportWrapper: React.FC = () => {
             <Card className="p-6 border hover:border-blue-500 cursor-pointer transition-colors"
               onClick={() => setSelectedImporter('simple')}>
               <h3 className="text-lg font-medium mb-2">Standard Import</h3>
-              <p className="text-gray-600 mb-4">
+              <p className="text-neutral-600 mb-4">
                 Basic import tool for standard-formatted files that match our system's expected structure.
               </p>
-              <ul className="list-disc list-inside text-sm text-gray-500 mb-4">
+              <ul className="list-disc list-inside text-sm text-neutral-500 mb-4">
                 <li>For simple data imports</li>
                 <li>Works with standard file formats</li>
                 <li>Quick and straightforward</li>
@@ -51,10 +51,10 @@ const DataImportWrapper: React.FC = () => {
             <Card className="p-6 border hover:border-blue-500 cursor-pointer transition-colors"
               onClick={() => setSelectedImporter('enhanced')}>
               <h3 className="text-lg font-medium mb-2">Enhanced Import</h3>
-              <p className="text-gray-600 mb-4">
+              <p className="text-neutral-600 mb-4">
                 Advanced import tool with field mapping for custom file formats and more detailed controls.
               </p>
-              <ul className="list-disc list-inside text-sm text-gray-500 mb-4">
+              <ul className="list-disc list-inside text-sm text-neutral-500 mb-4">
                 <li>For custom formatted files</li>
                 <li>Supports field mapping and transformation</li>
                 <li>Better handling of non-standard data</li>

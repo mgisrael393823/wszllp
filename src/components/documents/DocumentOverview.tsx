@@ -97,7 +97,7 @@ const DocumentOverview: React.FC = () => {
             </div>
             <div className="ml-4">
               <h3 className="text-lg font-medium">Complaints</h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-neutral-500">
                 Case filings and complaints
                 {!isLoading && documentCounts['Complaint'] !== undefined && (
                   <span className="ml-2 text-primary-600">
@@ -117,7 +117,7 @@ const DocumentOverview: React.FC = () => {
             </div>
             <div className="ml-4">
               <h3 className="text-lg font-medium">Summons</h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-neutral-500">
                 Summons and notices
                 {!isLoading && documentCounts['Summons'] !== undefined && (
                   <span className="ml-2 text-success-600">
@@ -137,7 +137,7 @@ const DocumentOverview: React.FC = () => {
             </div>
             <div className="ml-4">
               <h3 className="text-lg font-medium">Other Documents</h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-neutral-500">
                 Motions, orders, and other filings
                 {!isLoading && (
                   <span className="ml-2 text-secondary-600">

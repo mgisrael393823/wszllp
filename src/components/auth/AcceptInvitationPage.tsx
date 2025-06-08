@@ -150,7 +150,7 @@ const AcceptInvitationPage: React.FC = () => {
 
   if (verifyingToken) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-neutral-50">
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
             <img
@@ -158,12 +158,12 @@ const AcceptInvitationPage: React.FC = () => {
               src="/wszmainlogo.webp"
               alt="WSZ Legal Logo"
             />
-            <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+            <h2 className="mt-6 text-3xl font-extrabold text-neutral-900">
               Verifying Invitation
             </h2>
             <div className="mt-4">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-              <p className="mt-2 text-gray-600">Please wait while we verify your invitation...</p>
+              <p className="mt-2 text-neutral-600">Please wait while we verify your invitation...</p>
             </div>
           </div>
         </div>
@@ -173,7 +173,7 @@ const AcceptInvitationPage: React.FC = () => {
 
   if (!tokenValid) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-neutral-50">
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
             <img
@@ -183,10 +183,10 @@ const AcceptInvitationPage: React.FC = () => {
             />
             <div className="mt-6">
               <AlertCircle className="mx-auto h-12 w-12 text-red-500" />
-              <h2 className="mt-4 text-3xl font-extrabold text-gray-900">
+              <h2 className="mt-4 text-3xl font-extrabold text-neutral-900">
                 Invalid Invitation
               </h2>
-              <p className="mt-2 text-gray-600">
+              <p className="mt-2 text-neutral-600">
                 {error || 'This invitation link is invalid or has expired.'}
               </p>
               <div className="mt-6">
@@ -206,7 +206,7 @@ const AcceptInvitationPage: React.FC = () => {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-neutral-50">
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
             <img
@@ -216,10 +216,10 @@ const AcceptInvitationPage: React.FC = () => {
             />
             <div className="mt-6">
               <CheckCircle className="mx-auto h-12 w-12 text-green-500" />
-              <h2 className="mt-4 text-3xl font-extrabold text-gray-900">
+              <h2 className="mt-4 text-3xl font-extrabold text-neutral-900">
                 Account Setup Complete
               </h2>
-              <p className="mt-2 text-gray-600">
+              <p className="mt-2 text-neutral-600">
                 Your password has been set successfully. Redirecting to dashboard...
               </p>
             </div>
@@ -232,7 +232,7 @@ const AcceptInvitationPage: React.FC = () => {
   const passwordErrors = validatePassword(formData.password);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-neutral-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
           <img
@@ -240,10 +240,10 @@ const AcceptInvitationPage: React.FC = () => {
             src="/wszmainlogo.webp"
             alt="WSZ Legal Logo"
           />
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-neutral-900">
             Complete Your Account Setup
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-2 text-center text-sm text-neutral-600">
             Set your password to access WSZ Legal Case Management
           </p>
         </div>
@@ -262,7 +262,7 @@ const AcceptInvitationPage: React.FC = () => {
 
           <div className="space-y-4">
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-medium text-neutral-700">
                 Password
               </label>
               <div className="mt-1 relative">
@@ -273,7 +273,7 @@ const AcceptInvitationPage: React.FC = () => {
                   required
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="appearance-none relative block w-full px-3 py-2 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                  className="appearance-none relative block w-full px-3 py-2 pr-10 border border-neutral-300 placeholder-gray-500 text-neutral-900 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                   placeholder="Enter your password"
                 />
                 <button
@@ -282,15 +282,15 @@ const AcceptInvitationPage: React.FC = () => {
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400" />
+                    <EyeOff className="h-5 w-5 text-neutral-400" />
                   ) : (
-                    <Eye className="h-5 w-5 text-gray-400" />
+                    <Eye className="h-5 w-5 text-neutral-400" />
                   )}
                 </button>
               </div>
               
               {/* Password Requirements */}
-              <div className="mt-2 text-xs text-gray-600">
+              <div className="mt-2 text-xs text-neutral-600">
                 <p className="font-medium">Password must contain:</p>
                 <ul className="mt-1 space-y-1">
                   {[
@@ -300,8 +300,8 @@ const AcceptInvitationPage: React.FC = () => {
                     { check: /(?=.*\d)/.test(formData.password), text: 'One number' },
                     { check: /(?=.*[@$!%*?&])/.test(formData.password), text: 'One special character (@$!%*?&)' },
                   ].map((req, index) => (
-                    <li key={index} className={`flex items-center ${req.check ? 'text-green-600' : 'text-gray-500'}`}>
-                      <span className={`w-2 h-2 rounded-full mr-2 ${req.check ? 'bg-green-500' : 'bg-gray-300'}`}></span>
+                    <li key={index} className={`flex items-center ${req.check ? 'text-green-600' : 'text-neutral-500'}`}>
+                      <span className={`w-2 h-2 rounded-full mr-2 ${req.check ? 'bg-green-500' : 'bg-neutral-300'}`}></span>
                       {req.text}
                     </li>
                   ))}
@@ -310,7 +310,7 @@ const AcceptInvitationPage: React.FC = () => {
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-neutral-700">
                 Confirm Password
               </label>
               <div className="mt-1 relative">
@@ -321,7 +321,7 @@ const AcceptInvitationPage: React.FC = () => {
                   required
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
-                  className="appearance-none relative block w-full px-3 py-2 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                  className="appearance-none relative block w-full px-3 py-2 pr-10 border border-neutral-300 placeholder-gray-500 text-neutral-900 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                   placeholder="Confirm your password"
                 />
                 <button
@@ -330,9 +330,9 @@ const AcceptInvitationPage: React.FC = () => {
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 >
                   {showConfirmPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400" />
+                    <EyeOff className="h-5 w-5 text-neutral-400" />
                   ) : (
-                    <Eye className="h-5 w-5 text-gray-400" />
+                    <Eye className="h-5 w-5 text-neutral-400" />
                   )}
                 </button>
               </div>
@@ -354,7 +354,7 @@ const AcceptInvitationPage: React.FC = () => {
           </div>
 
           <div className="text-center">
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-neutral-500">
               Already have an account?{' '}
               <button
                 type="button"

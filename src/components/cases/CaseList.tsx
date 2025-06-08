@@ -152,7 +152,7 @@ const CaseList: React.FC = () => {
             />
 
             {paginatedCases.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-neutral-500">
                 {searchTerm || statusFilter || dateFilter ? 'No cases match your filters.' : 'No cases found.'}
               </div>
             ) : (
@@ -175,7 +175,7 @@ const CaseList: React.FC = () => {
                       header: 'Date Filed', 
                       accessor: 'dateFiled',
                       cell: (value: string | null) => {
-                        if (!value) return <span className="text-gray-400">Not filed</span>;
+                        if (!value) return <span className="text-neutral-400">Not filed</span>;
                         
                         let date = null;
                         if (typeof value === 'string') {
@@ -187,14 +187,14 @@ const CaseList: React.FC = () => {
                         
                         if (date && isValid(date)) {
                           return (
-                            <div className="flex items-center gap-1 text-gray-600">
+                            <div className="flex items-center gap-1 text-neutral-600">
                               <Calendar className="w-3 h-3" />
                               <span>{format(date, 'MMM dd, yyyy')}</span>
                             </div>
                           );
                         }
                         
-                        return <span className="text-gray-400">Invalid date</span>;
+                        return <span className="text-neutral-400">Invalid date</span>;
                       }
                     },
                   ]}

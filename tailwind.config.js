@@ -189,7 +189,7 @@ export default {
         '60': '60',   // Modals
         '70': '70',   // Toasts, notifications
       },
-      // Spacing system
+      // Spacing system with semantic tokens
       spacing: {
         '0': '0',
         'px': '1px',
@@ -209,6 +209,15 @@ export default {
         '16': '4rem',       // 64px
         '20': '5rem',       // 80px
         '24': '6rem',       // 96px
+        // Semantic spacing tokens
+        'content-tight': '0.75rem',      // 12px
+        'content-normal': '1rem',        // 16px  
+        'content-comfortable': '1.5rem', // 24px
+        'content-spacious': '2rem',      // 32px
+        'layout-compact': '2rem',        // 32px
+        'layout-normal': '3rem',         // 48px
+        'layout-comfortable': '4rem',    // 64px
+        'layout-spacious': '6rem',       // 96px
       },
       // Animations
       animation: {

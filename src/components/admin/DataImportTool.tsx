@@ -525,7 +525,7 @@ const DataImportTool: React.FC = () => {
                 className={`flex items-center px-4 py-2 rounded-md border ${
                   importType === 'excel'
                     ? 'bg-primary-50 text-primary-600 border-primary-200'
-                    : 'bg-gray-50 text-gray-600 border-gray-200'
+                    : 'bg-neutral-50 text-neutral-600 border-neutral-200'
                 }`}
               >
                 <FileSpreadsheet className="w-5 h-5 mr-2" />
@@ -538,7 +538,7 @@ const DataImportTool: React.FC = () => {
                 className={`flex items-center px-4 py-2 rounded-md border ${
                   importType === 'csv'
                     ? 'bg-primary-50 text-primary-600 border-primary-200'
-                    : 'bg-gray-50 text-gray-600 border-gray-200'
+                    : 'bg-neutral-50 text-neutral-600 border-neutral-200'
                 }`}
               >
                 <FileText className="w-5 h-5 mr-2" />
@@ -548,7 +548,7 @@ const DataImportTool: React.FC = () => {
 
             {/* Data Type Selector */}
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <label className="block text-sm font-medium text-neutral-700 mb-3">
                 What type of data are you uploading?
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -558,7 +558,7 @@ const DataImportTool: React.FC = () => {
                   className={`p-3 rounded-lg border text-sm ${
                     dataType === 'auto'
                       ? 'bg-blue-50 text-blue-700 border-blue-200'
-                      : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                      : 'bg-neutral-50 text-neutral-600 border-neutral-200 hover:bg-neutral-100'
                   }`}
                 >
                   <div className="font-medium">🤖 Auto-Detect</div>
@@ -571,7 +571,7 @@ const DataImportTool: React.FC = () => {
                   className={`p-3 rounded-lg border text-sm ${
                     dataType === 'contact'
                       ? 'bg-blue-50 text-blue-700 border-blue-200'
-                      : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                      : 'bg-neutral-50 text-neutral-600 border-neutral-200 hover:bg-neutral-100'
                   }`}
                 >
                   <div className="font-medium">👥 Contacts</div>
@@ -584,7 +584,7 @@ const DataImportTool: React.FC = () => {
                   className={`p-3 rounded-lg border text-sm ${
                     dataType === 'case'
                       ? 'bg-blue-50 text-blue-700 border-blue-200'
-                      : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                      : 'bg-neutral-50 text-neutral-600 border-neutral-200 hover:bg-neutral-100'
                   }`}
                 >
                   <div className="font-medium">📋 Cases</div>
@@ -597,7 +597,7 @@ const DataImportTool: React.FC = () => {
                   className={`p-3 rounded-lg border text-sm ${
                     dataType === 'hearing'
                       ? 'bg-blue-50 text-blue-700 border-blue-200'
-                      : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                      : 'bg-neutral-50 text-neutral-600 border-neutral-200 hover:bg-neutral-100'
                   }`}
                 >
                   <div className="font-medium">⚖️ Hearings</div>
@@ -610,7 +610,7 @@ const DataImportTool: React.FC = () => {
                   className={`p-3 rounded-lg border text-sm ${
                     dataType === 'invoice'
                       ? 'bg-blue-50 text-blue-700 border-blue-200'
-                      : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                      : 'bg-neutral-50 text-neutral-600 border-neutral-200 hover:bg-neutral-100'
                   }`}
                 >
                   <div className="font-medium">💰 Invoices</div>
@@ -623,7 +623,7 @@ const DataImportTool: React.FC = () => {
                   className={`p-3 rounded-lg border text-sm ${
                     dataType === 'document'
                       ? 'bg-blue-50 text-blue-700 border-blue-200'
-                      : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                      : 'bg-neutral-50 text-neutral-600 border-neutral-200 hover:bg-neutral-100'
                   }`}
                 >
                   <div className="font-medium">📄 Documents</div>
@@ -632,8 +632,8 @@ const DataImportTool: React.FC = () => {
               </div>
             </div>
             
-            <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center">
-              <Upload className="mx-auto h-12 w-12 text-gray-400" />
+            <div className="border-2 border-dashed border-neutral-300 rounded-md p-6 text-center">
+              <Upload className="mx-auto h-12 w-12 text-neutral-400" />
               <div className="mt-4 flex text-sm justify-center">
                 <label
                   htmlFor="file-upload"
@@ -651,9 +651,9 @@ const DataImportTool: React.FC = () => {
                     ref={fileInputRef}
                   />
                 </label>
-                <p className="pl-1 text-gray-500">or drag and drop</p>
+                <p className="pl-1 text-neutral-500">or drag and drop</p>
               </div>
-              <p className="text-xs text-gray-500 mt-2">
+              <p className="text-xs text-neutral-500 mt-2">
                 {importType === 'excel' 
                   ? 'Excel file (.xlsx) containing case data'
                   : 'CSV file (.csv) containing case data'
@@ -667,14 +667,14 @@ const DataImportTool: React.FC = () => {
             </div>
 
             {selectedFiles.length > 0 && (
-              <div className="bg-gray-50 rounded-md p-4">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Selected Files</h4>
+              <div className="bg-neutral-50 rounded-md p-4">
+                <h4 className="text-sm font-medium text-neutral-700 mb-2">Selected Files</h4>
                 <div className="space-y-2 max-h-48 overflow-y-auto">
                   {selectedFiles.map((file, index) => (
                     <div key={index} className="flex items-center">
-                      <FileText className="w-5 h-5 text-gray-500 mr-2" />
+                      <FileText className="w-5 h-5 text-neutral-500 mr-2" />
                       <span className="font-medium">{file.name}</span>
-                      <span className="ml-2 text-gray-500 text-sm">
+                      <span className="ml-2 text-neutral-500 text-sm">
                         ({Math.round(file.size / 1024)} KB)
                       </span>
                     </div>
@@ -707,46 +707,46 @@ const DataImportTool: React.FC = () => {
           <div className="space-y-6">
             <h3 className="text-lg font-medium">Import Preview</h3>
             
-            <div className="bg-gray-50 rounded-md p-4 space-y-4">
+            <div className="bg-neutral-50 rounded-md p-4 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2 mb-2">
-                  <h4 className="font-medium text-gray-700">Data Summary</h4>
+                  <h4 className="font-medium text-neutral-700">Data Summary</h4>
                 </div>
                 
                 <div className="flex items-center">
-                  <Database className="w-4 h-4 text-gray-500 mr-2" />
+                  <Database className="w-4 h-4 text-neutral-500 mr-2" />
                   <span>Cases: {importResult.entities.cases.length}</span>
                 </div>
                 
                 <div className="flex items-center">
-                  <Database className="w-4 h-4 text-gray-500 mr-2" />
+                  <Database className="w-4 h-4 text-neutral-500 mr-2" />
                   <span>Hearings: {importResult.entities.hearings.length}</span>
                 </div>
                 
                 <div className="flex items-center">
-                  <Database className="w-4 h-4 text-gray-500 mr-2" />
+                  <Database className="w-4 h-4 text-neutral-500 mr-2" />
                   <span>Documents: {importResult.entities.documents.length}</span>
                 </div>
                 
                 <div className="flex items-center">
-                  <Database className="w-4 h-4 text-gray-500 mr-2" />
+                  <Database className="w-4 h-4 text-neutral-500 mr-2" />
                   <span>Invoices: {importResult.entities.invoices.length}</span>
                 </div>
                 
                 <div className="flex items-center">
-                  <Database className="w-4 h-4 text-gray-500 mr-2" />
+                  <Database className="w-4 h-4 text-neutral-500 mr-2" />
                   <span>Service Logs: {importResult.entities.serviceLogs.length}</span>
                 </div>
                 
                 <div className="flex items-center">
-                  <Database className="w-4 h-4 text-gray-500 mr-2" />
+                  <Database className="w-4 h-4 text-neutral-500 mr-2" />
                   <span>Contacts: {importResult.entities.contacts.length}</span>
                 </div>
               </div>
               
               {importResult.warnings && importResult.warnings.length > 0 && (
                 <div className="mt-4">
-                  <h4 className="font-medium text-gray-700 mb-2">Warnings</h4>
+                  <h4 className="font-medium text-neutral-700 mb-2">Warnings</h4>
                   <ul className="text-sm text-yellow-700 bg-yellow-50 rounded-md p-2">
                     {importResult.warnings.slice(0, 5).map((warning: string, i: number) => (
                       <li key={i} className="ml-4 list-disc">{warning}</li>
@@ -779,8 +779,8 @@ const DataImportTool: React.FC = () => {
         {step === 'importing' && (
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary-600 mx-auto"></div>
-            <p className="mt-4 text-gray-700">Importing data...</p>
-            <p className="text-sm text-gray-500 mt-2">
+            <p className="mt-4 text-neutral-700">Importing data...</p>
+            <p className="text-sm text-neutral-500 mt-2">
               This may take a few moments
             </p>
           </div>
@@ -792,7 +792,7 @@ const DataImportTool: React.FC = () => {
               <CheckCircle className="h-10 w-10 text-success-600" />
             </div>
             <h3 className="text-lg font-medium">Import Complete</h3>
-            <p className="text-gray-600">
+            <p className="text-neutral-600">
               All data has been successfully imported into the system.
             </p>
             <div className="pt-4 flex justify-center">

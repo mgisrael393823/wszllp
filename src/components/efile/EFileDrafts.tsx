@@ -59,7 +59,7 @@ const EFileDrafts: React.FC<{ onLoadDraft: (data: any) => void }> = ({ onLoadDra
 
   if (drafts.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
+      <div className="text-center py-8 text-neutral-500">
         <p>No saved drafts found.</p>
       </div>
     );
@@ -68,7 +68,7 @@ const EFileDrafts: React.FC<{ onLoadDraft: (data: any) => void }> = ({ onLoadDra
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-medium text-gray-900">Saved Drafts ({drafts.length})</h3>
+        <h3 className="text-lg font-medium text-neutral-900">Saved Drafts ({drafts.length})</h3>
         <Button
           variant="secondary"
           size="sm"
@@ -84,7 +84,7 @@ const EFileDrafts: React.FC<{ onLoadDraft: (data: any) => void }> = ({ onLoadDra
           <Card key={draft.id} className="p-4">
             <div className="flex justify-between items-start">
               <div className="flex-1">
-                <div className="text-sm text-gray-600 mb-1">
+                <div className="text-sm text-neutral-600 mb-1">
                   Saved on: {new Date(draft.createdAt).toLocaleString()}
                 </div>
                 <div className="text-sm space-y-1">

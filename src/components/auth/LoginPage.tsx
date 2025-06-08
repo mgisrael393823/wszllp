@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../ui/Button';
+import Typography from '../ui/Typography';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -34,22 +35,28 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen flex items-center justify-center bg-neutral-50 py-layout-comfortable px-content-normal sm:px-content-comfortable lg:px-content-spacious">
+      <div className="max-w-md w-full space-y-content-spacious">
         <div>
           <img
             className="mx-auto h-16 w-auto"
             src="/wszmainlogo.webp"
             alt="WSZLLP Logo"
           />
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <Typography 
+            variant="h2" 
+            align="center" 
+            weight="extrabold" 
+            color="default"
+            className="mt-6"
+          >
             Sign in to your account
-          </h2>
+          </Typography>
         </div>
         
-        <form className="mt-8 space-y-6" onSubmit={handleLogin}>
+        <form className="mt-content-spacious space-y-content-comfortable" onSubmit={handleLogin}>
           {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            <div className="bg-red-100 border border-red-400 text-red-700 px-content-normal py-content-tight rounded">
               {error}
             </div>
           )}
@@ -67,7 +74,7 @@ const LoginPage: React.FC = () => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-neutral-300 placeholder-gray-500 text-neutral-900 rounded-t-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
                 placeholder="Email address"
               />
             </div>
@@ -83,7 +90,7 @@ const LoginPage: React.FC = () => {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-neutral-300 placeholder-gray-500 text-neutral-900 rounded-b-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
                 placeholder="Password"
               />
             </div>
@@ -95,9 +102,9 @@ const LoginPage: React.FC = () => {
                 id="remember-me"
                 name="remember-me"
                 type="checkbox"
-                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-neutral-300 rounded"
               />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
+              <label htmlFor="remember-me" className="ml-2 block text-sm text-neutral-900">
                 Remember me
               </label>
             </div>

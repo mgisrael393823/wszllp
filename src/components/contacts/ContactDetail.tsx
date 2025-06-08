@@ -54,7 +54,7 @@ const ContactDetail: React.FC = () => {
     return (
       <div className="max-w-5xl mx-auto p-8 text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500 mx-auto"></div>
-        <p className="mt-4 text-gray-500">Loading contact information...</p>
+        <p className="mt-4 text-neutral-500">Loading contact information...</p>
       </div>
     );
   }
@@ -65,7 +65,7 @@ const ContactDetail: React.FC = () => {
         <div className="text-error-500 bg-error-50 p-4 rounded-md inline-flex items-center mb-2">
           <span className="mr-2">⚠️</span> Error loading contact
         </div>
-        <p className="text-gray-500">The contact could not be found</p>
+        <p className="text-neutral-500">The contact could not be found</p>
         <Button
           variant="outline"
           onClick={() => navigate('/contacts')}
@@ -97,8 +97,8 @@ const ContactDetail: React.FC = () => {
               {contact.name.substring(0, 2).toUpperCase()}
             </div>
             <div className="ml-4">
-              <h1 className="text-2xl font-bold text-gray-900">{contact.name}</h1>
-              <p className="mt-1 text-sm text-gray-500">{contact.role || 'Contact'}</p>
+              <h1 className="text-2xl font-bold text-neutral-900">{contact.name}</h1>
+              <p className="mt-1 text-sm text-neutral-500">{contact.role || 'Contact'}</p>
             </div>
           </div>
           
@@ -124,42 +124,42 @@ const ContactDetail: React.FC = () => {
       {/* Contact Information Card */}
       <Card className="mb-6">
         <div className="p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Contact Information</h2>
+          <h2 className="text-lg font-medium text-neutral-900 mb-4">Contact Information</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {/* Contact details */}
             <div className="space-y-4">
               {contact.email && (
                 <div className="flex items-start">
-                  <div className="flex-shrink-0 h-6 w-6 flex items-center justify-center text-gray-400">
+                  <div className="flex-shrink-0 h-6 w-6 flex items-center justify-center text-neutral-400">
                     <Mail size={18} />
                   </div>
                   <div className="ml-3">
-                    <p className="text-sm font-medium text-gray-900">Email</p>
-                    <p className="text-sm text-gray-500">{contact.email}</p>
+                    <p className="text-sm font-medium text-neutral-900">Email</p>
+                    <p className="text-sm text-neutral-500">{contact.email}</p>
                   </div>
                 </div>
               )}
               
               {contact.phone && (
                 <div className="flex items-start">
-                  <div className="flex-shrink-0 h-6 w-6 flex items-center justify-center text-gray-400">
+                  <div className="flex-shrink-0 h-6 w-6 flex items-center justify-center text-neutral-400">
                     <Phone size={18} />
                   </div>
                   <div className="ml-3">
-                    <p className="text-sm font-medium text-gray-900">Phone</p>
-                    <p className="text-sm text-gray-500">{contact.phone}</p>
+                    <p className="text-sm font-medium text-neutral-900">Phone</p>
+                    <p className="text-sm text-neutral-500">{contact.phone}</p>
                   </div>
                 </div>
               )}
               
               {contact.address && (
                 <div className="flex items-start">
-                  <div className="flex-shrink-0 h-6 w-6 flex items-center justify-center text-gray-400">
+                  <div className="flex-shrink-0 h-6 w-6 flex items-center justify-center text-neutral-400">
                     <MapPin size={18} />
                   </div>
                   <div className="ml-3">
-                    <p className="text-sm font-medium text-gray-900">Address</p>
-                    <p className="text-sm text-gray-500 whitespace-pre-line">{contact.address}</p>
+                    <p className="text-sm font-medium text-neutral-900">Address</p>
+                    <p className="text-sm text-neutral-500 whitespace-pre-line">{contact.address}</p>
                   </div>
                 </div>
               )}
@@ -169,33 +169,33 @@ const ContactDetail: React.FC = () => {
             <div className="space-y-4">
               {contact.company && (
                 <div className="flex items-start">
-                  <div className="flex-shrink-0 h-6 w-6 flex items-center justify-center text-gray-400">
+                  <div className="flex-shrink-0 h-6 w-6 flex items-center justify-center text-neutral-400">
                     <Briefcase size={18} />
                   </div>
                   <div className="ml-3">
-                    <p className="text-sm font-medium text-gray-900">Company</p>
-                    <p className="text-sm text-gray-500">{contact.company}</p>
+                    <p className="text-sm font-medium text-neutral-900">Company</p>
+                    <p className="text-sm text-neutral-500">{contact.company}</p>
                   </div>
                 </div>
               )}
               
               <div className="flex items-start">
-                <div className="flex-shrink-0 h-6 w-6 flex items-center justify-center text-gray-400">
+                <div className="flex-shrink-0 h-6 w-6 flex items-center justify-center text-neutral-400">
                   <User size={18} />
                 </div>
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-900">Role</p>
-                  <p className="text-sm text-gray-500">{contact.role || 'Not specified'}</p>
+                  <p className="text-sm font-medium text-neutral-900">Role</p>
+                  <p className="text-sm text-neutral-500">{contact.role || 'Not specified'}</p>
                 </div>
               </div>
               
               <div className="flex items-start">
-                <div className="flex-shrink-0 h-6 w-6 flex items-center justify-center text-gray-400">
+                <div className="flex-shrink-0 h-6 w-6 flex items-center justify-center text-neutral-400">
                   <Calendar size={18} />
                 </div>
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-900">Added</p>
-                    <p className="text-sm text-gray-500">
+                  <p className="text-sm font-medium text-neutral-900">Added</p>
+                    <p className="text-sm text-neutral-500">
                       {(() => {
                         const date = typeof contact.created_at === 'string'
                           ? parseISO(contact.created_at)
@@ -214,9 +214,9 @@ const ContactDetail: React.FC = () => {
           
           {/* Notes section */}
           {contact.notes && (
-            <div className="mt-6 border-t border-gray-200 pt-6">
-              <h3 className="text-md font-medium text-gray-900 mb-2">Notes</h3>
-              <p className="text-sm text-gray-500 whitespace-pre-line">{contact.notes}</p>
+            <div className="mt-6 border-t border-neutral-200 pt-6">
+              <h3 className="text-md font-medium text-neutral-900 mb-2">Notes</h3>
+              <p className="text-sm text-neutral-500 whitespace-pre-line">{contact.notes}</p>
             </div>
           )}
         </div>
@@ -225,16 +225,16 @@ const ContactDetail: React.FC = () => {
       {/* Related Cases section - placeholder for now */}
       <Card className="mb-6">
         <div className="p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Related Cases</h2>
-          <p className="text-sm text-gray-500">No cases associated with this contact yet.</p>
+          <h2 className="text-lg font-medium text-neutral-900 mb-4">Related Cases</h2>
+          <p className="text-sm text-neutral-500">No cases associated with this contact yet.</p>
         </div>
       </Card>
       
       {/* Recent Activity section - placeholder for now */}
       <Card>
         <div className="p-6">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Recent Activity</h2>
-          <p className="text-sm text-gray-500">No recent activity for this contact.</p>
+          <h2 className="text-lg font-medium text-neutral-900 mb-4">Recent Activity</h2>
+          <p className="text-sm text-neutral-500">No recent activity for this contact.</p>
         </div>
       </Card>
     </div>

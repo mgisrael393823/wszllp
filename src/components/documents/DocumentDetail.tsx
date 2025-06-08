@@ -98,38 +98,38 @@ const DocumentDetail: React.FC = () => {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <div className="h-8 w-64 bg-gray-200 rounded animate-pulse mb-2"></div>
-            <div className="h-4 w-96 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-8 w-64 bg-neutral-200 rounded animate-pulse mb-2"></div>
+            <div className="h-4 w-96 bg-neutral-200 rounded animate-pulse"></div>
           </div>
           <div className="flex gap-2">
-            <div className="h-10 w-16 bg-gray-200 rounded animate-pulse"></div>
-            <div className="h-10 w-20 bg-gray-200 rounded animate-pulse"></div>
-            <div className="h-10 w-16 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-10 w-16 bg-neutral-200 rounded animate-pulse"></div>
+            <div className="h-10 w-20 bg-neutral-200 rounded animate-pulse"></div>
+            <div className="h-10 w-16 bg-neutral-200 rounded animate-pulse"></div>
           </div>
         </div>
         
-        <div className="h-10 w-32 bg-gray-200 rounded animate-pulse"></div>
+        <div className="h-10 w-32 bg-neutral-200 rounded animate-pulse"></div>
         
-        <div className="bg-white border border-gray-200 rounded-lg">
+        <div className="bg-white border border-neutral-200 rounded-lg">
           <div className="p-6">
-            <div className="h-6 w-48 bg-gray-200 rounded animate-pulse mb-4"></div>
+            <div className="h-6 w-48 bg-neutral-200 rounded animate-pulse mb-4"></div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-3">
-                <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
-                <div className="h-4 w-3/4 bg-gray-200 rounded animate-pulse"></div>
+                <div className="h-4 w-full bg-neutral-200 rounded animate-pulse"></div>
+                <div className="h-4 w-3/4 bg-neutral-200 rounded animate-pulse"></div>
               </div>
               <div className="space-y-3">
-                <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
-                <div className="h-4 w-3/4 bg-gray-200 rounded animate-pulse"></div>
+                <div className="h-4 w-full bg-neutral-200 rounded animate-pulse"></div>
+                <div className="h-4 w-3/4 bg-neutral-200 rounded animate-pulse"></div>
               </div>
             </div>
           </div>
         </div>
         
-        <div className="bg-white border border-gray-200 rounded-lg">
+        <div className="bg-white border border-neutral-200 rounded-lg">
           <div className="p-6">
-            <div className="h-6 w-32 bg-gray-200 rounded animate-pulse mb-4"></div>
-            <div className="h-16 w-full bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-6 w-32 bg-neutral-200 rounded animate-pulse mb-4"></div>
+            <div className="h-16 w-full bg-neutral-200 rounded animate-pulse"></div>
           </div>
         </div>
       </div>
@@ -167,8 +167,8 @@ const DocumentDetail: React.FC = () => {
       {/* Header with consistent pattern */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{document.type}</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-neutral-900">{document.type}</h1>
+          <p className="mt-1 text-sm text-neutral-500">
             {document.case ? `${document.case.plaintiff} v. ${document.case.defendant}` : 'No case assigned'}
           </p>
         </div>
@@ -217,12 +217,12 @@ const DocumentDetail: React.FC = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium text-gray-700">Document Type</label>
-              <p className="mt-1 text-sm text-gray-900">{document.type}</p>
+              <label className="text-sm font-medium text-neutral-700">Document Type</label>
+              <p className="mt-1 text-sm text-neutral-900">{document.type}</p>
             </div>
             
             <div>
-              <label className="text-sm font-medium text-gray-700">Status</label>
+              <label className="text-sm font-medium text-neutral-700">Status</label>
               <div className="mt-1">
                 <span 
                   className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
@@ -238,15 +238,15 @@ const DocumentDetail: React.FC = () => {
             
             {document.fileURL && (
               <div>
-                <label className="text-sm font-medium text-gray-700">File Name</label>
-                <p className="mt-1 text-sm text-gray-900">{getFilenameFromUrl(document.fileURL)}</p>
+                <label className="text-sm font-medium text-neutral-700">File Name</label>
+                <p className="mt-1 text-sm text-neutral-900">{getFilenameFromUrl(document.fileURL)}</p>
               </div>
             )}
             
             {document.serviceDate && (
               <div>
-                <label className="text-sm font-medium text-gray-700">Service Date</label>
-                <p className="mt-1 text-sm text-gray-900">
+                <label className="text-sm font-medium text-neutral-700">Service Date</label>
+                <p className="mt-1 text-sm text-neutral-900">
                   {(() => {
                     const date = typeof document.serviceDate === 'string'
                       ? parseISO(document.serviceDate)
@@ -262,8 +262,8 @@ const DocumentDetail: React.FC = () => {
             )}
             
             <div>
-              <label className="text-sm font-medium text-gray-700">Created</label>
-                <p className="mt-1 text-sm text-gray-900">
+              <label className="text-sm font-medium text-neutral-700">Created</label>
+                <p className="mt-1 text-sm text-neutral-900">
                   {document.createdAt ? (() => {
                     const date = typeof document.createdAt === 'string'
                       ? parseISO(document.createdAt)
@@ -279,8 +279,8 @@ const DocumentDetail: React.FC = () => {
             
             {document.updatedAt && (
               <div>
-                <label className="text-sm font-medium text-gray-700">Last Updated</label>
-                <p className="mt-1 text-sm text-gray-900">
+                <label className="text-sm font-medium text-neutral-700">Last Updated</label>
+                <p className="mt-1 text-sm text-neutral-900">
                   {(() => {
                     const date = typeof document.updatedAt === 'string'
                       ? parseISO(document.updatedAt)
@@ -297,9 +297,9 @@ const DocumentDetail: React.FC = () => {
           </div>
           
           {document.notes && (
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <label className="text-sm font-medium text-gray-700">Notes</label>
-              <p className="mt-1 text-sm text-gray-900 whitespace-pre-wrap">
+            <div className="mt-6 pt-6 border-t border-neutral-200">
+              <label className="text-sm font-medium text-neutral-700">Notes</label>
+              <p className="mt-1 text-sm text-neutral-900 whitespace-pre-wrap">
                 {document.notes}
               </p>
             </div>
@@ -314,12 +314,12 @@ const DocumentDetail: React.FC = () => {
             <h2 className="text-lg font-semibold mb-4">Associated Case</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-700">Plaintiff</label>
-                <p className="mt-1 text-sm text-gray-900">{document.case.plaintiff}</p>
+                <label className="text-sm font-medium text-neutral-700">Plaintiff</label>
+                <p className="mt-1 text-sm text-neutral-900">{document.case.plaintiff}</p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-700">Defendant</label>
-                <p className="mt-1 text-sm text-gray-900">{document.case.defendant}</p>
+                <label className="text-sm font-medium text-neutral-700">Defendant</label>
+                <p className="mt-1 text-sm text-neutral-900">{document.case.defendant}</p>
               </div>
             </div>
             <div className="mt-4">
@@ -340,10 +340,10 @@ const DocumentDetail: React.FC = () => {
           <div className="p-6">
             <h2 className="text-lg font-semibold mb-4">File Actions</h2>
             <div className="flex items-center gap-4">
-              <FileText size={32} className="text-gray-400" />
+              <FileText size={32} className="text-neutral-400" />
               <div className="flex-1">
                 <p className="font-medium">{getFilenameFromUrl(document.fileURL)}</p>
-                <p className="text-sm text-gray-500">Click to view or download this document</p>
+                <p className="text-sm text-neutral-500">Click to view or download this document</p>
               </div>
               <div className="flex gap-2">
                 <Button

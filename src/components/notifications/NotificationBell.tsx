@@ -8,7 +8,7 @@ import { Bell } from 'lucide-react';
 const NotificationBell: React.FC = () => {
   return (
     <button 
-      className="relative p-2 text-gray-400 hover:text-gray-500" 
+      className="relative p-2 text-neutral-400 hover:text-neutral-500" 
       aria-label="Notifications"
       onClick={() => alert('Notifications feature will be available in a future update.')}
     >

@@ -153,8 +153,8 @@ const ServiceLogsList: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Service Logs</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-neutral-900">Service Logs</h1>
+          <p className="mt-1 text-sm text-neutral-500">
             Track document service attempts and outcomes
           </p>
         </div>

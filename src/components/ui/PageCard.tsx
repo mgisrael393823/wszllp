@@ -1,4 +1,5 @@
 import React from 'react';
+import Typography from './Typography';
 
 interface PageCardProps {
   children: React.ReactNode;
@@ -44,17 +45,17 @@ export const PageCard: React.FC<PageCardProps> = ({
 }) => {
   const cardContent = (
     <div 
-      className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden"
+      className="bg-white rounded-xl shadow-lg border border-neutral-100 overflow-hidden"
       data-cy={dataCy}
     >
       {/* Header Section - only render if title provided */}
       {title && (
-        <header className="px-4 sm:px-6 lg:px-8 py-6 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
+        <header className="px-content-normal sm:px-content-comfortable lg:px-content-spacious py-content-comfortable bg-gradient-to-r from-neutral-50 to-white border-b border-neutral-100">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{title}</h1>
+              <Typography variant="h1" weight="bold" className="text-xl sm:text-2xl">{title}</Typography>
               {subtitle && (
-                <p className="mt-1 text-sm text-gray-600">{subtitle}</p>
+                <Typography variant="body2" color="medium" className="mt-1">{subtitle}</Typography>
               )}
             </div>
             {primaryAction && (
@@ -68,13 +69,13 @@ export const PageCard: React.FC<PageCardProps> = ({
 
       {/* Tab Navigation Area */}
       {withTabs && tabContent && (
-        <nav className="border-b border-gray-100" role="tablist">
+        <nav className="border-b border-neutral-100" role="tablist">
           {tabContent}
         </nav>
       )}
 
       {/* Main Content Area */}
-      <main className="px-4 sm:px-6 lg:px-8 py-6">
+      <main className="px-content-normal sm:px-content-comfortable lg:px-content-spacious py-content-comfortable">
         {children}
       </main>
     </div>
@@ -85,8 +86,8 @@ export const PageCard: React.FC<PageCardProps> = ({
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen py-4 sm:py-8">
-      <div className={`${maxWidthClasses[maxWidth]} mx-auto px-4 sm:px-6`}>
+    <div className="bg-neutral-50 min-h-screen py-content-normal sm:py-content-spacious">
+      <div className={`${maxWidthClasses[maxWidth]} mx-auto px-content-normal sm:px-content-comfortable`}>
         {cardContent}
       </div>
     </div>

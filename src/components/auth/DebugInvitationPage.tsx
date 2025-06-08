@@ -23,7 +23,7 @@ const DebugInvitationPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-neutral-50 py-12 px-4">
       <div className="max-w-2xl w-full">
         <div className="bg-white shadow rounded-lg p-6">
           <h1 className="text-2xl font-bold mb-6">Debug: Invitation URL Parameters</h1>
@@ -31,7 +31,7 @@ const DebugInvitationPage: React.FC = () => {
           <div className="space-y-4">
             <div>
               <h2 className="text-lg font-semibold mb-2">Current URL:</h2>
-              <p className="text-sm bg-gray-100 p-2 rounded break-all">
+              <p className="text-sm bg-neutral-100 p-2 rounded break-all">
                 {window.location.href}
               </p>
             </div>
@@ -41,13 +41,13 @@ const DebugInvitationPage: React.FC = () => {
               {Object.keys(allParams).length > 0 ? (
                 <div className="space-y-2">
                   {Object.entries(allParams).map(([key, value]) => (
-                    <div key={key} className="bg-gray-100 p-2 rounded">
+                    <div key={key} className="bg-neutral-100 p-2 rounded">
                       <strong>{key}:</strong> <span className="break-all">{value}</span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500 italic">No query parameters found</p>
+                <p className="text-neutral-500 italic">No query parameters found</p>
               )}
             </div>
 
@@ -62,13 +62,13 @@ const DebugInvitationPage: React.FC = () => {
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-500 italic">No hash parameters found</p>
+                <p className="text-neutral-500 italic">No hash parameters found</p>
               )}
             </div>
             
             <div className="pt-4">
               <h2 className="text-lg font-semibold mb-2">Expected Parameters for Supabase:</h2>
-              <ul className="text-sm text-gray-600 space-y-1">
+              <ul className="text-sm text-neutral-600 space-y-1">
                 <li>• <strong>access_token</strong> - Required for authentication</li>
                 <li>• <strong>refresh_token</strong> - Required for session</li>
                 <li>• <strong>type</strong> - Should be "invite" or "signup"</li>

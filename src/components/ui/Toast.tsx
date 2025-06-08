@@ -101,7 +101,7 @@ const Toast: React.FC<ToastProps> = ({
           </div>
           <div className="ml-auto pl-3">
             <button
-              className="inline-flex text-gray-400 focus:outline-none focus:text-gray-500 rounded-md"
+              className="inline-flex text-neutral-400 focus:outline-none focus:text-neutral-500 rounded-md"
               onClick={() => {
                 setVisible(false);
                 if (onClose) onClose();

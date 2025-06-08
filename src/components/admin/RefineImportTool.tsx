@@ -373,7 +373,7 @@ const RefineImportTool: React.FC = () => {
     <div className="max-w-4xl mx-auto">
       <Card className="p-6 shadow-md">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-800">Enhanced Data Import Tool</h2>
+          <h2 className="text-xl font-semibold text-neutral-800">Enhanced Data Import Tool</h2>
           <div className="flex space-x-2">
             <Button 
               variant="outline" 
@@ -423,7 +423,7 @@ const RefineImportTool: React.FC = () => {
         {importStatus === 'idle' && (
           <div className="space-y-6">
             <div>
-              <h3 className="text-md font-medium text-gray-700 mb-3">Step 1: Select Data Type</h3>
+              <h3 className="text-md font-medium text-neutral-700 mb-3">Step 1: Select Data Type</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {Object.entries(DATA_TYPES).map(([key, info]) => (
                   <div
@@ -431,15 +431,15 @@ const RefineImportTool: React.FC = () => {
                     className={`p-3 rounded-md border cursor-pointer transition-colors ${
                       selectedDataType === key 
                         ? 'border-primary-500 bg-primary-50' 
-                        : 'border-gray-200 hover:border-primary-300 hover:bg-gray-50'
+                        : 'border-neutral-200 hover:border-primary-300 hover:bg-neutral-50'
                     }`}
                     onClick={() => setSelectedDataType(key as DataType)}
                   >
                     <div className="flex items-center space-x-3">
                       {info.icon}
                       <div>
-                        <h4 className="font-medium text-gray-800">{info.label}</h4>
-                        <p className="text-xs text-gray-500">{info.description}</p>
+                        <h4 className="font-medium text-neutral-800">{info.label}</h4>
+                        <p className="text-xs text-neutral-500">{info.description}</p>
                       </div>
                     </div>
                   </div>
@@ -449,13 +449,13 @@ const RefineImportTool: React.FC = () => {
             
             {/* Step 2: Select import format */}
             <div>
-              <h3 className="text-md font-medium text-gray-700 mb-3">Step 2: Select Format</h3>
+              <h3 className="text-md font-medium text-neutral-700 mb-3">Step 2: Select Format</h3>
               <div className="flex space-x-4">
                 <div 
                   className={`flex items-center px-4 py-2 rounded-md cursor-pointer ${
                     importType === 'excel' 
                       ? 'bg-primary-50 text-primary-600 border border-primary-200' 
-                      : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'
+                      : 'bg-neutral-50 text-neutral-600 border border-neutral-200 hover:bg-neutral-100'
                   }`}
                   onClick={() => setImportType('excel')}
                 >
@@ -467,7 +467,7 @@ const RefineImportTool: React.FC = () => {
                   className={`flex items-center px-4 py-2 rounded-md cursor-pointer ${
                     importType === 'csv' 
                       ? 'bg-primary-50 text-primary-600 border border-primary-200' 
-                      : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'
+                      : 'bg-neutral-50 text-neutral-600 border border-neutral-200 hover:bg-neutral-100'
                   }`}
                   onClick={() => setImportType('csv')}
                 >
@@ -479,9 +479,9 @@ const RefineImportTool: React.FC = () => {
             
             {/* Step 3: Upload file */}
             <div>
-              <h3 className="text-md font-medium text-gray-700 mb-3">Step 3: Upload File</h3>
-              <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center">
-                <Upload className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="text-md font-medium text-neutral-700 mb-3">Step 3: Upload File</h3>
+              <div className="border-2 border-dashed border-neutral-300 rounded-md p-6 text-center">
+                <Upload className="mx-auto h-12 w-12 text-neutral-400" />
                 <div className="mt-4 flex text-sm justify-center">
                   <label
                     htmlFor="file-upload"
@@ -539,9 +539,9 @@ const RefineImportTool: React.FC = () => {
                       multiple={importType === 'csv'}
                     />
                   </label>
-                  <p className="pl-1 text-gray-500">or drag and drop</p>
+                  <p className="pl-1 text-neutral-500">or drag and drop</p>
                 </div>
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-xs text-neutral-500 mt-2">
                   {importType === 'excel' 
                     ? `Excel file (.xlsx) containing ${selectedDataType === 'comprehensive' ? 'all data' : selectedDataType} data` 
                     : `CSV file${selectedDataType === 'csv' ? '(s)' : ''} containing ${selectedDataType === 'comprehensive' ? 'all data' : selectedDataType} data`
@@ -549,7 +549,7 @@ const RefineImportTool: React.FC = () => {
                 </p>
                 
                 {/* Show format guidance based on selected data type */}
-                <div className="mt-4 text-xs text-gray-500">
+                <div className="mt-4 text-xs text-neutral-500">
                   {dataTypeInfo.acceptedFormats.includes(importType) ? (
                     <div className="bg-blue-50 p-3 rounded text-left inline-block">
                       <p className="font-medium text-blue-700 mb-1">
@@ -594,8 +594,8 @@ const RefineImportTool: React.FC = () => {
         {importStatus === 'loading' && (
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary-600 mx-auto"></div>
-            <p className="mt-4 text-gray-700">Importing data...</p>
-            <p className="text-sm text-gray-500 mt-2">
+            <p className="mt-4 text-neutral-700">Importing data...</p>
+            <p className="text-sm text-neutral-500 mt-2">
               This may take a few moments
             </p>
           </div>

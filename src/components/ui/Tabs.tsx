@@ -34,24 +34,24 @@ const Tabs: React.FC<TabsProps> = ({
   // Variant styling
   const variantStyles = {
     default: {
-      list: "border-b border-gray-200 w-full",
-      trigger: "border-b-2 text-sm font-medium py-4 px-3 -mb-px data-[state=active]:border-primary-500 data-[state=active]:text-primary-600 data-[state=inactive]:border-transparent data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-700 data-[state=inactive]:hover:border-gray-300",
+      list: "border-b border-neutral-200 w-full",
+      trigger: "border-b-2 text-sm font-medium py-4 px-3 -mb-px data-[state=active]:border-primary-500 data-[state=active]:text-primary-600 data-[state=inactive]:border-transparent data-[state=inactive]:text-neutral-500 data-[state=inactive]:hover:text-neutral-700 data-[state=inactive]:hover:border-neutral-300",
     },
     pills: {
       list: "bg-white p-1 rounded-lg",
-      trigger: "rounded-md text-sm font-medium px-3 py-2 data-[state=active]:bg-primary-50 data-[state=active]:text-primary-600 data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-700",
+      trigger: "rounded-md text-sm font-medium px-3 py-2 data-[state=active]:bg-primary-50 data-[state=active]:text-primary-600 data-[state=inactive]:text-neutral-500 data-[state=inactive]:hover:text-neutral-700",
     },
     underline: {
-      list: "w-full border-b border-gray-200",
-      trigger: "border-b-2 text-sm font-medium py-3 px-3 -mb-px data-[state=active]:border-primary-500 data-[state=active]:text-primary-600 data-[state=inactive]:border-transparent data-[state=inactive]:text-gray-500",
+      list: "w-full border-b border-neutral-200",
+      trigger: "border-b-2 text-sm font-medium py-3 px-3 -mb-px data-[state=active]:border-primary-500 data-[state=active]:text-primary-600 data-[state=inactive]:border-transparent data-[state=inactive]:text-neutral-500",
     },
   };
 
   // Handle mobile select view for small screens
   const MobileTabSelect = () => (
-    <div className="sm:hidden p-4 border-b border-gray-200">
+    <div className="sm:hidden p-4 border-b border-neutral-200">
       <select
-        className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-primary-500 focus:outline-none focus:ring-primary-500"
+        className="block w-full rounded-md border-neutral-300 py-2 pl-3 pr-10 text-base focus:border-primary-500 focus:outline-none focus:ring-primary-500"
         defaultValue={defaultTab}
         onChange={(e) => onChange?.(e.target.value)}
       >

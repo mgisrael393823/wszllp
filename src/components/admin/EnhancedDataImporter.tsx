@@ -257,7 +257,7 @@ const EnhancedDataImporter: React.FC = () => {
             { value: "contacts", label: "Contacts Only" }
           ]}
         />
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-neutral-500 mt-1">
           Select the type of data you want to import. For multiple data types, choose "Comprehensive".
         </p>
       </div>
@@ -289,7 +289,7 @@ const EnhancedDataImporter: React.FC = () => {
             Excel Files
           </label>
         </div>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-neutral-500 mt-1">
           CSV files should be comma-separated. Excel files should be in .xlsx or .xls format.
         </p>
       </div>
@@ -305,7 +305,7 @@ const EnhancedDataImporter: React.FC = () => {
           disabled={isLoading}
           className="w-full"
         />
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-neutral-500 mt-1">
           {importType === 'excel'
             ? 'Select one or more Excel files containing your data.'
             : 'Select one or more CSV files containing your data.'}
@@ -376,34 +376,34 @@ const EnhancedDataImporter: React.FC = () => {
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200 border">
                     <thead>
-                      <tr className="bg-gray-50">
+                      <tr className="bg-neutral-50">
                         {fileHeaders.slice(0, 6).map((header) => (
-                          <th key={header} className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th key={header} className="px-3 py-2 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
                             {header}
                           </th>
                         ))}
                         {fileHeaders.length > 6 && (
-                          <th className="px-3 py-2 text-left text-xs font-medium text-gray-500">...</th>
+                          <th className="px-3 py-2 text-left text-xs font-medium text-neutral-500">...</th>
                         )}
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {previewData.map((row, idx) => (
-                        <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                        <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-neutral-50'}>
                           {fileHeaders.slice(0, 6).map((header) => (
-                            <td key={`${idx}-${header}`} className="px-3 py-2 text-xs text-gray-500 truncate max-w-xs">
+                            <td key={`${idx}-${header}`} className="px-3 py-2 text-xs text-neutral-500 truncate max-w-xs">
                               {row[header] || '-'}
                             </td>
                           ))}
                           {fileHeaders.length > 6 && (
-                            <td className="px-3 py-2 text-xs text-gray-500">...</td>
+                            <td className="px-3 py-2 text-xs text-neutral-500">...</td>
                           )}
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-neutral-500 mt-1">
                   Showing {previewData.length} rows of preview data
                 </p>
               </div>
@@ -427,7 +427,7 @@ const EnhancedDataImporter: React.FC = () => {
       {/* Progress Bar */}
       {isLoading && (
         <div className="mb-6">
-          <div className="w-full bg-gray-200 rounded-full h-2.5">
+          <div className="w-full bg-neutral-200 rounded-full h-2.5">
             <div
               className="bg-blue-600 h-2.5 rounded-full"
               style={{ width: `${progress}%` }}
@@ -485,7 +485,7 @@ const EnhancedDataImporter: React.FC = () => {
       )}
       
       {/* Help Text */}
-      <div className="mt-6 text-sm text-gray-600 bg-gray-50 p-4 rounded">
+      <div className="mt-6 text-sm text-neutral-600 bg-neutral-50 p-4 rounded">
         <h4 className="font-bold mb-1">Tips for successful imports:</h4>
         <ul className="list-disc list-inside space-y-1">
           <li>Make sure your CSV files use consistent column names</li>

@@ -156,7 +156,7 @@ const EFileStatusListSimple: React.FC = () => {
       case 'processing':
         return <Clock className="w-4 h-4 text-blue-500" />;
       default:
-        return <AlertCircle className="w-4 h-4 text-gray-500" />;
+        return <AlertCircle className="w-4 h-4 text-neutral-500" />;
     }
   };
 
@@ -201,7 +201,7 @@ const EFileStatusListSimple: React.FC = () => {
 
       {/* Status list */}
       {allEnvelopes.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-neutral-500">
           <AlertCircle className="mx-auto mb-2" size={24} />
           <p>No filings to display</p>
         </div>
@@ -218,7 +218,7 @@ const EFileStatusListSimple: React.FC = () => {
                     {getStatusIcon(status)}
                     <span className="font-mono text-sm">{envelopeId}</span>
                     {isExternal && (
-                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                      <span className="text-xs bg-neutral-100 text-neutral-600 px-2 py-1 rounded">
                         External
                       </span>
                     )}
@@ -261,7 +261,7 @@ const EFileStatusListSimple: React.FC = () => {
         }
       >
         <div className="space-y-4">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-neutral-600">
             Enter the envelope ID from a filing submitted outside this system.
           </p>
           <Input

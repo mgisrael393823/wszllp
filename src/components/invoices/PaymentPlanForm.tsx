@@ -69,7 +69,7 @@ const PaymentPlanForm: React.FC<PaymentPlanFormProps> = ({
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="amount" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="amount" className="block text-sm font-medium text-neutral-700">
             Amount
           </label>
           <Input
@@ -86,7 +86,7 @@ const PaymentPlanForm: React.FC<PaymentPlanFormProps> = ({
         </div>
 
         <div>
-          <label htmlFor="installmentDate" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="installmentDate" className="block text-sm font-medium text-neutral-700">
             Installment Date
           </label>
           <Input

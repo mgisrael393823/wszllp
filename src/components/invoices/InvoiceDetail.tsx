@@ -24,8 +24,8 @@ const InvoiceDetail: React.FC = () => {
   if (!invoice || !associatedCase) {
     return (
       <div className="text-center py-12">
-        <h2 className="text-2xl font-bold text-gray-900">Invoice not found</h2>
-        <p className="mt-2 text-gray-600">The requested invoice could not be found.</p>
+        <h2 className="text-2xl font-bold text-neutral-900">Invoice not found</h2>
+        <p className="mt-2 text-neutral-600">The requested invoice could not be found.</p>
         <Button
           variant="outline"
           onClick={() => navigate('/invoices')}
@@ -89,10 +89,10 @@ const InvoiceDetail: React.FC = () => {
           Back to Invoices
         </Button>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-neutral-900">
             Invoice for {associatedCase.plaintiff} v. {associatedCase.defendant}
           </h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-neutral-500">
             Invoice ID: {invoice.invoiceId}
           </p>
         </div>
@@ -106,16 +106,16 @@ const InvoiceDetail: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Invoice Details</h3>
+          <h3 className="text-lg font-medium text-neutral-900 mb-4">Invoice Details</h3>
           <dl className="grid grid-cols-2 gap-4">
             <div>
-              <dt className="text-sm font-medium text-gray-500">Total Amount</dt>
-              <dd className="mt-1 text-2xl font-semibold text-gray-900">
+              <dt className="text-sm font-medium text-neutral-500">Total Amount</dt>
+              <dd className="mt-1 text-2xl font-semibold text-neutral-900">
                 {formatCurrency(invoice.amount)}
               </dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-gray-500">Status</dt>
+              <dt className="text-sm font-medium text-neutral-500">Status</dt>
               <dd className="mt-1">
                 <span 
                   className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
@@ -127,8 +127,8 @@ const InvoiceDetail: React.FC = () => {
               </dd>
             </div>
               <div>
-                <dt className="text-sm font-medium text-gray-500">Issue Date</dt>
-                <dd className="mt-1 text-sm text-gray-900">
+                <dt className="text-sm font-medium text-neutral-500">Issue Date</dt>
+                <dd className="mt-1 text-sm text-neutral-900">
                   {(() => {
                     const date = typeof invoice.issueDate === 'string'
                       ? parseISO(invoice.issueDate)
@@ -142,8 +142,8 @@ const InvoiceDetail: React.FC = () => {
                 </dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-gray-500">Due Date</dt>
-                <dd className="mt-1 text-sm text-gray-900">
+                <dt className="text-sm font-medium text-neutral-500">Due Date</dt>
+                <dd className="mt-1 text-sm text-neutral-900">
                   {(() => {
                     const date = typeof invoice.dueDate === 'string'
                       ? parseISO(invoice.dueDate)
@@ -160,17 +160,17 @@ const InvoiceDetail: React.FC = () => {
         </Card>
 
         <Card>
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Payment Summary</h3>
+          <h3 className="text-lg font-medium text-neutral-900 mb-4">Payment Summary</h3>
           <dl className="space-y-4">
             <div>
-              <dt className="text-sm font-medium text-gray-500">Amount Paid</dt>
+              <dt className="text-sm font-medium text-neutral-500">Amount Paid</dt>
               <dd className="mt-1 text-2xl font-semibold text-green-600">
                 {formatCurrency(totalPaid)}
               </dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-gray-500">Balance Due</dt>
-              <dd className="mt-1 text-2xl font-semibold text-gray-900">
+              <dt className="text-sm font-medium text-neutral-500">Balance Due</dt>
+              <dd className="mt-1 text-2xl font-semibold text-neutral-900">
                 {formatCurrency(invoice.amount - totalPaid)}
               </dd>
             </div>
@@ -180,7 +180,7 @@ const InvoiceDetail: React.FC = () => {
 
       <Card>
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium text-gray-900">Payment Plans</h3>
+          <h3 className="text-lg font-medium text-neutral-900">Payment Plans</h3>
           <Button
             onClick={() => setIsPaymentPlanModalOpen(true)}
             icon={<Plus size={16} />}

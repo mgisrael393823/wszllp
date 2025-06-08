@@ -403,7 +403,7 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">CSV Data Inspector</h2>
         <div>
-          <span className="text-sm text-gray-500 mr-2">File: {file.name}</span>
+          <span className="text-sm text-neutral-500 mr-2">File: {file.name}</span>
         </div>
       </div>
       
@@ -456,21 +456,21 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
           {/* Field Mapping */}
           <div className="mb-6">
             <h3 className="font-medium mb-2">Column Mapping</h3>
-            <p className="text-sm text-gray-600 mb-3">
+            <p className="text-sm text-neutral-600 mb-3">
               Please confirm or adjust the automatic field mappings. Map important columns to their correct field types.
             </p>
             
             <div className="max-h-80 overflow-y-auto border rounded-md p-2">
               <table className="min-w-full border-separate" style={{ borderSpacing: '0 4px' }}>
-                <thead className="bg-gray-50">
+                <thead className="bg-neutral-50">
                   <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50">
+                    <th className="px-4 py-2 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider sticky top-0 bg-neutral-50">
                       CSV Column
                     </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50">
+                    <th className="px-4 py-2 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider sticky top-0 bg-neutral-50">
                       Maps To
                     </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50">
+                    <th className="px-4 py-2 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider sticky top-0 bg-neutral-50">
                       Sample Value
                     </th>
                   </tr>
@@ -478,7 +478,7 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
                 <tbody className="bg-white">
                   {headers.map((header) => (
                     <tr key={header} className="bg-white">
-                      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-2 whitespace-nowrap text-sm text-neutral-900">
                         {header}
                         {detectedFields.caseId === header && (
                           <span className="ml-2 px-1.5 py-0.5 text-xs bg-green-100 text-green-800 rounded">
@@ -500,7 +500,7 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
                         <select
                           value={fieldMappings[header] || 'notUsed'}
                           onChange={(e) => handleMappingChange(header, e.target.value)}
-                          className="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                          className="w-full border-neutral-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                         >
                           {fieldOptions.map((option) => (
                             <option key={option.value} value={option.value}>
@@ -509,7 +509,7 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
                           ))}
                         </select>
                       </td>
-                      <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500 max-w-xs truncate">
+                      <td className="px-4 py-2 whitespace-nowrap text-sm text-neutral-500 max-w-xs truncate">
                         {dataPreview.length > 0 ? dataPreview[0][header] : ''}
                       </td>
                     </tr>
@@ -518,7 +518,7 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
               </table>
             </div>
             
-            <div className="mt-2 text-xs text-gray-500">
+            <div className="mt-2 text-xs text-neutral-500">
               <p>
                 <span className="font-medium">Tip:</span> Map the most important columns first (Case ID, Plaintiff, Defendant, Address, Costs)
               </p>
@@ -530,18 +530,18 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
             <h3 className="font-medium mb-2">Data Preview</h3>
             <div className="overflow-x-auto border rounded-md">
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+                <thead className="bg-neutral-50">
                   <tr>
                     {headers.slice(0, 5).map((header) => (
                       <th 
                         key={header} 
-                        className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        className="px-4 py-2 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider"
                       >
                         {header}
                       </th>
                     ))}
                     {headers.length > 5 && (
-                      <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-4 py-2 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider">
                         ...
                       </th>
                     )}
@@ -549,14 +549,14 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {dataPreview.map((row, idx) => (
-                    <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                    <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-neutral-50'}>
                       {headers.slice(0, 5).map((header) => (
-                        <td key={`${idx}-${header}`} className="px-4 py-2 whitespace-nowrap text-sm text-gray-500 max-w-xs truncate">
+                        <td key={`${idx}-${header}`} className="px-4 py-2 whitespace-nowrap text-sm text-neutral-500 max-w-xs truncate">
                           {row[header] || '-'}
                         </td>
                       ))}
                       {headers.length > 5 && (
-                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-4 py-2 whitespace-nowrap text-sm text-neutral-500">
                           ...
                         </td>
                       )}
@@ -565,7 +565,7 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
                 </tbody>
               </table>
             </div>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-neutral-500 mt-1">
               Showing {dataPreview.length} of {fileData.length} rows
             </p>
           </div>

@@ -276,7 +276,7 @@ const HearingForm: React.FC<HearingFormProps> = ({
       <div className="w-full">
         <label
           htmlFor="outcome"
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-sm font-medium text-neutral-700 mb-1"
         >
           Outcome
         </label>
@@ -284,7 +284,7 @@ const HearingForm: React.FC<HearingFormProps> = ({
           id="outcome"
           name="outcome"
           rows={3}
-          className={`block w-full rounded-md shadow-sm border border-gray-300 focus:border-primary-500 focus:ring focus:ring-primary-500 focus:ring-opacity-50 ${
+          className={`block w-full rounded-md shadow-sm border border-neutral-300 focus:border-primary-500 focus:ring focus:ring-primary-500 focus:ring-opacity-50 ${
             formErrors.outcome ? 'border-error-500' : ''
           }`}
           value={formData.outcome || ''}
@@ -294,7 +294,7 @@ const HearingForm: React.FC<HearingFormProps> = ({
         {formErrors.outcome && (
           <p className="mt-1 text-sm text-error-600">{formErrors.outcome}</p>
         )}
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-sm text-neutral-500">
           Optional. Can be filled after the hearing is complete.
         </p>
       </div>

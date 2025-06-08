@@ -1,6 +1,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import CardBodyLayout from './CardBodyLayout';
+import Typography from './Typography';
 
 // Icon sizing system (consistent with Card.tsx)
 const iconSizes = {
@@ -89,9 +90,9 @@ export const MetricContent: React.FC<MetricContentProps> = ({ data, fillHeight =
             style={{ width: `${percentage}%` }}
           />
         </div>
-        <div className="flex justify-between text-sm text-neutral-600">
-          <span>{current}</span>
-          <span>{max}</span>
+        <div className="flex justify-between">
+          <Typography variant="caption" color="medium">{current}</Typography>
+          <Typography variant="caption" color="medium">{max}</Typography>
         </div>
       </div>
     );
@@ -100,9 +101,9 @@ export const MetricContent: React.FC<MetricContentProps> = ({ data, fillHeight =
   return (
     <CardBodyLayout spacing="normal" fillHeight={fillHeight}>
       {/* Primary Metric Value */}
-      <div className="text-3xl font-bold text-neutral-900 leading-none">
+      <Typography variant="h2" weight="bold" className="leading-none">
         <AnimatedCounter value={data.value} />
-      </div>
+      </Typography>
       
       {/* Optional Progress Bar */}
       {data.progress && (
@@ -119,14 +120,14 @@ export const MetricContent: React.FC<MetricContentProps> = ({ data, fillHeight =
           <span className={`${iconSizes.sm} flex-shrink-0 inline-flex items-center justify-center`}>
             {data.trend.icon}
           </span>
-          <span className="text-sm font-medium">{data.trend.label}</span>
+          <Typography variant="caption" weight="medium">{data.trend.label}</Typography>
         </div>
       )}
       
       {/* Subtitle */}
-      <p className="text-sm text-neutral-600 leading-tight">
+      <Typography variant="caption" color="medium" className="leading-tight">
         {data.subtitle}
-      </p>
+      </Typography>
     </CardBodyLayout>
   );
 };
@@ -160,7 +161,7 @@ export const ActionListContent: React.FC<ActionListContentProps> = ({ actions, f
           <span className={`${iconSizes.md} group-hover:scale-110 transition-transform inline-flex items-center justify-center`}>
             {action.icon}
           </span>
-          <span className="font-medium text-neutral-900">{action.label}</span>
+          <Typography variant="body2" weight="medium">{action.label}</Typography>
         </button>
       ))}
     </CardBodyLayout>
@@ -222,15 +223,15 @@ export const ActivityFeedContent: React.FC<ActivityFeedContentProps> = ({ activi
         </div>
         
         <div className="flex-1 min-w-0 space-y-1">
-          <h4 className="font-semibold text-neutral-900 truncate group-hover:text-neutral-800">
+          <Typography variant="body2" weight="semibold" className="truncate group-hover:text-neutral-800">
             {activity.title}
-          </h4>
-          <p className="text-sm text-neutral-600 line-clamp-2 group-hover:text-neutral-700">
+          </Typography>
+          <Typography variant="caption" color="medium" className="line-clamp-2 group-hover:text-neutral-700">
             {activity.description}
-          </p>
-          <p className="text-xs text-neutral-500 font-medium">
+          </Typography>
+          <Typography variant="caption" color="muted" weight="medium">
             {activity.timestamp}
-          </p>
+          </Typography>
         </div>
         
         <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
@@ -250,8 +251,8 @@ export const ActivityFeedContent: React.FC<ActivityFeedContentProps> = ({ activi
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
         </div>
-        <h3 className="font-medium text-neutral-900">No recent activity</h3>
-        <p className="text-sm">Activity will appear here as you use the system</p>
+        <Typography variant="h3" weight="medium">No recent activity</Typography>
+        <Typography variant="caption" color="medium">Activity will appear here as you use the system</Typography>
       </CardBodyLayout>
     );
   }

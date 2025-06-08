@@ -71,8 +71,8 @@ const CaseDetail: React.FC = () => {
   if (!caseData) {
     return (
       <div className="text-center py-12">
-        <h2 className="text-2xl font-bold text-gray-900">Case not found</h2>
-        <p className="mt-2 text-gray-600">The requested case could not be found.</p>
+        <h2 className="text-2xl font-bold text-neutral-900">Case not found</h2>
+        <p className="mt-2 text-neutral-600">The requested case could not be found.</p>
         <Button
           variant="outline"
           onClick={() => navigate('/cases')}
@@ -364,7 +364,7 @@ const CaseDetail: React.FC = () => {
             <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 ring-1 ring-black ring-opacity-5">
               <div className="py-1">
                 <button
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                  className="w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100 flex items-center"
                   onClick={() => {
                     setIsEditCaseModalOpen(true);
                     setIsActionsMenuOpen(false);
@@ -374,7 +374,7 @@ const CaseDetail: React.FC = () => {
                   Edit Case
                 </button>
                 <button
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                  className="w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100 flex items-center"
                   onClick={() => {
                     setIsActionsMenuOpen(false);
                     navigate('/calendar');
@@ -384,7 +384,7 @@ const CaseDetail: React.FC = () => {
                   View in Calendar
                 </button>
                 <button
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                  className="w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100 flex items-center"
                   onClick={() => {
                     setIsActionsMenuOpen(false);
                     // Print functionality would be implemented here
@@ -401,19 +401,19 @@ const CaseDetail: React.FC = () => {
       </div>
 
       {/* Status Banner */}
-      <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
+      <div className="p-4 rounded-lg bg-neutral-50 border border-neutral-200">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-full bg-gray-100">
-              <Activity size={20} className="text-gray-700" />
+            <div className="p-2 rounded-full bg-neutral-100">
+              <Activity size={20} className="text-neutral-700" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-900">
+              <p className="text-sm font-medium text-neutral-900">
                 Status: <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(caseData.status)}`}>
                   {caseData.status}
                 </span>
               </p>
-              <p className="text-xs text-gray-600">Case Age: {caseAge} days</p>
+              <p className="text-xs text-neutral-600">Case Age: {caseAge} days</p>
             </div>
           </div>
 
@@ -423,7 +423,7 @@ const CaseDetail: React.FC = () => {
                 <Calendar size={20} className="text-primary-700" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-900">Next Hearing</p>
+                <p className="text-sm font-medium text-neutral-900">Next Hearing</p>
                 <p className="text-xs text-primary-600">
                   {(() => {
                     const date = typeof scheduledHearing.hearingDate === 'string'
@@ -446,35 +446,35 @@ const CaseDetail: React.FC = () => {
       <Card>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Case Information</h3>
+            <h3 className="text-lg font-medium text-neutral-900 mb-4">Case Information</h3>
             <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <dt className="text-sm font-medium text-gray-500 flex items-center gap-1">
+                <dt className="text-sm font-medium text-neutral-500 flex items-center gap-1">
                   <User size={14} />
                   Plaintiff
                 </dt>
-                <dd className="mt-1 text-sm text-gray-900 font-medium">{caseData.plaintiff}</dd>
+                <dd className="mt-1 text-sm text-neutral-900 font-medium">{caseData.plaintiff}</dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-gray-500 flex items-center gap-1">
+                <dt className="text-sm font-medium text-neutral-500 flex items-center gap-1">
                   <User size={14} />
                   Defendant
                 </dt>
-                <dd className="mt-1 text-sm text-gray-900 font-medium">{caseData.defendant}</dd>
+                <dd className="mt-1 text-sm text-neutral-900 font-medium">{caseData.defendant}</dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-gray-500 flex items-center gap-1">
+                <dt className="text-sm font-medium text-neutral-500 flex items-center gap-1">
                   <MapPin size={14} />
                   Property Address
                 </dt>
-                <dd className="mt-1 text-sm text-gray-900">{caseData.address}</dd>
+                <dd className="mt-1 text-sm text-neutral-900">{caseData.address}</dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-gray-500 flex items-center gap-1">
+                <dt className="text-sm font-medium text-neutral-500 flex items-center gap-1">
                   <Clock size={14} />
                   Intake Date
                 </dt>
-                <dd className="mt-1 text-sm text-gray-900">
+                <dd className="mt-1 text-sm text-neutral-900">
                   {(() => {
                     const date = typeof caseData.intakeDate === 'string'
                       ? parseISO(caseData.intakeDate)
@@ -491,7 +491,7 @@ const CaseDetail: React.FC = () => {
           </div>
           
           <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Case Statistics</h3>
+            <h3 className="text-lg font-medium text-neutral-900 mb-4">Case Statistics</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="bg-blue-50 p-4 rounded-lg">
                 <dt className="text-sm font-medium text-blue-900 flex items-center gap-2">
@@ -536,7 +536,7 @@ const CaseDetail: React.FC = () => {
 
       {/* Tabs and Content */}
       <Card>
-        <div className="border-b border-gray-200 mb-6">
+        <div className="border-b border-neutral-200 mb-6">
           <nav className="-mb-px flex space-x-6">
             {(['hearings', 'documents', 'invoices', 'activity'] as const).map((tab) => (
               <button
@@ -549,11 +549,11 @@ const CaseDetail: React.FC = () => {
                   whitespace-nowrap pb-3 px-1 border-b-2 font-medium text-sm
                   ${activeTab === tab
                     ? 'border-primary-500 text-primary-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}
+                    : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300'}
                 `}
               >
                 {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                <span className="ml-2 bg-gray-100 text-gray-600 py-0.5 px-2 rounded-full text-xs">
+                <span className="ml-2 bg-neutral-100 text-neutral-600 py-0.5 px-2 rounded-full text-xs">
                   {getActiveTabData().length}
                 </span>
               </button>
@@ -562,7 +562,7 @@ const CaseDetail: React.FC = () => {
         </div>
 
         <div className="mb-4 flex justify-between items-center">
-          <h3 className="text-lg font-medium text-gray-900">
+          <h3 className="text-lg font-medium text-neutral-900">
             {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
           </h3>
           

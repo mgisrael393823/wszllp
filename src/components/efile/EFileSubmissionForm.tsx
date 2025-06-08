@@ -1440,9 +1440,9 @@ const EFileSubmissionForm: React.FC = () => {
         
         {/* Cross References Section - Optional */}
         <Card className="p-4 mb-4" data-cy="cross-references-card">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">
+          <h3 className="text-lg font-medium text-neutral-900 mb-4">
             Case Cross References 
-            <span className="text-sm font-normal text-gray-500 ml-2">
+            <span className="text-sm font-normal text-neutral-500 ml-2">
               {(formData.caseType === '237042' || formData.caseType === '237037' || 
                 formData.caseType === '201996' || formData.caseType === '201995') 
                 ? '(Required for Joint Action - leave blank to auto-generate)'
@@ -1512,12 +1512,12 @@ const EFileSubmissionForm: React.FC = () => {
 
             {/* 2. Petitioner Section */}
             <Card className="p-4 mb-4" data-cy="petitioner-card">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Petitioner Information</h3>
+              <h3 className="text-lg font-medium text-neutral-900 mb-4">Petitioner Information</h3>
               
               {/* Business/Individual Toggle */}
               <div className="mb-4">
                 <fieldset>
-                  <legend className="text-sm font-medium text-gray-700 mb-2">Petitioner Type</legend>
+                  <legend className="text-sm font-medium text-neutral-700 mb-2">Petitioner Type</legend>
                   <div className="flex gap-4">
                     <label className="flex items-center">
                       <input
@@ -1688,7 +1688,7 @@ const EFileSubmissionForm: React.FC = () => {
             {/* 3. Defendant Section */}
             <Card className="p-4 mb-4" data-cy="defendant-card">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium text-gray-900">Defendant Information</h3>
+                <h3 className="text-lg font-medium text-neutral-900">Defendant Information</h3>
                 <button
                   type="button"
                   onClick={addDefendant}
@@ -1700,9 +1700,9 @@ const EFileSubmissionForm: React.FC = () => {
               </div>
               
               {formData.defendants.map((defendant, index) => (
-                <div key={index} className="mb-6 p-4 border border-gray-200 rounded-md">
+                <div key={index} className="mb-6 p-4 border border-neutral-200 rounded-md">
                   <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-md font-medium text-gray-700">Defendant {index + 1}</h4>
+                    <h4 className="text-md font-medium text-neutral-700">Defendant {index + 1}</h4>
                     {formData.defendants.length > 1 && (
                       <button
                         type="button"
@@ -1784,11 +1784,11 @@ const EFileSubmissionForm: React.FC = () => {
               ))}
               
               {/* Unknown Occupants Option */}
-              <div className="mt-6 p-4 bg-gray-50 rounded-md border border-gray-200">
+              <div className="mt-6 p-4 bg-neutral-50 rounded-md border border-neutral-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700">Include Unknown Occupants</h4>
-                    <p className="mt-1 text-xs text-gray-500">
+                    <h4 className="text-sm font-medium text-neutral-700">Include Unknown Occupants</h4>
+                    <p className="mt-1 text-xs text-neutral-500">
                       Add "All Unknown Occupants" as an additional defendant to ensure proper notice to all parties
                     </p>
                   </div>
@@ -1799,19 +1799,19 @@ const EFileSubmissionForm: React.FC = () => {
                       onChange={(e) => setFormData(prev => ({ ...prev, includeUnknownOccupants: e.target.checked }))}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+                    <div className="w-11 h-6 bg-neutral-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
                   </label>
                 </div>
                 {formData.includeUnknownOccupants && (
-                  <div className="mt-3 p-3 bg-white rounded border border-gray-200">
+                  <div className="mt-3 p-3 bg-white rounded border border-neutral-200">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                       <div>
-                        <span className="font-medium text-gray-600">Name:</span>
-                        <span className="ml-2 text-gray-900">All Unknown Occupants</span>
+                        <span className="font-medium text-neutral-600">Name:</span>
+                        <span className="ml-2 text-neutral-900">All Unknown Occupants</span>
                       </div>
                       <div>
-                        <span className="font-medium text-gray-600">Address:</span>
-                        <span className="ml-2 text-gray-900">Same as primary defendant</span>
+                        <span className="font-medium text-neutral-600">Address:</span>
+                        <span className="ml-2 text-neutral-900">Same as primary defendant</span>
                       </div>
                     </div>
                   </div>
@@ -1853,27 +1853,27 @@ const EFileSubmissionForm: React.FC = () => {
 
         {/* Document Upload Section - Three separate uploads */}
         <Card className="p-4 mb-4" data-cy="documents-card">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Required Documents</h3>
+          <h3 className="text-lg font-medium text-neutral-900 mb-4">Required Documents</h3>
           
           {/* Complaint Upload */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-neutral-700 mb-1">
               Upload Eviction Complaint <span className="text-error-600">*</span>
             </label>
-            <div className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 ${errors.complaintFile ? 'border-error-500' : 'border-gray-300'} border-dashed rounded-md`}>
+            <div className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 ${errors.complaintFile ? 'border-error-500' : 'border-neutral-300'} border-dashed rounded-md`}>
               {!formData.complaintFile ? (
                 <div className="space-y-1 text-center">
-                  <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                  <svg className="mx-auto h-12 w-12 text-neutral-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
                     <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                  <div className="flex text-sm text-gray-600">
+                  <div className="flex text-sm text-neutral-600">
                     <label htmlFor="complaint-upload" className="relative cursor-pointer rounded-md font-medium text-primary-600 hover:text-primary-500">
                       <span>Upload complaint</span>
                       <input id="complaint-upload" name="complaint" type="file" className="sr-only" onChange={handleSingleFileChange('complaintFile')} accept=".pdf,.docx" />
                     </label>
                     <p className="pl-1">or drag and drop</p>
                   </div>
-                  <p className="text-xs text-gray-500">PDF or DOCX up to 10MB</p>
+                  <p className="text-xs text-neutral-500">PDF or DOCX up to 10MB</p>
                 </div>
               ) : (
                 <div className="text-center">
@@ -1894,10 +1894,10 @@ const EFileSubmissionForm: React.FC = () => {
           {/* Summons Upload - Multiple Files Optional */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-1">
-              <label className="block text-sm font-medium text-gray-700">
-                Upload Summons <span className="text-sm font-normal text-gray-500">(Optional - Multiple allowed)</span>
+              <label className="block text-sm font-medium text-neutral-700">
+                Upload Summons <span className="text-sm font-normal text-neutral-500">(Optional - Multiple allowed)</span>
               </label>
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-neutral-500">
                 {formData.summonsFiles.length} file{formData.summonsFiles.length !== 1 ? 's' : ''} uploaded
               </span>
             </div>
@@ -1906,12 +1906,12 @@ const EFileSubmissionForm: React.FC = () => {
             {formData.summonsFiles.length > 0 && (
               <div className="mb-4 space-y-2">
                 {formData.summonsFiles.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                  <div key={index} className="flex items-center justify-between p-3 bg-neutral-50 rounded-md">
                     <div className="flex items-center">
                       <svg className="h-5 w-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
-                      <span className="text-sm text-gray-900">{file.name}</span>
+                      <span className="text-sm text-neutral-900">{file.name}</span>
                     </div>
                     <button
                       type="button"
@@ -1926,19 +1926,19 @@ const EFileSubmissionForm: React.FC = () => {
             )}
             
             {/* Upload new summons */}
-            <div className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 ${errors.summonsFiles ? 'border-error-500' : 'border-gray-300'} border-dashed rounded-md`}>
+            <div className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 ${errors.summonsFiles ? 'border-error-500' : 'border-neutral-300'} border-dashed rounded-md`}>
               <div className="space-y-1 text-center">
-                <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                <svg className="mx-auto h-12 w-12 text-neutral-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
                   <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                <div className="flex text-sm text-gray-600">
+                <div className="flex text-sm text-neutral-600">
                   <label htmlFor="summons-upload" className="relative cursor-pointer rounded-md font-medium text-primary-600 hover:text-primary-500">
                     <span>Add summons file</span>
                     <input id="summons-upload" name="summons" type="file" className="sr-only" onChange={handleSummonsFileAdd} accept=".pdf,.docx" />
                   </label>
                   <p className="pl-1">or drag and drop</p>
                 </div>
-                <p className="text-xs text-gray-500">PDF or DOCX up to 10MB each</p>
+                <p className="text-xs text-neutral-500">PDF or DOCX up to 10MB each</p>
               </div>
             </div>
             {errors.summonsFiles && <p className="mt-1 text-sm text-error-600">{errors.summonsFiles}</p>}
@@ -1946,23 +1946,23 @@ const EFileSubmissionForm: React.FC = () => {
 
           {/* Affidavit Upload - Optional */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Upload Affidavit <span className="text-sm font-normal text-gray-500">(Optional)</span>
+            <label className="block text-sm font-medium text-neutral-700 mb-1">
+              Upload Affidavit <span className="text-sm font-normal text-neutral-500">(Optional)</span>
             </label>
-            <div className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 ${errors.affidavitFile ? 'border-error-500' : 'border-gray-300'} border-dashed rounded-md`}>
+            <div className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 ${errors.affidavitFile ? 'border-error-500' : 'border-neutral-300'} border-dashed rounded-md`}>
               {!formData.affidavitFile ? (
                 <div className="space-y-1 text-center">
-                  <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                  <svg className="mx-auto h-12 w-12 text-neutral-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
                     <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
-                  <div className="flex text-sm text-gray-600">
+                  <div className="flex text-sm text-neutral-600">
                     <label htmlFor="affidavit-upload" className="relative cursor-pointer rounded-md font-medium text-primary-600 hover:text-primary-500">
                       <span>Upload affidavit</span>
                       <input id="affidavit-upload" name="affidavit" type="file" className="sr-only" onChange={handleSingleFileChange('affidavitFile')} accept=".pdf,.docx" />
                     </label>
                     <p className="pl-1">or drag and drop</p>
                   </div>
-                  <p className="text-xs text-gray-500">PDF or DOCX up to 10MB</p>
+                  <p className="text-xs text-neutral-500">PDF or DOCX up to 10MB</p>
                 </div>
               ) : (
                 <div className="text-center">

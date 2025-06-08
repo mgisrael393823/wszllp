@@ -35,7 +35,7 @@ const ForgotPasswordPage: React.FC = () => {
 
   if (sent) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-neutral-50">
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
             <img
@@ -45,13 +45,13 @@ const ForgotPasswordPage: React.FC = () => {
             />
             <div className="mt-6">
               <CheckCircle className="mx-auto h-12 w-12 text-green-500" />
-              <h2 className="mt-4 text-3xl font-extrabold text-gray-900">
+              <h2 className="mt-4 text-3xl font-extrabold text-neutral-900">
                 Reset Link Sent
               </h2>
-              <p className="mt-2 text-gray-600">
+              <p className="mt-2 text-neutral-600">
                 We've sent a password reset link to <strong>{email}</strong>
               </p>
-              <p className="mt-2 text-sm text-gray-500">
+              <p className="mt-2 text-sm text-neutral-500">
                 Check your email and click the link to reset your password. The link will expire in 1 hour.
               </p>
               <div className="mt-6 space-y-3">
@@ -79,7 +79,7 @@ const ForgotPasswordPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-neutral-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
           <img
@@ -87,10 +87,10 @@ const ForgotPasswordPage: React.FC = () => {
             src="/wszmainlogo.webp"
             alt="WSZ Legal Logo"
           />
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-neutral-900">
             Reset Your Password
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-2 text-center text-sm text-neutral-600">
             Enter your email address and we'll send you a link to reset your password.
           </p>
         </div>
@@ -108,7 +108,7 @@ const ForgotPasswordPage: React.FC = () => {
           )}
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="email" className="block text-sm font-medium text-neutral-700">
               Email Address
             </label>
             <div className="mt-1 relative">
@@ -120,10 +120,10 @@ const ForgotPasswordPage: React.FC = () => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="appearance-none relative block w-full px-3 py-2 pl-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                className="appearance-none relative block w-full px-3 py-2 pl-10 border border-neutral-300 placeholder-gray-500 text-neutral-900 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
                 placeholder="Enter your email address"
               />
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-neutral-400" />
             </div>
           </div>
 

@@ -331,6 +331,54 @@ export const components = {
   },
 };
 
+// Icon system
+export const iconSizes = {
+  xs: {
+    size: '12px',
+    className: 'w-3 h-3',
+    description: 'Tiny icons for inline text or dense UI'
+  },
+  sm: {
+    size: '16px',
+    className: 'w-4 h-4',
+    description: 'Small icons for secondary actions, form inputs'
+  },
+  md: {
+    size: '20px',
+    className: 'w-5 h-5',
+    description: 'Default icons for standard UI elements'
+  },
+  lg: {
+    size: '24px',
+    className: 'w-6 h-6',
+    description: 'Large icons for primary actions, headers'
+  },
+  xl: {
+    size: '32px',
+    className: 'w-8 h-8',
+    description: 'Extra large icons for emphasis'
+  },
+  '2xl': {
+    size: '48px',
+    className: 'w-12 h-12',
+    description: 'Hero icons for empty states, illustrations'
+  }
+};
+
+// Icon color contexts
+export const iconColors = {
+  default: 'text-neutral-600',
+  primary: 'text-primary-600',
+  secondary: 'text-secondary-600',
+  accent: 'text-accent-600',
+  success: 'text-success-600',
+  warning: 'text-warning-600',
+  error: 'text-error-600',
+  muted: 'text-neutral-400',
+  subtle: 'text-neutral-500',
+  inverse: 'text-white'
+};
+
 // Breakpoints for responsive design
 export const breakpoints = {
   sm: '640px',
@@ -350,5 +398,7 @@ export default {
   semanticSpacing,
   elevation,
   components,
+  iconSizes,
+  iconColors,
   breakpoints,
 };

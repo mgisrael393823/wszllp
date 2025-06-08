@@ -9,6 +9,7 @@ import {
 } from './shadcn-card';
 import { cn } from '@/lib/utils';
 import { MetricContent, ActionListContent, ActivityFeedContent } from './CardContent';
+import Typography from './Typography';
 
 type CardElevation = 'flat' | 'low' | 'medium' | 'high' | 'extreme';
 type CardBorder = 'none' | 'light' | 'normal' | 'accent' | 'gradient';
@@ -157,29 +158,29 @@ const Card: React.FC<CardProps> = ({
 
 
 
-  // Size system with consistent spacing tokens
+  // Size system with semantic spacing tokens
   const sizeStyles: Record<CardSize, { 
     padding: { x: string; y: string }; 
     borderRadius: string;
     iconSize: keyof typeof iconSizes;
   }> = {
     compact: {
-      padding: { x: 'px-4', y: 'py-3' },
+      padding: { x: 'px-content-tight', y: 'py-content-tight' },
       borderRadius: 'rounded-lg',
       iconSize: 'sm',
     },
     normal: {
-      padding: { x: 'px-6', y: 'py-4' },
+      padding: { x: 'px-content-comfortable', y: 'py-content-normal' },
       borderRadius: 'rounded-xl', 
       iconSize: 'md',
     },
     spacious: {
-      padding: { x: 'px-8', y: 'py-6' },
+      padding: { x: 'px-content-spacious', y: 'py-content-comfortable' },
       borderRadius: 'rounded-xl',
       iconSize: 'lg', 
     },
     featured: {
-      padding: { x: 'px-10', y: 'py-8' },
+      padding: { x: 'px-layout-compact', y: 'px-content-spacious' },
       borderRadius: 'rounded-2xl',
       iconSize: 'lg',
     },
@@ -299,7 +300,7 @@ const Card: React.FC<CardProps> = ({
       {/* Custom header - direct layout */}
       {(title || subtitle || icon || badge) && (
         <div className={cn(
-          "px-6 py-4 border-b border-neutral-200/60 flex items-center justify-between",
+          "px-content-comfortable py-content-normal border-b border-neutral-200/60 flex items-center justify-between",
           headerClassName
         )}>
           <div className="flex items-center gap-3 min-w-0">
@@ -311,13 +312,13 @@ const Card: React.FC<CardProps> = ({
             <div className="min-w-0">
               <div className="flex items-center">
                 {typeof title === 'string' ? (
-                  <h3 className="text-lg font-medium leading-tight tracking-tight truncate m-0">{title}</h3>
+                  <Typography variant="h3" weight="medium" className="leading-tight truncate m-0">{title}</Typography>
                 ) : (
                   <div className="leading-tight truncate">{title}</div>
                 )}
               </div>
               {subtitle && (
-                <p className="text-sm text-muted-foreground truncate mt-1">{subtitle}</p>
+                <Typography variant="caption" color="medium" className="truncate mt-1">{subtitle}</Typography>
               )}
             </div>
           </div>

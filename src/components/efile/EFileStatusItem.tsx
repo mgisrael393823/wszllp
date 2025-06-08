@@ -115,7 +115,7 @@ const EFileStatusItem: React.FC<Props> = ({ envelopeId }) => {
   const status = data?.item?.filings?.[0]?.status || info.status;
 
   return (
-    <li className="mt-2 text-sm text-gray-700">
+    <li className="mt-2 text-sm text-neutral-700">
       {info.caseId} – Envelope {envelopeId} – {status}
       {info.stampedDocument && (
         <a href={info.stampedDocument} className="text-primary-600 ml-2" download>

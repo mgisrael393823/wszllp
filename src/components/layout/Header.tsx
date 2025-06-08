@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, ChevronLeft, ChevronRight, Search, User, HelpCircle, Settings } from 'lucide-react';
 import Button from '../ui/Button';
+import Typography from '../ui/Typography';
 import NotificationBell from '../notifications/NotificationBell';
 import { useAuth } from '../../context/AuthContext';
+import { iconSizes } from '../../styles/designTokens';
 
 interface HeaderProps {
   toggleSidebar: () => void;
@@ -37,7 +39,7 @@ const Header: React.FC<HeaderProps> = ({
       transition-shadow duration-200
       ${isScrolled ? 'shadow-md' : ''}
     `}>
-      <div className="px-4 sm:px-6 lg:px-8">
+      <div className="px-content-normal sm:px-content-comfortable lg:px-content-spacious">
         <div className="flex items-center justify-between h-16">
           {/* Left section: Menu toggle, sidebar collapse toggle */}
           <div className="flex items-center">
@@ -47,7 +49,7 @@ const Header: React.FC<HeaderProps> = ({
               className="md:hidden -ml-1 mr-2"
               aria-label="Toggle navigation menu"
             >
-              <Menu size={24} />
+              <Menu className={iconSizes.lg.className} />
             </Button>
             <Button
               variant="text"
@@ -55,17 +57,17 @@ const Header: React.FC<HeaderProps> = ({
               className="hidden md:flex"
               aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
-              {isSidebarCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+              {isSidebarCollapsed ? <ChevronRight className={iconSizes.md.className} /> : <ChevronLeft className={iconSizes.md.className} />}
             </Button>
           </div>
 
 
           {/* Right section: Search, notifications, user menu */}
-          <div className="flex items-center space-x-1 sm:space-x-3">
+          <div className="flex items-center space-x-1 sm:space-x-content-tight">
             {/* Search button (mobile) - expand to search bar on larger screens */}
             <div className="hidden sm:flex relative w-64">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search size={18} className="text-neutral-400" />
+                <Search className={`${iconSizes.sm.className} text-neutral-400`} />
               </div>
               <input 
                 type="text" 
@@ -80,7 +82,7 @@ const Header: React.FC<HeaderProps> = ({
               className="sm:hidden"
               aria-label="Search"
             >
-              <Search size={20} />
+              <Search className={iconSizes.md.className} />
             </Button>
 
             {/* Help button */}
@@ -90,7 +92,7 @@ const Header: React.FC<HeaderProps> = ({
               className="hidden sm:flex"
               aria-label="Help"
             >
-              <HelpCircle size={20} />
+              <HelpCircle className={iconSizes.md.className} />
             </Button>
 
             {/* Notifications */}
@@ -106,8 +108,8 @@ const Header: React.FC<HeaderProps> = ({
                 aria-expanded={userMenuOpen}
                 aria-haspopup="true"
               >
-                <span className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-medium">
-                  {getUserInitials()}
+                <span className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700">
+                  <Typography variant="caption" weight="medium">{getUserInitials()}</Typography>
                 </span>
               </Button>
 
@@ -121,27 +123,27 @@ const Header: React.FC<HeaderProps> = ({
                   <div className="py-1">
                     <Link 
                       to="/profile" 
-                      className="flex items-center px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100"
+                      className="flex items-center px-content-normal py-2 hover:bg-neutral-100"
                       role="menuitem"
                     >
-                      <User size={16} className="mr-2" />
-                      Profile
+                      <User className={`${iconSizes.sm.className} mr-2`} />
+                      <Typography variant="caption" color="default">Profile</Typography>
                     </Link>
                     <Link 
                       to="/settings" 
-                      className="flex items-center px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100"
+                      className="flex items-center px-content-normal py-2 hover:bg-neutral-100"
                       role="menuitem"
                     >
-                      <Settings size={16} className="mr-2" />
-                      Settings
+                      <Settings className={`${iconSizes.sm.className} mr-2`} />
+                      <Typography variant="caption" color="default">Settings</Typography>
                     </Link>
                     <hr className="my-1 border-neutral-200" />
                     <button 
                       onClick={() => signOut()}
-                      className="flex items-center w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100"
+                      className="flex items-center w-full text-left px-content-normal py-2 hover:bg-neutral-100"
                       role="menuitem"
                     >
-                      Sign out
+                      <Typography variant="caption" color="default">Sign out</Typography>
                     </button>
                   </div>
                 </div>
