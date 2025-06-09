@@ -10,11 +10,12 @@ import {
 import { cn } from '@/lib/utils';
 import { MetricContent, ActionListContent, ActivityFeedContent } from './CardContent';
 import Typography from './Typography';
+import { CardProvider, cardSizeConfig, type CardSize as CardSizeType } from './CardContext';
 
 type CardElevation = 'flat' | 'low' | 'medium' | 'high' | 'extreme';
 type CardBorder = 'none' | 'light' | 'normal' | 'accent' | 'gradient';
 type CardVariant = 'default' | 'primary' | 'secondary' | 'accent' | 'success' | 'error' | 'warning' | 'metric' | 'action-list' | 'activity-feed' | 'content';
-type CardSize = 'compact' | 'normal' | 'spacious' | 'featured';
+type CardSize = CardSizeType; // Use the type from CardContext
 
 // Specialized data interfaces for card variants
 interface MetricData {
@@ -102,6 +103,16 @@ const Card: React.FC<CardProps> = ({
   actions,
   activities,
 }) => {
+  // Deprecation warning for compact prop
+  React.useEffect(() => {
+    if (compact !== undefined) {
+      console.warn(
+        'Card: The "compact" prop is deprecated and will be removed in v2.0. ' +
+        'Please use size="compact" instead.'
+      );
+    }
+  }, [compact]);
+
   // Enhanced elevation system with sophisticated shadows
   const elevationStyles: Record<CardElevation, string> = {
     flat: '',
@@ -147,46 +158,8 @@ const Card: React.FC<CardProps> = ({
   // Systematic foundation system
   const actualSize = compact ? 'compact' : size; // Handle deprecated compact prop
   
-
-  // Systematic icon sizing
-  const iconSizes = {
-    sm: 'w-4 h-4',   // 16px - for inline/secondary icons
-    md: 'w-5 h-5',   // 20px - for standard UI icons  
-    lg: 'w-6 h-6',   // 24px - for primary/header icons
-  };
-
-
-
-
-  // Size system with semantic spacing tokens
-  const sizeStyles: Record<CardSize, { 
-    padding: { x: string; y: string }; 
-    borderRadius: string;
-    iconSize: keyof typeof iconSizes;
-  }> = {
-    compact: {
-      padding: { x: 'px-content-tight', y: 'py-content-tight' },
-      borderRadius: 'rounded-lg',
-      iconSize: 'sm',
-    },
-    normal: {
-      padding: { x: 'px-content-comfortable', y: 'py-content-normal' },
-      borderRadius: 'rounded-xl', 
-      iconSize: 'md',
-    },
-    spacious: {
-      padding: { x: 'px-content-spacious', y: 'py-content-comfortable' },
-      borderRadius: 'rounded-xl',
-      iconSize: 'lg', 
-    },
-    featured: {
-      padding: { x: 'px-layout-compact', y: 'px-content-spacious' },
-      borderRadius: 'rounded-2xl',
-      iconSize: 'lg',
-    },
-  };
-  
-  const sizeConfig = sizeStyles[actualSize];
+  // Get size configuration from context
+  const sizeConfig = cardSizeConfig[actualSize];
   
 
   // Enhanced interactive and state styles
@@ -261,22 +234,26 @@ const Card: React.FC<CardProps> = ({
   // Handle loading skeleton
   if (loading) {
     return (
-      <ShadcnCard className={cardClasses}>
-        <div className="animate-pulse">
+      <CardProvider size={actualSize}>
+        <ShadcnCard className={cardClasses}>
+          <div className="animate-pulse">
           {(title || subtitle || icon || badge) && (
-            <div className={cn(
-              `${sizeConfig.padding.x} ${sizeConfig.padding.y} border-b border-neutral-200/60 flex items-center justify-between`,
-              headerClassName
-            )}>
-              <div className="flex items-center gap-3 min-w-0">
-                {icon && <div className={`${iconSizes[sizeConfig.iconSize]} bg-neutral-200 rounded`}></div>}
-                <div className="min-w-0 flex flex-col gap-1">
-                  {title && <div className="h-6 bg-neutral-200 rounded w-32"></div>}
-                  {subtitle && <div className="h-4 bg-neutral-200 rounded w-48"></div>}
+            <>
+              <div className={cn(
+                `${sizeConfig.padding.x} ${sizeConfig.padding.y} flex items-center justify-between`,
+                headerClassName
+              )}>
+                <div className="flex items-start gap-3 min-w-0">
+                  {icon && <div className={cn(sizeConfig.icon.containerPadding, "bg-neutral-200 rounded-lg", sizeConfig.icon.containerSize)}></div>}
+                  <div className="min-w-0 flex flex-col gap-1">
+                    {title && <div className="h-6 bg-neutral-200 rounded w-32"></div>}
+                    {subtitle && <div className="h-4 bg-neutral-200 rounded w-48"></div>}
+                  </div>
                 </div>
+                {badge && <div className="h-6 bg-neutral-200 rounded-md w-16"></div>}
               </div>
-              {badge && <div className={`${iconSizes[sizeConfig.iconSize]} bg-neutral-200 rounded`}></div>}
-            </div>
+              <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
+            </>
           )}
           <CardContent className={cn(`${sizeConfig.padding.x} ${sizeConfig.padding.y}`, bodyClassName)}>
             <div className="space-y-4">
@@ -287,47 +264,62 @@ const Card: React.FC<CardProps> = ({
           </CardContent>
         </div>
       </ShadcnCard>
+    </CardProvider>
     );
   }
 
   // Enhanced render with new features
   return (
-    <ShadcnCard 
-      className={cardClasses} 
-      onClick={disabled ? undefined : onClick}
-      onMouseEnter={onHover}
-    >
+    <CardProvider size={actualSize}>
+      <ShadcnCard 
+        className={cardClasses} 
+        onClick={disabled ? undefined : onClick}
+        onMouseEnter={onHover}
+      >
       {/* Custom header - direct layout */}
       {(title || subtitle || icon || badge) && (
-        <div className={cn(
-          "px-content-comfortable py-content-normal border-b border-neutral-200/60 flex items-center justify-between",
-          headerClassName
-        )}>
-          <div className="flex items-center gap-3 min-w-0">
-            {icon && (
-              <div className={`flex-shrink-0 ${iconSizes.lg} inline-flex items-center justify-center`}>
-                {icon}
-              </div>
-            )}
-            <div className="min-w-0">
-              <div className="flex items-center">
+        <>
+          <div className={cn(
+            `${sizeConfig.padding.x} ${sizeConfig.padding.y} flex items-center justify-between`,
+            headerClassName
+          )}>
+            <div className="flex items-start gap-3 min-w-0">
+              {icon && (
+                <div className={cn(
+                  "flex-shrink-0 flex items-center justify-center",
+                  sizeConfig.icon.containerPadding,
+                  "bg-neutral-100 rounded-lg ring-1 ring-neutral-200/50"
+                )}>
+                  <div className={sizeConfig.icon.size}>
+                    {icon}
+                  </div>
+                </div>
+              )}
+              <div className="flex flex-col gap-1 min-w-0">
                 {typeof title === 'string' ? (
-                  <Typography variant="h3" weight="medium" className="leading-tight truncate m-0">{title}</Typography>
+                  <h3 className={cn(sizeConfig.typography.title, "text-neutral-900 m-0")}>{title}</h3>
                 ) : (
-                  <div className="leading-tight truncate">{title}</div>
+                  <div className="text-neutral-900">{title}</div>
+                )}
+                {subtitle && (
+                  <p className={cn(sizeConfig.typography.subtitle, "m-0")}>{subtitle}</p>
                 )}
               </div>
-              {subtitle && (
-                <Typography variant="caption" color="medium" className="truncate mt-1">{subtitle}</Typography>
-              )}
             </div>
+            {badge && (
+              <div className="flex-shrink-0">
+                {typeof badge === 'string' ? (
+                  <span className="px-2.5 py-1 bg-primary-50 text-primary-700 text-xs font-medium rounded-md ring-1 ring-primary-200/50">
+                    {badge}
+                  </span>
+                ) : (
+                  badge
+                )}
+              </div>
+            )}
           </div>
-          {badge && (
-            <div className="flex-shrink-0">
-              {badge}
-            </div>
-          )}
-        </div>
+          <div className="border-b border-neutral-200/60" />
+        </>
       )}
       
       {/* Content area with systematic foundation */}
@@ -340,20 +332,24 @@ const Card: React.FC<CardProps> = ({
       
       {/* Footer with systematic foundation styling */}
       {footer && (
-        <CardFooter className={cn(
-          `${sizeConfig.padding.x} ${sizeConfig.padding.y}`,
-          'bg-neutral-50/50 border-t border-neutral-200/60',
-          footerClassName
-        )}>
-          {footer}
-        </CardFooter>
+        <>
+          <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
+          <CardFooter className={cn(
+            `${sizeConfig.padding.x} ${sizeConfig.padding.y}`,
+            'bg-neutral-50/50',
+            footerClassName
+          )}>
+            {footer}
+          </CardFooter>
+        </>
       )}
       
       {/* Subtle shine effect for interactive cards */}
       {isInteractive && !disabled && (
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out pointer-events-none" />
       )}
-    </ShadcnCard>
+      </ShadcnCard>
+    </CardProvider>
   );
 };
 

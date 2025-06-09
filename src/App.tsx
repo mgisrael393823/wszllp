@@ -43,6 +43,7 @@ import ActivityPage from './components/activity/ActivityPage';
 import ProfilePage from './components/user/ProfilePage';
 import SettingsPage from './components/user/SettingsPage';
 import ErrorBoundary from './components/ui/ErrorBoundary';
+import CardTestPage from './components/ui/CardTestPage';
 
 // Placeholder for Design System - removed in MVP
 const DesignSystemPage = () => (
@@ -179,6 +180,7 @@ function App() {
                   <Route path="/accept-invitation" element={<AcceptInvitationPage />} />
                   <Route path="/debug-invitation" element={<DebugInvitationPage />} />
                   <Route path="/design-system" element={<DesignSystemPage />} />
+                  <Route path="/card-test" element={<CardTestPage />} />
                   <Route element={<ProtectedRoute />}>
                     <Route path="/*" element={<AppContent />} />
                   </Route>

@@ -2,13 +2,7 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import CardBodyLayout from './CardBodyLayout';
 import Typography from './Typography';
-
-// Icon sizing system (consistent with Card.tsx)
-const iconSizes = {
-  sm: 'w-4 h-4',   // 16px - for inline/secondary icons
-  md: 'w-5 h-5',   // 20px - for standard UI icons  
-  lg: 'w-6 h-6',   // 24px - for primary/header icons
-};
+import { useCardSize } from './CardContext';
 
 // Progress bar system
 const progressBarSizes = {
@@ -48,6 +42,8 @@ interface MetricContentProps {
 }
 
 export const MetricContent: React.FC<MetricContentProps> = ({ data, fillHeight = true }) => {
+  const { config } = useCardSize();
+  
   const AnimatedCounter = ({ value }: { value: number }) => {
     const [displayValue, setDisplayValue] = React.useState(0);
     
@@ -101,9 +97,9 @@ export const MetricContent: React.FC<MetricContentProps> = ({ data, fillHeight =
   return (
     <CardBodyLayout spacing="normal" fillHeight={fillHeight}>
       {/* Primary Metric Value */}
-      <Typography variant="h2" weight="bold" className="leading-none">
+      <div className={cn(config.typography.metric, "leading-none")}>
         <AnimatedCounter value={data.value} />
-      </Typography>
+      </div>
       
       {/* Optional Progress Bar */}
       {data.progress && (
@@ -117,17 +113,17 @@ export const MetricContent: React.FC<MetricContentProps> = ({ data, fillHeight =
       {/* Optional Trend Indicator */}
       {data.trend && (
         <div className={`flex items-center gap-2 ${data.trend.color}`}>
-          <span className={`${iconSizes.sm} flex-shrink-0 inline-flex items-center justify-center`}>
+          <span className={`${config.icon.size} flex-shrink-0 inline-flex items-center justify-center`}>
             {data.trend.icon}
           </span>
-          <Typography variant="caption" weight="medium">{data.trend.label}</Typography>
+          <span className={cn(config.typography.caption, "font-medium")}>{data.trend.label}</span>
         </div>
       )}
       
       {/* Subtitle */}
-      <Typography variant="caption" color="medium" className="leading-tight">
+      <p className={cn(config.typography.caption, "text-neutral-600 leading-tight")}>
         {data.subtitle}
-      </Typography>
+      </p>
     </CardBodyLayout>
   );
 };
@@ -139,6 +135,8 @@ interface ActionListContentProps {
 }
 
 export const ActionListContent: React.FC<ActionListContentProps> = ({ actions, fillHeight = true }) => {
+  const { config } = useCardSize();
+  
   const actionVariantStyles = {
     primary: 'hover:border-primary-300 hover:bg-primary-50/50 text-primary-600',
     success: 'hover:border-success-300 hover:bg-success-50/50 text-success-600',
@@ -153,15 +151,27 @@ export const ActionListContent: React.FC<ActionListContentProps> = ({ actions, f
           key={index}
           onClick={action.onClick}
           className={cn(
-            'w-full flex items-center gap-3 px-4 py-3 rounded-lg border border-neutral-200',
-            'transition-all group',
-            actionVariantStyles[action.variant || 'primary']
+            'w-full flex items-center bg-white border border-neutral-200',
+            config.button.padding,
+            config.button.gap,
+            'rounded-lg',
+            'hover:bg-neutral-50 hover:border-neutral-300 hover:shadow-sm',
+            'transition-all group'
           )}
         >
-          <span className={`${iconSizes.md} group-hover:scale-110 transition-transform inline-flex items-center justify-center`}>
-            {action.icon}
-          </span>
-          <Typography variant="body2" weight="medium">{action.label}</Typography>
+          <div className={cn(
+            "flex items-center justify-center",
+            config.icon.containerPadding,
+            "bg-primary-50 text-primary-600 rounded-md group-hover:bg-primary-100 transition-colors"
+          )}>
+            <span className={config.icon.size}>
+              {action.icon}
+            </span>
+          </div>
+          <span className={cn(config.typography.body, "font-medium text-neutral-700 group-hover:text-neutral-900")}>{action.label}</span>
+          <svg className="w-4 h-4 text-neutral-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
         </button>
       ))}
     </CardBodyLayout>
@@ -175,6 +185,8 @@ interface ActivityFeedContentProps {
 }
 
 export const ActivityFeedContent: React.FC<ActivityFeedContentProps> = ({ activities, fillHeight = true }) => {
+  const { config } = useCardSize();
+  
   const ActivityButton = ({ activity }: { activity: ActivityItem }) => {
     const variantStyles = {
       default: { 
@@ -202,44 +214,45 @@ export const ActivityFeedContent: React.FC<ActivityFeedContentProps> = ({ activi
     const styles = variantStyles[activity.variant || 'default'];
     
     return (
-      <button
+      <div
         onClick={activity.onClick}
         className={cn(
-          'w-full flex items-start gap-4 p-4 rounded-xl border bg-white',
-          styles.border,
-          styles.hover,
-          'hover:shadow-sm hover:-translate-y-0.5',
-          'active:translate-y-0 active:scale-[0.98]',
-          'transition-all duration-200 ease-out',
-          'cursor-pointer group text-left'
+          'w-full flex items-start gap-3 p-3',
+          'bg-neutral-50/50 rounded-lg',
+          'hover:bg-neutral-100/50',
+          'transition-colors duration-200',
+          activity.onClick && 'cursor-pointer'
         )}
       >
         <div className={cn(
-          'flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center',
+          'flex-shrink-0 rounded-md flex items-center justify-center',
+          config.icon.containerPadding,
           styles.icon,
-          'group-hover:scale-110 transition-transform duration-200'
+          'transition-transform duration-200'
         )}>
-          <span className={iconSizes.sm}>{activity.icon}</span>
+          <span className={config.icon.size}>{activity.icon}</span>
         </div>
         
-        <div className="flex-1 min-w-0 space-y-1">
-          <Typography variant="body2" weight="semibold" className="truncate group-hover:text-neutral-800">
+        <div className="flex-1 min-w-0 space-y-0.5">
+          <p className={cn("text-sm font-medium text-neutral-900 truncate")}>
             {activity.title}
-          </Typography>
-          <Typography variant="caption" color="medium" className="line-clamp-2 group-hover:text-neutral-700">
+          </p>
+          <p className={cn("text-xs text-neutral-600 line-clamp-2")}>
             {activity.description}
-          </Typography>
-          <Typography variant="caption" color="muted" weight="medium">
+          </p>
+          <p className={cn("text-xs text-neutral-500")}>
             {activity.timestamp}
-          </Typography>
+          </p>
         </div>
         
-        <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          <svg className={`${iconSizes.sm} text-neutral-400`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </div>
-      </button>
+        {activity.onClick && (
+          <div className="flex-shrink-0">
+            <svg className={`${config.icon.size} text-neutral-400`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        )}
+      </div>
     );
   };
 
@@ -247,12 +260,12 @@ export const ActivityFeedContent: React.FC<ActivityFeedContentProps> = ({ activi
     return (
       <CardBodyLayout fillHeight={fillHeight} className="items-center justify-center text-center text-neutral-500">
         <div className="w-16 h-16 rounded-full bg-neutral-100 flex items-center justify-center">
-          <svg className={`${iconSizes.lg} opacity-50`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-8 h-8 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
         </div>
-        <Typography variant="h3" weight="medium">No recent activity</Typography>
-        <Typography variant="caption" color="medium">Activity will appear here as you use the system</Typography>
+        <h3 className={cn(config.typography.title, "text-neutral-700")}>No recent activity</h3>
+        <p className={cn(config.typography.caption, "text-neutral-500")}>Activity will appear here as you use the system</p>
       </CardBodyLayout>
     );
   }

@@ -236,6 +236,12 @@ export const semanticSpacing = {
   textGapTight: spacing['1'],       // 4px
   textGapNormal: spacing['2'],      // 8px
   textGapRelaxed: spacing['4'],     // 16px
+  
+  // Gap utilities (added to Tailwind config)
+  gapContentTight: spacing['2'],       // 8px - gap-content-tight
+  gapContentNormal: spacing['4'],      // 16px - gap-content-normal
+  gapContentComfortable: spacing['6'], // 24px - gap-content-comfortable
+  gapContentSpacious: spacing['8'],    // 32px - gap-content-spacious
 };
 
 // Elevation system mapping
