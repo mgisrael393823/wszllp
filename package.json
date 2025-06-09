@@ -31,7 +31,12 @@
     "test:api": "vitest run tests/unit/api",
     "test:e2e": "cypress run",
     "test:e2e:open": "cypress open",
-    "test:all": "npm run test:unit && npm run test:integration && npm run test:e2e"
+    "test:all": "npm run test:unit && npm run test:integration && npm run test:e2e",
+    "test:rls": "node scripts/test-rls-policies.js",
+    "test:rls:fixed": "node scripts/test-rls-policies-fixed.js",
+    "test:auth": "node scripts/verify-js-client-auth.js",
+    "test:auth:fixed": "node scripts/verify-js-client-auth-fixed.js",
+    "test:keys": "node scripts/diagnose-client-keys.js"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.13",
