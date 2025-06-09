@@ -15,6 +15,7 @@ export const workflowTaskTypeEnum = z.enum([
 // Notification schema
 export const notificationSchema = z.object({
   notificationId: z.string(),
+  userId: z.string(), // Added for RLS
   title: z.string(),
   message: z.string(),
   type: z.enum(['Deadline', 'Hearing', 'Document', 'System', 'Alert']),
@@ -30,6 +31,7 @@ export const notificationSchema = z.object({
 
 // Notification settings schema
 export const notificationSettingsSchema = z.object({
+  userId: z.string(), // Added for RLS
   hearingReminders: z.boolean().default(true),
   deadlineReminders: z.boolean().default(true),
   documentUpdates: z.boolean().default(true),
@@ -42,6 +44,7 @@ export const notificationSettingsSchema = z.object({
 
 export const caseSchema = z.object({
   caseId: z.string(),
+  userId: z.string(), // Added for RLS
   plaintiff: z.string().min(1).max(100),
   defendant: z.string().min(1).max(100),
   address: z.string().min(1).max(200),
@@ -54,6 +57,7 @@ export const caseSchema = z.object({
 export const hearingSchema = z.object({
   hearingId: z.string(),
   caseId: z.string(),
+  userId: z.string(), // Added for RLS
   courtName: z.string().min(1).max(100),
   hearingDate: z.string(),
   outcome: z.string().max(500).optional(),
@@ -64,10 +68,16 @@ export const hearingSchema = z.object({
 export const documentSchema = z.object({
   docId: z.string(),
   caseId: z.string(),
+  userId: z.string(), // Added for RLS
   type: z.enum(['Complaint', 'Summons', 'Affidavit', 'Motion', 'Order', 'Other']),
   fileURL: z.string(),
   status: z.enum(['Pending', 'Served', 'Failed']),
   serviceDate: z.string().optional(),
+  originalFilename: z.string().optional(), // Added from migrations
+  envelopeId: z.string().optional(), // Added for e-filing
+  filingId: z.string().optional(), // Added for e-filing
+  efileStatus: z.string().optional(), // Added for e-filing
+  efileTimestamp: z.string().optional(), // Added for e-filing
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -75,6 +85,7 @@ export const documentSchema = z.object({
 export const serviceLogSchema = z.object({
   logId: z.string(),
   docId: z.string(),
+  userId: z.string().optional(), // Added for RLS (optional as it might be derived from document)
   method: z.enum(['Sheriff', 'SPS']),
   attemptDate: z.string(),
   result: z.enum(['Success', 'Failed']),
@@ -85,6 +96,7 @@ export const serviceLogSchema = z.object({
 export const invoiceSchema = z.object({
   invoiceId: z.string(),
   caseId: z.string(),
+  userId: z.string().optional(), // Added for RLS (optional as it might be derived from case)
   amount: z.number().min(0),
   issueDate: z.string(),
   dueDate: z.string(),
@@ -96,6 +108,7 @@ export const invoiceSchema = z.object({
 export const paymentPlanSchema = z.object({
   planId: z.string(),
   invoiceId: z.string(),
+  userId: z.string().optional(), // Added for RLS (optional as it might be derived from invoice)
   installmentDate: z.string(),
   amount: z.number().min(0),
   paid: z.boolean(),
@@ -105,6 +118,7 @@ export const paymentPlanSchema = z.object({
 
 export const contactSchema = z.object({
   contactId: z.string(),
+  userId: z.string(), // Added for RLS
   name: z.string().min(1).max(100),
   role: z.enum(['Attorney', 'Paralegal', 'PM', 'Client', 'Other']),
   email: z.string().email(),
@@ -112,6 +126,7 @@ export const contactSchema = z.object({
   company: z.string().optional(),
   address: z.string().optional(),
   notes: z.string().optional(),
+  contactType: z.string().optional(), // Added from migrations
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -119,6 +134,7 @@ export const contactSchema = z.object({
 export const zoomLinkSchema = z.object({
   linkId: z.string(),
   caseId: z.string(),
+  userId: z.string().optional(), // Added for RLS (optional as it might be derived from case)
   url: z.string().url(),
   meetingDate: z.string(),
   createdAt: z.string(),
@@ -138,6 +154,7 @@ export type ZoomLink = z.infer<typeof zoomLinkSchema>;
 // Audit log schema
 export const auditLogSchema = z.object({
   id: z.string(),
+  userId: z.string().optional(), // Added for RLS
   entityType: z.enum(['Case', 'Hearing', 'Document', 'ServiceLog', 'Invoice', 'PaymentPlan', 'Contact', 'ZoomLink', 'Workflow', 'WorkflowTask']),
   entityId: z.string(),
   action: z.enum(['Create', 'Update', 'Delete', 'Complete', 'Trigger']),
@@ -151,6 +168,7 @@ export type AuditLog = z.infer<typeof auditLogSchema>;
 export const workflowTaskSchema = z.object({
   taskId: z.string(),
   workflowId: z.string(),
+  userId: z.string().optional(), // Added for RLS (optional as it might be derived from workflow)
   type: workflowTaskTypeEnum,
   name: z.string(),
   description: z.string().optional(),
@@ -168,6 +186,7 @@ export const workflowTaskSchema = z.object({
 export const workflowSchema = z.object({
   workflowId: z.string(),
   caseId: z.string(),
+  userId: z.string().optional(), // Added for RLS (optional as it might be derived from case)
   name: z.string(),
   description: z.string().optional(),
   isTemplate: z.boolean().default(false),
@@ -181,6 +200,7 @@ export const workflowSchema = z.object({
 // Document Template schema
 export const documentTemplateSchema = z.object({
   templateId: z.string(),
+  userId: z.string().optional(), // Added for RLS (templates might be user-specific)
   name: z.string(),
   description: z.string().optional(),
   category: z.enum(['Complaint', 'Summons', 'Notice', 'Motion', 'Order', 'Letter', 'Agreement', 'Other']),
@@ -196,6 +216,7 @@ export const documentGenerationSchema = z.object({
   generationId: z.string(),
   templateId: z.string(),
   caseId: z.string(),
+  userId: z.string().optional(), // Added for RLS (optional as it might be derived from case)
   documentName: z.string(),
   documentType: z.enum(['Complaint', 'Summons', 'Affidavit', 'Motion', 'Order', 'Other']),
   variables: z.record(z.string(), z.string()).optional(),
@@ -208,6 +229,7 @@ export const documentGenerationSchema = z.object({
 // Calendar Event Schema
 export const calendarEventSchema = z.object({
   eventId: z.string(),
+  userId: z.string(), // Added for RLS
   title: z.string(),
   description: z.string().optional(),
   startTime: z.string(),
@@ -240,6 +262,43 @@ export const calendarIntegrationSchema = z.object({
   updatedAt: z.string(),
 });
 
+// Case Parties Schema (if table exists)
+export const casePartySchema = z.object({
+  id: z.string(),
+  caseId: z.string(),
+  userId: z.string(), // Added for RLS
+  name: z.string(),
+  role: z.string(),
+  contactInfo: z.string().optional(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+// Case Contacts Schema (if table exists)
+export const caseContactSchema = z.object({
+  id: z.string(),
+  caseId: z.string(),
+  contactId: z.string(),
+  userId: z.string(), // Added for RLS
+  role: z.string().optional(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+// Contact Communications Schema (if table exists)
+export const contactCommunicationSchema = z.object({
+  id: z.string(),
+  contactId: z.string(),
+  userId: z.string(), // Added for RLS
+  type: z.enum(['Email', 'Phone', 'SMS', 'Meeting', 'Other']),
+  subject: z.string().optional(),
+  content: z.string(),
+  direction: z.enum(['Inbound', 'Outbound']),
+  status: z.enum(['Sent', 'Received', 'Failed', 'Pending']),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
 // Types
 export type WorkflowTask = z.infer<typeof workflowTaskSchema>;
 export type Workflow = z.infer<typeof workflowSchema>;
@@ -249,3 +308,6 @@ export type CalendarEvent = z.infer<typeof calendarEventSchema>;
 export type CalendarIntegration = z.infer<typeof calendarIntegrationSchema>;
 export type Notification = z.infer<typeof notificationSchema>;
 export type NotificationSettings = z.infer<typeof notificationSettingsSchema>;
+export type CaseParty = z.infer<typeof casePartySchema>;
+export type CaseContact = z.infer<typeof caseContactSchema>;
+export type ContactCommunication = z.infer<typeof contactCommunicationSchema>;
