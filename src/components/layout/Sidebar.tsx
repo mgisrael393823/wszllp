@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   Briefcase, FileText, Users, Settings,
-  LayoutDashboard, HelpCircle, Calendar, Activity
+  LayoutDashboard, HelpCircle, Calendar, Activity, DollarSign
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -46,6 +46,12 @@ const createNavStructure = (): NavItem[] => [
     value: 'documents', 
     icon: <FileText size={20} />,
     description: 'Case documents and files'
+  },
+  { 
+    label: 'Invoices', 
+    value: 'invoices', 
+    icon: <DollarSign size={20} />,
+    description: 'Manage billing and payments'
   },
   { 
     label: 'Contacts', 

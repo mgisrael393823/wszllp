@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useData } from '../../context/DataContext';
+import { useInvoices } from '../../hooks/useInvoices';
 import { format, parseISO, isValid } from 'date-fns';
 import { 
   ArrowLeft, Plus, Calendar, FileText, Edit, 
@@ -13,27 +14,42 @@ import Button from '../ui/Button';
 import Table from '../ui/Table';
 import HearingForm from '../hearings/HearingForm';
 import DocumentForm from '../documents/DocumentForm';
+import InvoiceForm from '../invoices/InvoiceForm';
 import CaseForm from './CaseForm';
+import CaseTimelineView from './CaseTimelineView';
+import CaseFinancialStatus from './CaseFinancialStatus';
 import { getStatusColor, getStatusBackground } from '../../utils/statusColors';
 import Pagination from '../ui/Pagination';
 
 const CaseDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { state } = useData();
   const [isHearingModalOpen, setIsHearingModalOpen] = useState(false);
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [isEditCaseModalOpen, setIsEditCaseModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'hearings' | 'documents' | 'invoices' | 'activity'>('hearings');
+  const [activeTab, setActiveTab] = useState<'timeline' | 'hearings' | 'documents' | 'invoices' | 'financial' | 'activity'>('timeline');
   const [currentPage, setCurrentPage] = useState(1);
   const [isActionsMenuOpen, setIsActionsMenuOpen] = useState(false);
+
+  // Handle tab parameter from URL
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam && ['timeline', 'hearings', 'documents', 'invoices', 'financial', 'activity'].includes(tabParam)) {
+      setActiveTab(tabParam as typeof activeTab);
+    }
+  }, [searchParams]);
 
   const itemsPerPage = 5;
 
   const caseData = state.cases.find(c => c.caseId === id);
   const caseHearings = state.hearings.filter(h => h.caseId === id);
   const caseDocuments = state.documents.filter(d => d.caseId === id);
-  const caseInvoices = state.invoices.filter(i => i.caseId === id);
+  
+  // Get invoices from Supabase
+  const { invoices: caseInvoices = [], isLoading: invoicesLoading } = useInvoices({ caseId: id });
   
   // Get audit logs related to this case
   const caseAuditLogs = state.auditLogs.filter(
@@ -46,12 +62,16 @@ const CaseDetail: React.FC = () => {
   // Get related data based on active tab for pagination
   const getActiveTabData = () => {
     switch (activeTab) {
+      case 'timeline':
+        return []; // Timeline doesn't use pagination
       case 'hearings':
         return caseHearings;
       case 'documents':
         return caseDocuments;
       case 'invoices':
         return caseInvoices;
+      case 'financial':
+        return []; // Financial doesn't use pagination
       case 'activity':
         return caseAuditLogs;
       default:
@@ -274,32 +294,37 @@ const CaseDetail: React.FC = () => {
   const invoiceColumns = [
     {
       header: 'Invoice #',
-      accessor: 'invoiceId',
+      accessor: (item: any) => item.invoiceId?.slice(0, 8) || 'N/A',
       sortable: true,
+    },
+    {
+      header: 'Description',
+      accessor: (item: any) => item.description || 'No description',
+      sortable: false,
     },
     {
       header: 'Amount',
-      accessor: (item: typeof state.invoices[0]) => 
-        `$${item.amount.toFixed(2)}`,
+      accessor: (item: any) => 
+        `$${(item.amount || 0).toFixed(2)}`,
       sortable: true,
     },
     {
-      header: 'Issue Date',
-      accessor: (item: typeof state.invoices[0]) => {
-        const date = typeof item.issueDate === 'string'
-          ? parseISO(item.issueDate)
-          : item.issueDate instanceof Date
-          ? item.issueDate
+      header: 'Due Date',
+      accessor: (item: any) => {
+        const date = typeof item.dueDate === 'string'
+          ? parseISO(item.dueDate)
+          : item.dueDate instanceof Date
+          ? item.dueDate
           : null;
         return date && isValid(date)
           ? format(date, 'MMM d, yyyy')
-          : 'Invalid Date';
+          : 'N/A';
       },
       sortable: true,
     },
     {
       header: 'Status',
-      accessor: (item: typeof state.invoices[0]) => (
+      accessor: (item: any) => (
         <span 
           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
             ${item.paid ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`
@@ -375,6 +400,8 @@ const CaseDetail: React.FC = () => {
         return 'No documents added to this case.';
       case 'invoices':
         return 'No invoices issued for this case.';
+      case 'financial':
+        return ''; // Financial tab doesn't use this
       case 'activity':
         return 'No activity recorded for this case.';
       default:
@@ -392,7 +419,7 @@ const CaseDetail: React.FC = () => {
         setIsDocumentModalOpen(true);
         break;
       case 'invoices':
-        // Add invoice functionality would be here
+        setIsInvoiceModalOpen(true);
         break;
       default:
         break;
@@ -401,7 +428,7 @@ const CaseDetail: React.FC = () => {
 
   // Function to determine if Add button should be shown
   const shouldShowAddButton = () => {
-    return activeTab !== 'activity';
+    return activeTab !== 'activity' && activeTab !== 'financial';
   };
 
   const unpaidAmount = caseInvoices.filter(i => !i.paid).reduce((sum, i) => sum + i.amount, 0);
@@ -500,7 +527,7 @@ const CaseDetail: React.FC = () => {
             {/* Tab Navigation */}
             <div className="border-b border-neutral-200 px-6">
               <nav className="-mb-px flex space-x-6">
-                {(['hearings', 'documents', 'invoices', 'activity'] as const).map((tab) => (
+                {(['timeline', 'hearings', 'documents', 'invoices', 'financial', 'activity'] as const).map((tab) => (
                   <button
                     key={tab}
                     onClick={() => {
@@ -515,9 +542,11 @@ const CaseDetail: React.FC = () => {
                     `}
                   >
                     {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                    <span className="ml-2 bg-neutral-100 text-neutral-600 py-0.5 px-2 rounded-full text-xs">
-                      {getActiveTabData().length}
-                    </span>
+                    {tab !== 'timeline' && tab !== 'financial' && (
+                      <span className="ml-2 bg-neutral-100 text-neutral-600 py-0.5 px-2 rounded-full text-xs">
+                        {getActiveTabData().length}
+                      </span>
+                    )}
                   </button>
                 ))}
               </nav>
@@ -525,42 +554,50 @@ const CaseDetail: React.FC = () => {
 
             {/* Tab Content */}
             <div className="p-6">
-              <div className="mb-4 flex justify-between items-center">
-                <h3 className="text-lg font-medium text-neutral-900">
-                  {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
-                </h3>
-                
-                {shouldShowAddButton() && (
-                  <Button
-                    onClick={handleAddButtonClick}
-                    icon={<Plus size={16} />}
-                    size="sm"
-                  >
-                    Add {activeTab.slice(0, -1)}
-                  </Button>
-                )}
-              </div>
-              
-              <Table
-                data={paginatedData}
-                columns={getActiveTabColumns()}
-                keyField={
-                  activeTab === 'hearings' ? 'hearingId' :
-                  activeTab === 'documents' ? 'docId' :
-                  activeTab === 'invoices' ? 'invoiceId' : 'id'
-                }
-                emptyMessage={getEmptyMessage()}
-              />
-
-              {activeTabData.length > itemsPerPage && (
-                <div className="mt-4">
-                  <Pagination
-                    totalItems={activeTabData.length}
-                    itemsPerPage={itemsPerPage}
-                    currentPage={currentPage}
-                    onPageChange={handlePageChange}
+              {activeTab === 'timeline' ? (
+                <CaseTimelineView caseId={id!} />
+              ) : activeTab === 'financial' ? (
+                <CaseFinancialStatus caseId={id!} />
+              ) : (
+                <>
+                  <div className="mb-4 flex justify-between items-center">
+                    <h3 className="text-lg font-medium text-neutral-900">
+                      {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+                    </h3>
+                    
+                    {shouldShowAddButton() && (
+                      <Button
+                        onClick={handleAddButtonClick}
+                        icon={<Plus size={16} />}
+                        size="sm"
+                      >
+                        Add {activeTab.slice(0, -1)}
+                      </Button>
+                    )}
+                  </div>
+                  
+                  <Table
+                    data={paginatedData}
+                    columns={getActiveTabColumns()}
+                    keyField={
+                      activeTab === 'hearings' ? 'hearingId' :
+                      activeTab === 'documents' ? 'docId' :
+                      activeTab === 'invoices' ? 'invoiceId' : 'id'
+                    }
+                    emptyMessage={getEmptyMessage()}
                   />
-                </div>
+
+                  {activeTabData.length > itemsPerPage && (
+                    <div className="mt-4">
+                      <Pagination
+                        totalItems={activeTabData.length}
+                        itemsPerPage={itemsPerPage}
+                        currentPage={currentPage}
+                        onPageChange={handlePageChange}
+                      />
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -591,6 +628,15 @@ const CaseDetail: React.FC = () => {
           isOpen={isEditCaseModalOpen}
           onClose={() => setIsEditCaseModalOpen(false)}
           caseId={id}
+        />
+      )}
+
+      {isInvoiceModalOpen && (
+        <InvoiceForm
+          isOpen={isInvoiceModalOpen}
+          onClose={() => setIsInvoiceModalOpen(false)}
+          invoiceId={null}
+          defaultCaseId={id}
         />
       )}
     </div>
