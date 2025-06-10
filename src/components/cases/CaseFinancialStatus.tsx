@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { format, parseISO, isValid, differenceInDays } from 'date-fns';
 import { MetricCard, StatusCard, ActionListCard } from '../ui';
-import Card from '../ui/Card';
+import { Card } from '../ui/shadcn-card';
 import Button from '../ui/Button';
 import { useData } from '../../context/DataContext';
 import { useInvoices } from '../../hooks/useInvoices';

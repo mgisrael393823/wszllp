@@ -10,7 +10,7 @@ import { EFileSubmission, EFileDocument } from '@/types/efile';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Button from '../ui/Button';
-import Card from '../ui/Card';
+import { Card } from '../ui/shadcn-card';
 import { ENHANCED_EFILING_PHASE_A, ENHANCED_EFILING_PHASE_B } from '@/config/features';
 import { JURISDICTIONS, type Jurisdiction } from '@/config/jurisdictions';
 import { TYLER_CONFIG } from '@/config/tyler-api';

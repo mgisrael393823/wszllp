@@ -12,7 +12,7 @@ import {
   Briefcase,
   ArrowLeft
 } from 'lucide-react';
-import Card from '../ui/Card';
+import { Card } from '../ui/shadcn-card';
 import Button from '../ui/Button';
 import { Contact } from '../../types/schema';
 import { format, parseISO, isValid } from 'date-fns';

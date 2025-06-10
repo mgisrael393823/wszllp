@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, Edit, Trash2, FileText, AlertCircle, ExternalLink } from 'lucide-react';
 import { format, parseISO, isValid } from 'date-fns';
-import Card from '../ui/Card';
+import { Card } from '../ui/shadcn-card';
 import Button from '../ui/Button';
 import { useDocuments } from '../../hooks/useDocuments';
 import { useToast } from '../../context/ToastContext';
