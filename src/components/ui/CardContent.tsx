@@ -69,7 +69,12 @@ export const MetricContent: React.FC<MetricContentProps> = ({ data, fillHeight =
   };
 
   const ProgressBar = ({ current, max, variant: progressVariant = 'primary' }: { current: number; max: number; variant?: string }) => {
-    const percentage = Math.min((current / max) * 100, 100);
+    // Don't render if both values are 0
+    if (current === 0 && max === 0) {
+      return null;
+    }
+    
+    const percentage = max > 0 ? Math.min((current / max) * 100, 100) : 0;
     
     const progressStyles = {
       primary: 'bg-primary-500',
@@ -78,52 +83,59 @@ export const MetricContent: React.FC<MetricContentProps> = ({ data, fillHeight =
       error: 'bg-error-500',
     };
     
+    // Determine if we should show labels based on context
+    const showLabels = max > 0;
+    
     return (
       <div className="space-y-2">
+        <div className="flex justify-between items-center mb-1">
+          <Typography variant="caption" color="medium" className="m-0">Progress</Typography>
+          <Typography variant="caption" color="medium" className="m-0">{Math.round(percentage)}%</Typography>
+        </div>
         <div className={`${progressBarSizes.width} bg-neutral-200 rounded-full ${progressBarSizes.height} overflow-hidden`}>
           <div 
             className={`${progressBarSizes.fill} ${progressStyles[progressVariant as keyof typeof progressStyles]} transition-all duration-1000 ease-out rounded-full`}
             style={{ width: `${percentage}%` }}
           />
         </div>
-        <div className="flex justify-between">
-          <Typography variant="caption" color="medium">{current}</Typography>
-          <Typography variant="caption" color="medium">{max}</Typography>
-        </div>
+        {showLabels && (
+          <div className="flex justify-between">
+            <Typography variant="caption" color="medium" className="m-0">{current} active</Typography>
+            <Typography variant="caption" color="medium" className="m-0">{max} total</Typography>
+          </div>
+        )}
       </div>
     );
   };
 
   return (
     <CardBodyLayout spacing="normal" fillHeight={fillHeight}>
-      {/* Primary Metric Value */}
-      <div className={cn(config.typography.metric, "leading-none")}>
-        <AnimatedCounter value={data.value} />
+      {/* Grouped Metric Value and Subtitle */}
+      <div>
+        <div className={cn(config.typography.metric, "leading-none mb-1 m-0")}>
+          <AnimatedCounter value={data.value} />
+        </div>
+        <p className={cn(config.typography.caption, "text-neutral-600 leading-tight m-0")}>
+          {data.subtitle}
+        </p>
       </div>
       
-      {/* Optional Progress Bar */}
-      {data.progress && (
-        <ProgressBar 
-          current={data.progress.current}
-          max={data.progress.max}
-          variant={data.progress.variant}
-        />
-      )}
+      {/* Optional Progress Bar - Only shown when meaningful */}
+      {data.progress && <ProgressBar 
+        current={data.progress.current}
+        max={data.progress.max}
+        variant={data.progress.variant}
+      />}
       
-      {/* Optional Trend Indicator */}
+      {/* Optional Trend Indicator - pushed to bottom */}
       {data.trend && (
-        <div className={`flex items-center gap-2 ${data.trend.color}`}>
+        <div className={`flex items-center gap-2 ${data.trend.color} mt-auto`}>
           <span className={`${config.icon.size} flex-shrink-0 inline-flex items-center justify-center`}>
             {data.trend.icon}
           </span>
-          <span className={cn(config.typography.caption, "font-medium")}>{data.trend.label}</span>
+          <span className={cn(config.typography.caption, "font-medium m-0")}>{data.trend.label}</span>
         </div>
       )}
-      
-      {/* Subtitle */}
-      <p className={cn(config.typography.caption, "text-neutral-600 leading-tight")}>
-        {data.subtitle}
-      </p>
     </CardBodyLayout>
   );
 };
@@ -258,14 +270,18 @@ export const ActivityFeedContent: React.FC<ActivityFeedContentProps> = ({ activi
 
   if (activities.length === 0) {
     return (
-      <CardBodyLayout fillHeight={fillHeight} className="items-center justify-center text-center text-neutral-500">
-        <div className="w-16 h-16 rounded-full bg-neutral-100 flex items-center justify-center">
-          <svg className="w-8 h-8 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
+      <CardBodyLayout fillHeight={fillHeight} spacing="tight" className="items-center justify-center text-center">
+        <div className="space-y-2">
+          <div className="w-12 h-12 mx-auto rounded-full bg-neutral-100 flex items-center justify-center">
+            <svg className="w-6 h-6 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <div>
+            <h3 className={cn(config.typography.body, "font-medium text-neutral-700 m-0")}>No recent activity</h3>
+            <p className={cn(config.typography.caption, "text-neutral-500 mt-1 m-0")}>Activity will appear here as you use the system</p>
+          </div>
         </div>
-        <h3 className={cn(config.typography.title, "text-neutral-700")}>No recent activity</h3>
-        <p className={cn(config.typography.caption, "text-neutral-500")}>Activity will appear here as you use the system</p>
       </CardBodyLayout>
     );
   }

@@ -13,9 +13,10 @@ import {
   Scale,
   RefreshCw,
   BarChart3,
-  Contact
+  Contact,
+  Plus
 } from 'lucide-react';
-import Card, { type MetricData, type ActionItem, type ActivityItem } from '../ui/Card';
+import { MetricCard, StatusCard, ActionListCard } from '../ui';
 import { useData } from '../../context/DataContext';
 import dashboardService, { type DashboardMetrics, type KPICard, type RecentActivity } from '../../services/dashboardService';
 
@@ -99,144 +100,107 @@ const EnhancedDashboardHome: React.FC = () => {
     }
   };
   
-  // Fallback KPI cards using legacy data context
+  // Generate fallback KPI cards if service fails
   const generateFallbackKPICards = (): KPICard[] => {
+    const activeCases = state.cases.filter(c => c.status === 'active').length;
     const totalCases = state.cases.length;
-    const activeCases = state.cases.filter(c => c.status === 'Active').length;
-    const upcomingHearings = state.hearings.filter(h => 
-      new Date(h.hearingDate) > new Date() && 
-      new Date(h.hearingDate) <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+    const upcomingHearings = state.hearings.filter(
+      h => new Date(h.hearingDate) > new Date()
     ).length;
-    const pendingDocuments = state.documents.filter(d => d.status === 'Pending').length;
-    const totalDocuments = state.documents.length;
-    const recentNotifications = state.notifications.filter(n => !n.isRead).length;
+    const totalContacts = state.contacts?.length || 0;
     
     return [
       {
         id: 'total-cases',
         title: 'Total Cases',
-        value: totalCases,
-        subtitle: `${activeCases} active cases`
+        value: totalCases.toString(),
+        change: '+12%',
+        changeType: 'positive',
+        subtitle: `${activeCases} active`,
+        badge: activeCases > 0 ? { text: `${activeCases} Active`, variant: 'success' } : undefined
       },
       {
         id: 'upcoming-hearings',
         title: 'Upcoming Hearings',
-        value: upcomingHearings,
-        subtitle: 'Next 30 days'
+        value: upcomingHearings.toString(),
+        change: '-2',
+        changeType: 'negative',
+        subtitle: 'This month',
+        badge: upcomingHearings > 5 ? { text: 'Busy Week', variant: 'warning' } : undefined
       },
       {
-        id: 'document-status',
-        title: 'Document Status',
-        value: totalDocuments,
-        subtitle: `${pendingDocuments} pending review`
-      },
-      {
-        id: 'system-activity',
-        title: 'System Activity',
-        value: state.auditLogs.length,
-        subtitle: `${recentNotifications} unread notifications`
+        id: 'contacts',
+        title: 'Total Contacts',
+        value: totalContacts.toString(),
+        change: '+8',
+        changeType: 'positive',
+        subtitle: 'All time'
       }
     ];
   };
   
-  // Fallback activity using legacy data context
+  // Generate fallback activity if service fails
   const generateFallbackActivity = (): RecentActivity[] => {
-    return state.auditLogs
-      .slice(-7)
-      .reverse()
-      .map(log => ({
-        id: log.id,
-        title: `${log.action} ${log.entityType}`,
-        description: log.details,
-        timestamp: log.timestamp,
-        entityType: log.entityType as RecentActivity['entityType'],
-        entityId: log.entityId,
-        action: log.action as RecentActivity['action']
-      }));
+    return state.auditLogs.slice(0, 5).map(log => ({
+      id: log.id,
+      entityType: log.entityType,
+      entityId: log.entityId,
+      action: log.action,
+      title: `${log.entityType} ${log.action}`,
+      description: `User performed ${log.action} on ${log.entityType}`,
+      timestamp: log.timestamp,
+      userId: log.userId,
+      metadata: log.metadata
+    }));
   };
   
   // Navigation handlers for KPI cards
   const getKPINavigationHandler = (kpiId: string) => {
-    const navigationMap: Record<string, string> = {
-      'total-cases': '/cases',
-      'upcoming-hearings': '/hearings',
-      'document-status': '/documents',
-      'system-activity': '/notifications', // Activity could link to notifications or a dedicated activity page
-      'contacts': '/contacts',
-      'case-efficiency': '/cases' // Could link to a reports page in the future
-    };
-    
     return () => {
-      const targetPath = navigationMap[kpiId];
-      if (targetPath) {
-        navigate(targetPath);
+      switch (kpiId) {
+        case 'total-cases':
+          navigate('/cases');
+          break;
+        case 'upcoming-hearings':
+          navigate('/hearings');
+          break;
+        case 'document-status':
+          navigate('/documents');
+          break;
+        case 'contacts':
+          navigate('/contacts');
+          break;
+        case 'system-activity':
+          navigate('/activity');
+          break;
+        default:
+          navigate('/');
       }
     };
   };
 
-  // Convert KPI cards to MetricData for Card component compatibility
-  const convertToMetricData = (kpi: KPICard): MetricData => {
-    return {
-      value: kpi.value,
-      subtitle: kpi.subtitle || '',
-      progress: kpi.progress,
-      trend: kpi.trend ? {
-        icon: kpi.trend.isPositive ? <TrendingUp size={16} /> : <TrendingUp size={16} className="rotate-180" />,
-        label: kpi.trend.label,
-        color: kpi.trend.isPositive ? 'text-success-600' : 'text-error-600'
-      } : undefined
-    };
+  // Icon mapping for KPI cards
+  const iconMap = {
+    'total-cases': Briefcase,
+    'upcoming-hearings': Calendar,
+    'document-status': FileText,
+    'system-activity': Activity,
+    'contacts': Contact,
+    'case-efficiency': BarChart3
   };
 
-  // Prepare quick actions data
-  const quickActions: ActionItem[] = useMemo(() => [
-    {
-      icon: <Briefcase size={20} />,
-      label: 'New Case',
-      onClick: () => navigate('/cases/new'),
-      variant: 'primary'
-    },
-    {
-      icon: <Calendar size={20} />,
-      label: 'Schedule Hearing',
-      onClick: () => navigate('/hearings/new'),
-      variant: 'success'
-    },
-    {
-      icon: <FileText size={20} />,
-      label: 'Upload Document',
-      onClick: () => navigate('/documents/new'),
-      variant: 'accent'
-    },
-    {
-      icon: <Users size={20} />,
-      label: 'Add Contact',
-      onClick: () => navigate('/contacts'),
-      variant: 'secondary'
-    }
-  ], [navigate]);
-
-  // Convert RecentActivity to ActivityItem for Card component
-  const activities: ActivityItem[] = useMemo(() => {
-    return recentActivity.map(activity => {
+  // Convert recent activity to action list items
+  const activityItems = useMemo(() => {
+    return recentActivity.slice(0, 5).map(activity => {
       const timeAgo = new Date(activity.timestamp).toLocaleDateString();
       
       const getActivityIcon = (entityType: string) => {
         switch (entityType) {
-          case 'Case': return <Briefcase size={16} />;
-          case 'Hearing': return <Calendar size={16} />;
-          case 'Document': return <FileText size={16} />;
-          case 'Contact': return <Users size={16} />;
-          default: return <Activity size={16} />;
-        }
-      };
-      
-      const getVariant = (action: string): 'default' | 'success' | 'warning' | 'error' => {
-        switch (action) {
-          case 'Create': return 'success';
-          case 'Update': return 'default';
-          case 'Delete': return 'error';
-          default: return 'default';
+          case 'Case': return Briefcase;
+          case 'Hearing': return Calendar;
+          case 'Document': return FileText;
+          case 'Contact': return Users;
+          default: return Activity;
         }
       };
       
@@ -244,9 +208,8 @@ const EnhancedDashboardHome: React.FC = () => {
         id: activity.id,
         icon: getActivityIcon(activity.entityType),
         title: activity.title,
-        description: activity.description,
-        timestamp: timeAgo,
-        variant: getVariant(activity.action),
+        subtitle: activity.description,
+        value: timeAgo,
         onClick: () => {
           // Navigate to appropriate detail page based on entity type
           switch (activity.entityType) {
@@ -263,12 +226,44 @@ const EnhancedDashboardHome: React.FC = () => {
               navigate('/contacts');
               break;
             default:
-              navigate('/notifications');
+              navigate('/activity');
           }
         }
       };
     });
-  }, [recentActivity]);
+  }, [recentActivity, navigate]);
+
+  // Quick action items
+  const quickActionItems = useMemo(() => [
+    {
+      id: 'new-case',
+      icon: Plus,
+      title: 'Create New Case',
+      subtitle: 'Start a new legal matter',
+      onClick: () => navigate('/cases/new')
+    },
+    {
+      id: 'schedule-hearing',
+      icon: Calendar,
+      title: 'Schedule Hearing',
+      subtitle: 'Add to calendar',
+      onClick: () => navigate('/hearings/new')
+    },
+    {
+      id: 'upload-doc',
+      icon: FileText,
+      title: 'Upload Document',
+      subtitle: 'Add to case file',
+      onClick: () => navigate('/documents/new')
+    },
+    {
+      id: 'add-contact',
+      icon: Users,
+      title: 'Add Contact',
+      subtitle: 'Client or attorney',
+      onClick: () => navigate('/contacts')
+    }
+  ], [navigate]);
   
   return (
     <div className="page-container">
@@ -277,7 +272,7 @@ const EnhancedDashboardHome: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div className="flex-1">
             <h1 className="page-title flex items-center gap-3">
-              <Scale size={32} className="text-primary-600" />
+              <Scale className="w-8 h-8 text-primary-600" />
               Executive Dashboard
             </h1>
             <p className="page-subtitle">
@@ -285,11 +280,11 @@ const EnhancedDashboardHome: React.FC = () => {
             </p>
             {lastRefreshed && (
               <div className="mt-2">
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-neutral-500">
                   Last updated: {new Date(lastRefreshed).toLocaleString()}
                 </p>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <div className="w-2 h-2 bg-success-500 rounded-full animate-pulse"></div>
+                <div className="flex items-center gap-1 text-xs text-neutral-500">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                   <span>Auto-refresh: 60s</span>
                   <button
                     onClick={handleRefresh}
@@ -297,7 +292,7 @@ const EnhancedDashboardHome: React.FC = () => {
                     className="p-1 text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     title={isRefreshing ? 'Refreshing data...' : 'Refresh dashboard data'}
                   >
-                    <RefreshCw size={12} className={isRefreshing ? 'animate-spin' : ''} />
+                    <RefreshCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin' : ''}`} />
                   </button>
                 </div>
               </div>
@@ -306,97 +301,95 @@ const EnhancedDashboardHome: React.FC = () => {
         </div>
         
         {error && (
-          <div className="mt-4 p-3 bg-error-50 border border-error-200 rounded-lg">
-            <div className="flex items-center gap-2 text-error-800">
-              <AlertCircle size={16} />
+          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-center gap-2 text-red-800">
+              <AlertCircle className="w-4 h-4" />
               <span className="text-sm font-medium">{error}</span>
             </div>
           </div>
         )}
       </div>
       
-      {/* Enhanced KPI Metrics Grid - Using new service data */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 gap-6 lg:gap-8 mb-8">
-        {kpiCards.map((kpi) => {
-          const iconMap: Record<string, React.ReactNode> = {
-            'total-cases': <Briefcase size={24} className="text-primary-600" />,
-            'upcoming-hearings': <Calendar size={24} className="text-success-600" />,
-            'document-status': <FileText size={24} className="text-warning-600" />,
-            'system-activity': <Activity size={24} className="text-accent-600" />,
-            'contacts': <Contact size={24} className="text-secondary-600" />,
-            'case-efficiency': <BarChart3 size={24} className="text-info-600" />
-          };
-          
-          const getBadge = (kpi: KPICard) => {
-            if (!kpi.badge) return undefined;
-            
-            const variantClasses = {
-              success: 'bg-success-100 text-success-700',
-              warning: 'bg-warning-100 text-warning-700',
-              error: 'bg-error-100 text-error-700',
-              info: 'bg-info-100 text-info-700'
-            };
+      {/* Enhanced KPI Metrics Grid - Using new MetricCard component */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
+        {isLoading ? (
+          // Loading skeletons
+          Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="animate-pulse">
+              <div className="bg-white border border-neutral-200 rounded-xl p-6">
+                <div className="h-4 bg-neutral-200 rounded w-1/2 mb-3"></div>
+                <div className="h-8 bg-neutral-200 rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-neutral-200 rounded w-1/3"></div>
+              </div>
+            </div>
+          ))
+        ) : (
+          kpiCards.map((kpi) => {
+            const Icon = iconMap[kpi.id as keyof typeof iconMap] || BarChart3;
             
             return (
-              <div className={`flex items-center gap-1 px-2 py-1 ${variantClasses[kpi.badge.variant]} rounded-full text-xs font-medium`}>
-                {kpi.badge.variant === 'warning' && <AlertCircle size={12} />}
-                {kpi.badge.variant === 'error' && <AlertCircle size={12} />}
-                {kpi.badge.variant === 'success' && <CheckCircle2 size={12} />}
-                {kpi.badge.text}
-              </div>
+              <MetricCard
+                key={kpi.id}
+                title={kpi.title}
+                value={kpi.value}
+                icon={Icon}
+                trend={kpi.change ? {
+                  value: kpi.change,
+                  isPositive: kpi.changeType === 'positive'
+                } : undefined}
+                subtitle={kpi.subtitle}
+                onClick={getKPINavigationHandler(kpi.id)}
+              />
             );
-          };
-          
-          return (
-            <Card 
-              key={kpi.id}
-              variant="metric"
-              elevation="medium"
-              interactive
-              loading={isLoading}
-              onClick={getKPINavigationHandler(kpi.id)}
-              icon={iconMap[kpi.id] || <BarChart3 size={24} className="text-neutral-600" />}
-              title={kpi.title}
-              badge={getBadge(kpi)}
-              metricData={convertToMetricData(kpi)}
-            />
-          );
-        })}
+          })
+        )}
       </div>
 
-      {/* Secondary Content Grid - Using Card variant system */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-        <Card 
-          variant="action-list"
-          elevation="low"
-          title="Quick Actions"
-          icon={<ArrowRight size={20} />}
-          actions={quickActions}
-          className="lg:col-span-1"
-        />
+      {/* Secondary Content Grid - Using new ActionListCard component */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Quick Actions */}
+        <div className="lg:col-span-1">
+          <ActionListCard
+            title="Quick Actions"
+            description="Common tasks and shortcuts"
+            items={quickActionItems}
+          />
+        </div>
 
-        <Card 
-          variant="activity-feed"
-          elevation="low"
-          loading={isLoading}
-          title="Recent Activity"
-          subtitle={activities.length > 0 ? "Click any item to view details" : "No recent activity"}
-          icon={<Activity size={20} />}
-          activities={activities}
-          className="lg:col-span-2"
-          footer={
-            <div className="flex justify-center">
+        {/* Recent Activity */}
+        <div className="lg:col-span-2">
+          {activityItems.length > 0 ? (
+            <ActionListCard
+              title="Recent Activity"
+              description="Latest updates across your cases"
+              items={activityItems}
+            />
+          ) : (
+            <StatusCard
+              title="No Recent Activity"
+              status="draft"
+              icon={Activity}
+              description="Activity will appear here as you work with cases, documents, and contacts."
+              actions={[
+                { label: "Create New Case", onClick: () => navigate('/cases/new'), variant: 'primary' }
+              ]}
+            />
+          )}
+          
+          {/* View All Activity Link */}
+          {activityItems.length > 0 && (
+            <div className="mt-4 text-center">
               <button
                 onClick={() => navigate('/activity')}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-colors"
               >
-                <Activity size={16} />
+                <Activity className="w-4 h-4" />
                 View All Activity
-                <ArrowRight size={16} />
+                <ArrowRight className="w-4 h-4" />
               </button>
             </div>
-          }
-        />
+          )}
+        </div>
       </div>
     </div>
   );

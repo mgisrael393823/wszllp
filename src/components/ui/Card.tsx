@@ -8,39 +8,14 @@ import {
   CardDescription
 } from './shadcn-card';
 import { cn } from '@/lib/utils';
-import { MetricContent, ActionListContent, ActivityFeedContent } from './CardContent';
 import Typography from './Typography';
 import { CardProvider, cardSizeConfig, type CardSize as CardSizeType } from './CardContext';
 
 type CardElevation = 'flat' | 'low' | 'medium' | 'high' | 'extreme';
 type CardBorder = 'none' | 'light' | 'normal' | 'accent' | 'gradient';
-type CardVariant = 'default' | 'primary' | 'secondary' | 'accent' | 'success' | 'error' | 'warning' | 'metric' | 'action-list' | 'activity-feed' | 'content';
+type CardVariant = 'default' | 'primary' | 'accent' | 'bordered' | 'elevated';
 type CardSize = CardSizeType; // Use the type from CardContext
 
-// Specialized data interfaces for card variants
-interface MetricData {
-  value: number;
-  progress?: { current: number; max: number; variant?: 'primary' | 'success' | 'warning' | 'error' };
-  trend?: { icon: React.ReactNode; label: string; color: string };
-  subtitle: string;
-}
-
-interface ActionItem {
-  icon: React.ReactNode;
-  label: string;
-  onClick: () => void;
-  variant?: 'primary' | 'success' | 'accent' | 'secondary';
-}
-
-interface ActivityItem {
-  id: string;
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  timestamp: string;
-  variant?: 'default' | 'success' | 'warning' | 'error';
-  onClick?: () => void;
-}
 
 interface CardProps {
   children?: React.ReactNode;
@@ -65,11 +40,6 @@ interface CardProps {
   onHover?: React.MouseEventHandler<HTMLDivElement>;
   icon?: React.ReactNode;
   badge?: React.ReactNode;
-  
-  // Specialized variant data
-  metricData?: MetricData;
-  actions?: ActionItem[];
-  activities?: ActivityItem[];
 }
 
 /**
@@ -99,9 +69,6 @@ const Card: React.FC<CardProps> = ({
   onHover,
   icon,
   badge,
-  metricData,
-  actions,
-  activities,
 }) => {
   // Deprecation warning for compact prop
   React.useEffect(() => {
@@ -140,19 +107,13 @@ const Card: React.FC<CardProps> = ({
     gradient: 'border border-transparent bg-gradient-to-r from-primary-200 via-accent-200 to-secondary-200 bg-clip-padding',
   };
 
-  // Enhanced variant system with specialized card types
+  // Simplified variant system
   const variantStyles: Record<CardVariant, string> = {
     default: 'bg-white',
     primary: 'bg-primary-50/50 border-primary-200',
-    secondary: 'bg-secondary-50/50 border-secondary-200',
     accent: 'bg-accent-50/50 border-accent-200',
-    success: 'bg-success-50/50 border-success-200',
-    error: 'bg-error-50/50 border-error-200',
-    warning: 'bg-warning-50/50 border-warning-200',
-    metric: 'bg-gradient-to-br from-neutral-50/30 to-white border-neutral-200/60',
-    'action-list': 'bg-gradient-to-br from-primary-50/20 to-white border-primary-200/40',
-    'activity-feed': 'bg-white/80 backdrop-blur-sm border-neutral-200/40',
-    content: 'bg-white/80 backdrop-blur-sm border-neutral-200/40',
+    bordered: 'bg-white border-2',
+    elevated: 'bg-white shadow-lg',
   };
 
   // Systematic foundation system
@@ -215,28 +176,13 @@ const Card: React.FC<CardProps> = ({
     className
   );
 
-  // Specialized content renderers using unified layout system
-  const renderMetricContent = () => {
-    if (!metricData) return null;
-    return <MetricContent data={metricData} fillHeight />;
-  };
-
-  const renderActionList = () => {
-    if (!actions) return null;
-    return <ActionListContent actions={actions} fillHeight />;
-  };
-
-  const renderActivityFeed = () => {
-    if (!activities) return null;
-    return <ActivityFeedContent activities={activities} fillHeight />;
-  };
 
   // Handle loading skeleton
   if (loading) {
     return (
       <CardProvider size={actualSize}>
         <ShadcnCard className={cardClasses}>
-          <div className="animate-pulse">
+          <div>
           {(title || subtitle || icon || badge) && (
             <>
               <div className={cn(
@@ -244,22 +190,30 @@ const Card: React.FC<CardProps> = ({
                 headerClassName
               )}>
                 <div className="flex items-start gap-3 min-w-0">
-                  {icon && <div className={cn(sizeConfig.icon.containerPadding, "bg-neutral-200 rounded-lg", sizeConfig.icon.containerSize)}></div>}
+                  {icon && <div className={cn(
+                    "flex-shrink-0 flex items-center justify-center",
+                    sizeConfig.icon.containerPadding,
+                    sizeConfig.icon.containerSize,
+                    "bg-neutral-200 rounded-lg animate-pulse"
+                  )}></div>}
                   <div className="min-w-0 flex flex-col gap-1">
-                    {title && <div className="h-6 bg-neutral-200 rounded w-32"></div>}
-                    {subtitle && <div className="h-4 bg-neutral-200 rounded w-48"></div>}
+                    {title && <div className="h-6 bg-neutral-200 rounded w-28 animate-pulse" style={{ animationDelay: '75ms' }}></div>}
+                    {subtitle && <div className="h-4 bg-neutral-200 rounded w-44 animate-pulse" style={{ animationDelay: '150ms' }}></div>}
                   </div>
                 </div>
-                {badge && <div className="h-6 bg-neutral-200 rounded-md w-16"></div>}
+                {badge && <div className="h-5 bg-neutral-200 rounded-full w-12 animate-pulse" style={{ animationDelay: '225ms' }}></div>}
               </div>
-              <div className="h-px bg-gradient-to-r from-transparent via-neutral-200 to-transparent" />
             </>
           )}
-          <CardContent className={cn(`${sizeConfig.padding.x} ${sizeConfig.padding.y}`, bodyClassName)}>
-            <div className="space-y-4">
-              <div className="h-4 bg-neutral-200 rounded w-full"></div>
-              <div className="h-4 bg-neutral-200 rounded w-2/3"></div>
-              <div className="h-4 bg-neutral-200 rounded w-1/2"></div>
+          <CardContent className={cn(
+            sizeConfig.padding.x,
+            "pt-3 pb-4",
+            bodyClassName
+          )}>
+            <div className="space-y-3">
+              <div className="h-4 bg-neutral-200 rounded w-full animate-pulse"></div>
+              <div className="h-4 bg-neutral-200 rounded w-5/6 animate-pulse" style={{ animationDelay: '100ms' }}></div>
+              <div className="h-4 bg-neutral-200 rounded w-3/4 animate-pulse" style={{ animationDelay: '200ms' }}></div>
             </div>
           </CardContent>
         </div>
@@ -288,7 +242,8 @@ const Card: React.FC<CardProps> = ({
                 <div className={cn(
                   "flex-shrink-0 flex items-center justify-center",
                   sizeConfig.icon.containerPadding,
-                  "bg-neutral-100 rounded-lg ring-1 ring-neutral-200/50"
+                  sizeConfig.icon.containerSize,
+                  "bg-neutral-100 rounded-lg"
                 )}>
                   <div className={sizeConfig.icon.size}>
                     {icon}
@@ -318,16 +273,17 @@ const Card: React.FC<CardProps> = ({
               </div>
             )}
           </div>
-          <div className="border-b border-neutral-200/60" />
         </>
       )}
       
       {/* Content area with systematic foundation */}
-      <CardContent className={cn(`${sizeConfig.padding.x} ${sizeConfig.padding.y}`, bodyClassName)}>
-        {variant === 'metric' && metricData ? renderMetricContent() : 
-         variant === 'action-list' && actions ? renderActionList() :
-         variant === 'activity-feed' && activities ? renderActivityFeed() :
-         children}
+      <CardContent className={cn(
+        sizeConfig.padding.x,
+        "pt-3 pb-4",
+        "card-reset", 
+        bodyClassName
+      )}>
+        {children}
       </CardContent>
       
       {/* Footer with systematic foundation styling */}
@@ -354,4 +310,3 @@ const Card: React.FC<CardProps> = ({
 };
 
 export default Card;
-export type { MetricData, ActionItem, ActivityItem };

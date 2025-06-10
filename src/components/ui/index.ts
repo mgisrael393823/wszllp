@@ -25,3 +25,8 @@ export {
 
 // Error Boundary
 export { default as ErrorBoundary } from './ErrorBoundary';
+
+// New focused card components
+export { MetricCard } from './MetricCard';
+export { StatusCard } from './StatusCard';
+export { ActionListCard } from './ActionListCard';
