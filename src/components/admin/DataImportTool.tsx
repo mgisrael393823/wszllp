@@ -53,7 +53,8 @@ const saveContactsToSupabase = async (contacts: any[]) => {
     return { success: true, saved: data?.length || 0, data };
   } catch (error) {
     // Error: 'Error saving contacts to Supabase:', error);
-    throw error;
+    // Add context to the error before re-throwing
+    throw new Error(`Failed to save contacts: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 };
 
@@ -96,7 +97,8 @@ const saveCasesToSupabase = async (cases: any[]) => {
     return { success: true, saved: data?.length || 0, data };
   } catch (error) {
     // Error: 'Error saving cases to Supabase:', error);
-    throw error;
+    // Add context to the error before re-throwing
+    throw new Error(`Failed to save cases: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 };
 
@@ -138,7 +140,8 @@ const saveHearingsToSupabase = async (hearings: any[]) => {
     return { success: true, saved: data?.length || 0, data };
   } catch (error) {
     // Error: 'Error saving hearings to Supabase:', error);
-    throw error;
+    // Add context to the error before re-throwing
+    throw new Error(`Failed to save hearings: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 };
 
@@ -181,7 +184,8 @@ const saveDocumentsToSupabase = async (documents: any[]) => {
     return { success: true, saved: data?.length || 0, data };
   } catch (error) {
     // Error: 'Error saving documents to Supabase:', error);
-    throw error;
+    // Add context to the error before re-throwing
+    throw new Error(`Failed to save documents: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 };
 
