@@ -43,6 +43,14 @@ interface CardProps {
 }
 
 /**
+ * @deprecated This Card component is deprecated and will be removed in v2.0.
+ * Please use one of the new focused components instead:
+ * - MetricCard: For KPIs and statistics
+ * - StatusCard: For entities with workflow states  
+ * - ActionListCard: For lists of clickable items
+ * 
+ * See CARD_MIGRATION_GUIDE.md for migration instructions.
+ * 
  * Enhanced Card component with sophisticated visual treatments and interactions
  * Maintains backward compatibility while adding modern design features
  */
@@ -70,8 +78,14 @@ const Card: React.FC<CardProps> = ({
   icon,
   badge,
 }) => {
-  // Deprecation warning for compact prop
+  // Deprecation warnings
   React.useEffect(() => {
+    console.warn(
+      'Card: This component is deprecated and will be removed in v2.0. ' +
+      'Please migrate to MetricCard, StatusCard, or ActionListCard. ' +
+      'See src/components/ui/CARD_MIGRATION_GUIDE.md for details.'
+    );
+    
     if (compact !== undefined) {
       console.warn(
         'Card: The "compact" prop is deprecated and will be removed in v2.0. ' +
