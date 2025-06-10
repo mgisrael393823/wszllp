@@ -1125,14 +1125,14 @@ const EFileSubmissionForm: React.FC = () => {
         };
         
         // Debug cross reference values
-        console.log('Cross Reference Debug:', {
-          type: formData.crossReferenceType,
-          typeLength: formData.crossReferenceType?.length,
-          number: formData.crossReferenceNumber,
-          numberLength: formData.crossReferenceNumber?.length,
-          typeTrimmed: formData.crossReferenceType?.trim(),
-          numberTrimmed: formData.crossReferenceNumber?.trim()
-        });
+        // console.log('Cross Reference Debug:', {
+        //   type: formData.crossReferenceType,
+        //   typeLength: formData.crossReferenceType?.length,
+        //   number: formData.crossReferenceNumber,
+        //   numberLength: formData.crossReferenceNumber?.length,
+        //   typeTrimmed: formData.crossReferenceType?.trim(),
+        //   numberTrimmed: formData.crossReferenceNumber?.trim()
+        // });
         
         // helpers -----------------------------------------------------------------
         const jointActionTypes = ['237037', '237042', '201996', '201995'];
@@ -1159,19 +1159,19 @@ const EFileSubmissionForm: React.FC = () => {
         // 3️⃣ attach only when we have a valid number AND code
         if (crossRefNumber && crossRefCode) {
           payload.cross_references = [{ number: crossRefNumber, code: crossRefCode }];
-          console.log('Cross-reference applied:', { number: crossRefNumber, code: crossRefCode });
+          // Cross-reference applied: { number: crossRefNumber, code: crossRefCode }
         }
         
         // Log the payload for debugging
-        console.log('E-File Submission Payload:', JSON.stringify(payload, null, 2));
-        console.log('Cross references in payload:', payload.cross_references);
+        // E-File Submission Payload
+        // Cross references in payload: payload.cross_references
         
         // Debug filing codes
-        console.log('===== DEBUGGING FILING CODES =====');
-        console.log('Total filings:', payload.filings.length);
-        console.log('Filing codes being sent:');
+        // ===== DEBUGGING FILING CODES =====
+        // Total filings: payload.filings.length
+        // Filing codes being sent:
         payload.filings.forEach((filing: any, index: number) => {
-          console.log(`Filing ${index + 1}:`, {
+          // Filing ${index + 1}: {
             code: filing.code,
             description: filing.description,
             file_name: filing.file_name,
@@ -1187,8 +1187,8 @@ const EFileSubmissionForm: React.FC = () => {
         }
         
         // Also log the formData to see what's being submitted
-        console.log('Form data case type:', formData.caseType);
-        console.log('Files being processed:', {
+        // Form data case type: formData.caseType
+        // Files being processed: {
           complaint: formData.complaintFile?.name,
           summons: formData.summonsFiles.map(f => f.name),
           affidavit: formData.affidavitFile?.name
