@@ -1168,16 +1168,16 @@ const EFileSubmissionForm: React.FC = () => {
         
         // Debug filing codes
         // ===== DEBUGGING FILING CODES =====
-        // Total filings: payload.filings.length
-        // Filing codes being sent:
-        payload.filings.forEach((filing: any, index: number) => {
-          // Filing ${index + 1}: {
-            code: filing.code,
-            description: filing.description,
-            file_name: filing.file_name,
-            doc_type: filing.doc_type
-          });
-        });
+        // console.log('Total filings:', payload.filings.length);
+        // console.log('Filing codes being sent:');
+        // payload.filings.forEach((filing: any, index: number) => {
+        //   console.log(`Filing ${index + 1}:`, {
+        //     code: filing.code,
+        //     description: filing.description,
+        //     file_name: filing.file_name,
+        //     doc_type: filing.doc_type
+        //   });
+        // });
         
         // Check for any filing with code "332"
         const problematicFiling = payload.filings.find((f: any) => f.code === "332");
@@ -1187,12 +1187,12 @@ const EFileSubmissionForm: React.FC = () => {
         }
         
         // Also log the formData to see what's being submitted
-        // Form data case type: formData.caseType
-        // Files being processed: {
-          complaint: formData.complaintFile?.name,
-          summons: formData.summonsFiles.map(f => f.name),
-          affidavit: formData.affidavitFile?.name
-        });
+        // console.log('Form data case type:', formData.caseType);
+        // console.log('Files being processed:', {
+        //   complaint: formData.complaintFile?.name,
+        //   summons: formData.summonsFiles.map(f => f.name),
+        //   affidavit: formData.affidavitFile?.name
+        // });
         
         // Add audit log entry for submission attempt
         if (state.userPermissions.includes('efile:submit')) {
