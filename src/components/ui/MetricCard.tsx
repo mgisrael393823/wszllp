@@ -83,7 +83,7 @@ export const MetricCardExample = () => {
       trend={{ value: "+12%", isPositive: true }}
       subtitle="vs. last month"
       icon={undefined} // Pass actual icon component here
-      onClick={() => console.log('Navigate to cases')}
+      onClick={() => {/* Navigate to cases */}}
     />
   );
 };
