@@ -5,10 +5,9 @@ import { supabase } from '../../lib/supabaseClient';
 import { useToast } from '../../context/ToastContext';
 import { createDocument } from '../../hooks/useDocuments';
 import Button from '../ui/Button';
-import Card from '../ui/Card';
+import { Card } from '../ui/shadcn-card';
 import Select from '../ui/Select';
 import Typography from '../ui/Typography';
-import { iconSizes } from '../../styles/designTokens';
 
 interface DocumentUploadFormProps {
   caseId?: string;
@@ -321,13 +320,13 @@ const DocumentUploadForm: React.FC<DocumentUploadFormProps> = ({
   const getStatusIcon = (status: UploadFile['status']) => {
     switch (status) {
       case 'success':
-        return <CheckCircle className={`${iconSizes.sm.className} text-green-500`} data-testid="success-icon" />;
+        return <CheckCircle className="w-5 h-5 text-green-500" data-testid="success-icon" />;
       case 'error':
-        return <AlertCircle className={`${iconSizes.sm.className} text-red-500`} data-testid="error-icon" />;
+        return <AlertCircle className="w-5 h-5 text-red-500" data-testid="error-icon" />;
       case 'uploading':
-        return <div className={`animate-spin ${iconSizes.sm.className} border-2 border-blue-500 border-t-transparent rounded-full`} data-testid="uploading-icon" />;
+        return <div className="animate-spin w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full" data-testid="uploading-icon" />;
       default:
-        return <FileText className={`${iconSizes.sm.className} text-neutral-400`} data-testid="pending-icon" />;
+        return <FileText className="w-5 h-5 text-neutral-400" data-testid="pending-icon" />;
     }
   };
 
@@ -397,7 +396,7 @@ const DocumentUploadForm: React.FC<DocumentUploadFormProps> = ({
               onDragOver={handleDrag}
               onDrop={handleDrop}
             >
-              <Upload className={`${iconSizes['2xl'].className} mx-auto text-neutral-400 mb-4`} />
+              <Upload className="w-12 h-12 mx-auto text-neutral-400 mb-4" />
               <div className="space-y-2">
                 <Typography variant="body1" color="medium">
                   Drag and drop files here, or{' '}
@@ -474,7 +473,7 @@ const DocumentUploadForm: React.FC<DocumentUploadFormProps> = ({
                         className="text-neutral-400 hover:text-red-500 p-1"
                         aria-label="Remove file"
                       >
-                        <X className={iconSizes.sm.className} />
+                        <X className="w-5 h-5" />
                       </button>
                     )}
                   </div>

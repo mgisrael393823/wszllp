@@ -19,13 +19,13 @@ const queryClient = new QueryClient({
 });
 
 // Add debug logging
-console.log("EFilePage: Environment variables check:", {
-  hasBaseUrl: !!import.meta.env.VITE_EFILE_BASE_URL,
-  hasClientToken: !!import.meta.env.VITE_EFILE_CLIENT_TOKEN,
-  hasUsername: !!import.meta.env.VITE_EFILE_USERNAME,
-  hasPassword: !!import.meta.env.VITE_EFILE_PASSWORD,
-  reactQueryVersion: '@tanstack/react-query version: 5.x'
-});
+// console.log('EFilePage: Environment variables check:', {
+//   hasBaseUrl: !!import.meta.env.VITE_EFILE_BASE_URL,
+//   hasClientToken: !!import.meta.env.VITE_EFILE_CLIENT_TOKEN,
+//   hasUsername: !!import.meta.env.VITE_EFILE_USERNAME,
+//   hasPassword: !!import.meta.env.VITE_EFILE_PASSWORD,
+//   reactQueryVersion: '@tanstack/react-query version: 5.x'
+// });
 
 const EFilePage: React.FC = () => {
   const [formKey, setFormKey] = useState(0); // To force form re-render when loading draft

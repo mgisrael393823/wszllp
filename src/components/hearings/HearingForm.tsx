@@ -8,7 +8,7 @@ import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
-import Card from '../ui/Card';
+import { Card } from '../ui/shadcn-card';
 import { Calendar, LinkIcon } from 'lucide-react';
 
 interface HearingFormProps {

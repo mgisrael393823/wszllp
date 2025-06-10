@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { File, AlertCircle, Loader } from 'lucide-react';
+import { FileText, AlertCircle, Loader, File, Scale, FileCheck } from 'lucide-react';
 import DocumentList from './DocumentList';
-import Card from '../ui/Card';
+import { ActionListCard, MetricCard } from '../ui';
 import { supabase } from '../../lib/supabaseClient';
 import { useToast } from '../../context/ToastContext';
 
@@ -68,12 +68,65 @@ const DocumentOverview: React.FC = () => {
     
     fetchDocumentCounts();
   }, [addToast]);
+
+  // Calculate total documents
+  const totalDocuments = Object.values(documentCounts).reduce((sum, count) => sum + count, 0);
+  
+  // Calculate other documents count
+  const otherDocumentsCount = (documentCounts['Motion'] || 0) + 
+                            (documentCounts['Order'] || 0) + 
+                            (documentCounts['Affidavit'] || 0) + 
+                            (documentCounts['Other'] || 0);
+
+  // Create document category items for ActionListCard
+  const documentCategoryItems = [
+    {
+      id: 'complaints',
+      icon: FileText,
+      title: 'Complaints',
+      subtitle: 'Case filings and initial complaints',
+      value: isLoading ? '...' : String(documentCounts['Complaint'] || 0),
+      onClick: () => navigate('/documents/list?type=Complaint')
+    },
+    {
+      id: 'summons',
+      icon: Scale,
+      title: 'Summons',
+      subtitle: 'Court summons and legal notices',
+      value: isLoading ? '...' : String(documentCounts['Summons'] || 0),
+      onClick: () => navigate('/documents/list?type=Summons')
+    },
+    {
+      id: 'motions',
+      icon: FileCheck,
+      title: 'Motions',
+      subtitle: 'Filed motions and responses',
+      value: isLoading ? '...' : String(documentCounts['Motion'] || 0),
+      onClick: () => navigate('/documents/list?type=Motion')
+    },
+    {
+      id: 'orders',
+      icon: Scale,
+      title: 'Orders',
+      subtitle: 'Court orders and rulings',
+      value: isLoading ? '...' : String(documentCounts['Order'] || 0),
+      onClick: () => navigate('/documents/list?type=Order')
+    },
+    {
+      id: 'other',
+      icon: File,
+      title: 'Other Documents',
+      subtitle: 'Affidavits and miscellaneous filings',
+      value: isLoading ? '...' : String(otherDocumentsCount),
+      onClick: () => navigate('/documents/list?type=Other')
+    }
+  ];
   
   // Error display component
   const ErrorMessage = () => (
     <div className="bg-red-50 border border-red-200 rounded-md p-4 my-4">
       <div className="flex">
-        <AlertCircle size={20} className="text-red-500 mr-2" />
+        <AlertCircle className="w-5 h-5 text-red-500 mr-2 flex-shrink-0" />
         <div>
           <h3 className="text-sm font-medium text-red-800">Error loading document data</h3>
           <p className="text-sm text-red-700 mt-1">
@@ -88,76 +141,44 @@ const DocumentOverview: React.FC = () => {
     <div className="space-y-6">
       {error && <ErrorMessage />}
       
-      {/* Document Categories */}
+      {/* Document Summary Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/documents/list?type=Complaint')}>
-          <div className="flex items-center">
-            <div className="bg-primary-100 p-3 rounded-lg">
-              <File className="h-6 w-6 text-primary-600" />
-            </div>
-            <div className="ml-4">
-              <h3 className="text-lg font-medium">Complaints</h3>
-              <p className="text-sm text-neutral-500">
-                Case filings and complaints
-                {!isLoading && documentCounts['Complaint'] !== undefined && (
-                  <span className="ml-2 text-primary-600">
-                    ({documentCounts['Complaint']})
-                  </span>
-                )}
-                {isLoading && <Loader size={12} className="inline ml-2 animate-spin" />}
-              </p>
-            </div>
-          </div>
-        </Card>
-        
-        <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/documents/list?type=Summons')}>
-          <div className="flex items-center">
-            <div className="bg-success-100 p-3 rounded-lg">
-              <File className="h-6 w-6 text-success-600" />
-            </div>
-            <div className="ml-4">
-              <h3 className="text-lg font-medium">Summons</h3>
-              <p className="text-sm text-neutral-500">
-                Summons and notices
-                {!isLoading && documentCounts['Summons'] !== undefined && (
-                  <span className="ml-2 text-success-600">
-                    ({documentCounts['Summons']})
-                  </span>
-                )}
-                {isLoading && <Loader size={12} className="inline ml-2 animate-spin" />}
-              </p>
-            </div>
-          </div>
-        </Card>
-        
-        <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/documents/list?type=Other')}>
-          <div className="flex items-center">
-            <div className="bg-secondary-100 p-3 rounded-lg">
-              <File className="h-6 w-6 text-secondary-600" />
-            </div>
-            <div className="ml-4">
-              <h3 className="text-lg font-medium">Other Documents</h3>
-              <p className="text-sm text-neutral-500">
-                Motions, orders, and other filings
-                {!isLoading && (
-                  <span className="ml-2 text-secondary-600">
-                    ({(documentCounts['Motion'] || 0) + 
-                      (documentCounts['Order'] || 0) + 
-                      (documentCounts['Affidavit'] || 0) + 
-                      (documentCounts['Other'] || 0)})
-                  </span>
-                )}
-                {isLoading && <Loader size={12} className="inline ml-2 animate-spin" />}
-              </p>
-            </div>
-          </div>
-        </Card>
+        <MetricCard
+          title="Total Documents"
+          value={isLoading ? '...' : String(totalDocuments)}
+          icon={FileText}
+          subtitle="All document types"
+        />
+        <MetricCard
+          title="Complaints Filed"
+          value={isLoading ? '...' : String(documentCounts['Complaint'] || 0)}
+          icon={Scale}
+          subtitle="Active complaints"
+          onClick={() => navigate('/documents/list?type=Complaint')}
+        />
+        <MetricCard
+          title="Pending Review"
+          value="0"
+          icon={AlertCircle}
+          subtitle="Requires attention"
+          trend={{ value: "No pending", isPositive: true }}
+        />
       </div>
       
-      {/* Recent Documents */}
-      <div className="mt-8">
-        <h2 className="text-xl font-semibold mb-4">Recent Documents</h2>
-        <DocumentList limit={5} />
+      {/* Document Categories using ActionListCard */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <ActionListCard
+          title="Document Categories"
+          description="Browse documents by type"
+          items={documentCategoryItems}
+          showDividers={true}
+        />
+        
+        {/* Recent Documents */}
+        <div>
+          <h2 className="text-xl font-semibold mb-4">Recent Documents</h2>
+          <DocumentList limit={5} />
+        </div>
       </div>
     </div>
   );

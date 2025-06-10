@@ -5,7 +5,6 @@ import Button from '../ui/Button';
 import Typography from '../ui/Typography';
 import NotificationBell from '../notifications/NotificationBell';
 import { useAuth } from '../../context/AuthContext';
-import { iconSizes } from '../../styles/designTokens';
 
 interface HeaderProps {
   toggleSidebar: () => void;
@@ -49,7 +48,7 @@ const Header: React.FC<HeaderProps> = ({
               className="md:hidden -ml-1 mr-2"
               aria-label="Toggle navigation menu"
             >
-              <Menu className={iconSizes.lg.className} />
+              <Menu className="w-6 h-6" />
             </Button>
             <Button
               variant="text"
@@ -57,7 +56,7 @@ const Header: React.FC<HeaderProps> = ({
               className="hidden md:flex"
               aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
             >
-              {isSidebarCollapsed ? <ChevronRight className={iconSizes.md.className} /> : <ChevronLeft className={iconSizes.md.className} />}
+              {isSidebarCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
             </Button>
           </div>
 
@@ -67,7 +66,7 @@ const Header: React.FC<HeaderProps> = ({
             {/* Search button (mobile) - expand to search bar on larger screens */}
             <div className="hidden sm:flex relative w-64">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className={`${iconSizes.sm.className} text-neutral-400`} />
+                <Search className="w-4 h-4 text-neutral-400" />
               </div>
               <input 
                 type="text" 
@@ -82,7 +81,7 @@ const Header: React.FC<HeaderProps> = ({
               className="sm:hidden"
               aria-label="Search"
             >
-              <Search className={iconSizes.md.className} />
+              <Search className="w-5 h-5" />
             </Button>
 
             {/* Help button */}
@@ -92,7 +91,7 @@ const Header: React.FC<HeaderProps> = ({
               className="hidden sm:flex"
               aria-label="Help"
             >
-              <HelpCircle className={iconSizes.md.className} />
+              <HelpCircle className="w-5 h-5" />
             </Button>
 
             {/* Notifications */}
@@ -126,7 +125,7 @@ const Header: React.FC<HeaderProps> = ({
                       className="flex items-center px-content-normal py-2 hover:bg-neutral-100"
                       role="menuitem"
                     >
-                      <User className={`${iconSizes.sm.className} mr-2`} />
+                      <User className="w-4 h-4 mr-2" />
                       <Typography variant="caption" color="default">Profile</Typography>
                     </Link>
                     <Link 
@@ -134,7 +133,7 @@ const Header: React.FC<HeaderProps> = ({
                       className="flex items-center px-content-normal py-2 hover:bg-neutral-100"
                       role="menuitem"
                     >
-                      <Settings className={`${iconSizes.sm.className} mr-2`} />
+                      <Settings className="w-4 h-4 mr-2" />
                       <Typography variant="caption" color="default">Settings</Typography>
                     </Link>
                     <hr className="my-1 border-neutral-200" />

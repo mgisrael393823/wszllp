@@ -219,6 +219,13 @@ export default {
         'layout-comfortable': '4rem',    // 64px
         'layout-spacious': '6rem',       // 96px
       },
+      // Gap utilities with semantic tokens
+      gap: {
+        'content-tight': '0.5rem',        // 8px - for dense content spacing
+        'content-normal': '1rem',         // 16px - standard content spacing
+        'content-comfortable': '1.5rem',  // 24px - relaxed content spacing
+        'content-spacious': '2rem',       // 32px - spacious content spacing
+      },
       // Animations
       animation: {
         'fade-in': 'fadeIn 0.2s ease-in-out',

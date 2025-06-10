@@ -1,14 +1,15 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
+import { useCardSize } from './CardContext';
 
 interface CardBodyLayoutProps {
   children: React.ReactNode;
   className?: string;
   /**
    * Standardized spacing between card content elements
-   * - tight: 8px gaps (for dense information)
-   * - normal: 16px gaps (default, balanced)
-   * - relaxed: 24px gaps (for featured content)
+   * - tight: Uses card size's itemGap
+   * - normal: Uses card size's gap
+   * - relaxed: Uses card size's sectionGap
    */
   spacing?: 'tight' | 'normal' | 'relaxed';
   /**
@@ -33,11 +34,13 @@ const CardBodyLayout: React.FC<CardBodyLayoutProps> = ({
   spacing = 'normal',
   fillHeight = false,
 }) => {
-  // Systematic spacing scale based on 4px grid
+  const { config } = useCardSize();
+  
+  // Map spacing prop to the appropriate config value
   const spacingStyles = {
-    tight: 'space-y-2',    // 8px - for dense data cards
-    normal: 'space-y-4',   // 16px - standard spacing
-    relaxed: 'space-y-6',  // 24px - for featured cards
+    tight: config.spacing.content,
+    normal: config.spacing.section,
+    relaxed: config.spacing.header,
   };
 
   return (

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useList, useDelete } from '@refinedev/core';
 import { useNavigate } from 'react-router-dom';
 import { Edit, Trash2, Eye, Users, Mail, Phone, Search } from 'lucide-react';
-import Card from '../ui/Card';
+import { Card } from '../ui/shadcn-card';
 import Button from '../ui/Button';
 import Table from '../ui/Table';
 import Input from '../ui/Input';

@@ -28,7 +28,7 @@ This document outlines the design system for the legal case management applicati
 
 ## Design Tokens
 
-The design system is built on a foundation of design tokens, which are defined in the `tailwind.config.js` file and documented in `src/styles/designTokens.ts`.
+The design system is built on a foundation of design tokens, which are defined in the `tailwind.config.js` file.
 
 ### Colors
 
