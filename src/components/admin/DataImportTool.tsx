@@ -6,7 +6,7 @@ import { routeImport } from '../../utils/dataImport/importRouter';
 import CSVDataInspector from './CSVDataInspector';
 import { useData } from '../../context/DataContext';
 import { supabase } from '../../lib/supabaseClient';
-import Card from '../ui/Card';
+import { Card } from '../ui/shadcn-card';
 import Button from '../ui/Button';
 import Select from '../ui/Select';
 import ImportFormatGuide from './ImportFormatGuide';

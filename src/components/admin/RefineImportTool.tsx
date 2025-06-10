@@ -12,7 +12,7 @@ import {
   Plus,
   Database
 } from 'lucide-react';
-import Card from '../ui/Card';
+import { Card } from '../ui/shadcn-card';
 import Button from '../ui/Button';
 import Select from '../ui/Select';
 import { useData } from '../../context/DataContext';

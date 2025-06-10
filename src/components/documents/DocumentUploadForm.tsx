@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabaseClient';
 import { useToast } from '../../context/ToastContext';
 import { createDocument } from '../../hooks/useDocuments';
 import Button from '../ui/Button';
-import Card from '../ui/Card';
+import { Card } from '../ui/shadcn-card';
 import Select from '../ui/Select';
 import Typography from '../ui/Typography';
 

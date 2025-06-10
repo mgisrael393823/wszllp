@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Card from '../ui/Card';
+import { Card } from '../ui/shadcn-card';
 import Button from '../ui/Button';
 import SimpleImportTool from './SimpleImportTool';
 import EnhancedDataImporter from './EnhancedDataImporter';
