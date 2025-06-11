@@ -20,12 +20,12 @@ import CasesPage from './components/cases/CasesPage';
 import CaseSkeleton from './components/cases/CaseSkeleton';
 import HearingsPage from './components/hearings/HearingsPage';
 import HearingForm from './components/hearings/HearingForm';
-import DocumentList from './components/documents/DocumentList';
+const DocumentList = React.lazy(() => import('./components/documents/DocumentList'));
 import DocumentManagement from './components/documents/DocumentManagement';
 import DocumentUploadForm from './components/documents/DocumentUploadForm';
 import DocumentDetail from './components/documents/DocumentDetail';
 import DocumentUpload from './components/documents/DocumentUpload';
-import InvoiceList from './components/invoices/InvoiceList';
+import InvoicesPage from './components/invoices/InvoicesPage';
 import InvoiceDetail from './components/invoices/InvoiceDetail';
 import ServiceLogsList from './components/service-logs/ServiceLogsList';
 import EFilePage from './components/efile/EFilePage';
@@ -139,14 +139,18 @@ const AppContent = () => {
         } />
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/documents" element={<DocumentManagement />}>
-          <Route index element={<DocumentList />} />
+          <Route index element={
+            <Suspense fallback={<div className="p-8 text-center">Loading documents...</div>}>
+              <DocumentList />
+            </Suspense>
+          } />
           <Route path="upload" element={<DocumentUploadForm />} />
           <Route path="efile" element={<EFilePage />} />
           <Route path="service-logs" element={<ServiceLogsList />} />
         </Route>
         <Route path="/documents/new" element={<DocumentUpload />} />
         <Route path="/documents/:id" element={<DocumentDetail />} />
-        <Route path="/invoices" element={<InvoiceList />} />
+        <Route path="/invoices" element={<InvoicesPage />} />
         <Route path="/invoices/:id" element={<InvoiceDetail />} />
         <Route path="/workflows" element={<WorkflowDashboard />} />
         <Route path="/workflows/:id" element={<WorkflowDetail />} />

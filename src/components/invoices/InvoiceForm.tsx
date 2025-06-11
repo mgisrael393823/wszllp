@@ -4,7 +4,7 @@ import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '../../lib/supabaseClient';
 import { useToast } from '../../context/ToastContext';
@@ -30,7 +30,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ isOpen, onClose, invoiceId, d
   const invoice = invoiceId ? state.invoices.find(i => i.invoiceId === invoiceId) : null;
   const isEditing = !!invoice;
 
-  const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm<InvoiceFormData>({
+  const { register, handleSubmit, formState: { errors }, reset, setValue, control } = useForm<InvoiceFormData>({
     defaultValues: {
       amount: invoice?.amount || 0,
       description: invoice?.description || '',
@@ -40,9 +40,9 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ isOpen, onClose, invoiceId, d
     }
   });
 
-  // Set default case when modal opens
+  // Set default case when modal opens (only when modal opens, not when it closes)
   useEffect(() => {
-    if (!isEditing && defaultCaseId) {
+    if (isOpen && !isEditing && defaultCaseId) {
       setValue('caseId', defaultCaseId);
     }
   }, [isOpen, defaultCaseId, isEditing, setValue]);
@@ -146,12 +146,21 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ isOpen, onClose, invoiceId, d
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {!isEditing && (
           <div>
-            <Select
-              label="Case"
-              options={cases}
-              {...register('caseId', { required: 'Case is required' })}
-              error={errors.caseId?.message}
-              disabled={!!defaultCaseId}
+            <Controller
+              name="caseId"
+              control={control}
+              rules={{ required: 'Case is required' }}
+              render={({ field }) => (
+                <Select
+                  label="Case"
+                  options={cases}
+                  value={field.value}
+                  onChange={field.onChange}
+                  error={errors.caseId?.message}
+                  disabled={!!defaultCaseId}
+                  required
+                />
+              )}
             />
           </div>
         )}

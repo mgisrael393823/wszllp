@@ -1,4 +1,4 @@
-import React, { forwardRef, useState, useId } from 'react';
+import React, { forwardRef, useId } from 'react';
 import { 
   Select as ShadcnSelect,
   SelectTrigger,
@@ -75,10 +75,6 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(({
   const uniqueId = useId();
   const id = props.id || uniqueId;
   
-  // Local state to track the selected value
-  const [selectedValue, setSelectedValue] = useState<string>(
-    !value || value === "" ? "_empty" : (value as string)
-  );
   
   // Determine the active state (error takes precedence over warning and success)
   const activeState = error ? 'error' : warning ? 'warning' : success ? 'success' : state;
@@ -143,11 +139,12 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(({
   };
   
   // Handle value change
-  const handleValueChange = (value: string) => {
+  const handleValueChange = (newValue: string) => {
     // Convert "_empty" placeholder value to empty string for backward compatibility
-    const finalValue = value === "_empty" ? "" : value;
-    setSelectedValue(finalValue);
-    if (onChange) {
+    const finalValue = newValue === "_empty" ? "" : newValue;
+
+    // Avoid triggering parent state updates if the value hasn't actually changed
+    if (onChange && finalValue !== value) {
       onChange(finalValue);
     }
   };
@@ -174,8 +171,8 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(({
           </div>
         )}
         
-        <ShadcnSelect 
-          value={selectedValue} 
+        <ShadcnSelect
+          value={!value || value === "" ? "_empty" : value}
           onValueChange={handleValueChange}
           disabled={disabled}
         >
@@ -196,7 +193,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(({
           
           <SelectContent>
             {!required && (
-              <SelectItem value="_empty">
+              <SelectItem key="placeholder" value="_empty">
                 {placeholder}
               </SelectItem>
             )}
@@ -204,21 +201,20 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(({
             {Array.isArray(options) && options.length > 0 ? (
               hasGroups(options) ? (
                 // Render option groups
-                (options as SelectGroup[]).map((group) => (
+                (options as SelectGroup[]).map((group, groupIndex) => (
                   group && group.label ? (
-                    <SelectGroup key={group.label || 'group'}>
+                    <SelectGroup key={group.label || `group-${groupIndex}` }>
                       <SelectLabel>{group.label || 'Options'}</SelectLabel>
                       {Array.isArray(group.options) && group.options.map((option, index) => {
                         // Skip invalid options
-                        if (!option || !option.value) return null;
-                        
-                        // Ensure value is never an empty string
-                        const safeValue = option.value === "" ? `_empty_group_${index}` : option.value;
-                        
+                        if (!option || option.value === undefined) return null;
+
+                        const valueKey = option.value || `_empty_group_${groupIndex}_${index}`;
+
                         return (
-                          <SelectItem 
-                            key={safeValue} 
-                            value={safeValue}
+                          <SelectItem
+                            key={valueKey}
+                            value={option.value || `_empty_group_${groupIndex}_${index}`}
                             disabled={option.disabled}
                           >
                             {option.label || option.value}
@@ -232,15 +228,14 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(({
                 // Render flat options
                 (options as SelectOption[]).map((option, index) => {
                   // Skip invalid options
-                  if (!option || !option.value) return null;
-                  
-                  // Ensure value is never an empty string
-                  const safeValue = option.value === "" ? `_empty_${index}` : option.value;
-                  
+                  if (!option || option.value === undefined) return null;
+
+                  const valueKey = option.value || `_empty_${index}`;
+
                   return (
-                    <SelectItem 
-                      key={safeValue} 
-                      value={safeValue}
+                    <SelectItem
+                      key={valueKey}
+                      value={option.value || `_empty_${index}`}
                       disabled={option.disabled}
                     >
                       {option.label || option.value}
@@ -250,7 +245,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(({
               )
             ) : (
               // Fallback when no options provided
-              <SelectItem value="_empty" disabled>
+              <SelectItem key="no-options" value="_empty" disabled>
                 No options available
               </SelectItem>
             )}

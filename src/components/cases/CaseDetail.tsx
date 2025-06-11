@@ -11,7 +11,8 @@ import {
 } from 'lucide-react';
 import { StatusCard, MetricCard, ActionListCard } from '../ui';
 import Button from '../ui/Button';
-import Table from '../ui/Table';
+import { DataTable } from '../ui/DataTable';
+import { ColumnDef } from '@tanstack/react-table';
 import HearingForm from '../hearings/HearingForm';
 import DocumentForm from '../documents/DocumentForm';
 import InvoiceForm from '../invoices/InvoiceForm';
@@ -201,177 +202,178 @@ const CaseDetail: React.FC = () => {
   ];
 
   // Table configurations for different tabs
-  const hearingColumns = [
+  const hearingColumns: ColumnDef<typeof state.hearings[0]>[] = [
     {
+      accessorKey: 'courtName',
       header: 'Court',
-      accessor: 'courtName',
-      sortable: true,
     },
     {
+      accessorKey: 'hearingDate',
       header: 'Date',
-      accessor: (item: typeof state.hearings[0]) => {
-        const date = typeof item.hearingDate === 'string'
-          ? parseISO(item.hearingDate)
-          : item.hearingDate instanceof Date
-          ? item.hearingDate
+      cell: ({ row }) => {
+        const date = typeof row.original.hearingDate === 'string'
+          ? parseISO(row.original.hearingDate)
+          : row.original.hearingDate instanceof Date
+          ? row.original.hearingDate
           : null;
         return date && isValid(date)
           ? format(date, 'MMM d, yyyy')
           : 'Invalid Date';
       },
-      sortable: true,
     },
     {
+      accessorKey: 'hearingDate',
       header: 'Time',
-      accessor: (item: typeof state.hearings[0]) => {
-        const date = typeof item.hearingDate === 'string'
-          ? parseISO(item.hearingDate)
-          : item.hearingDate instanceof Date
-          ? item.hearingDate
+      cell: ({ row }) => {
+        const date = typeof row.original.hearingDate === 'string'
+          ? parseISO(row.original.hearingDate)
+          : row.original.hearingDate instanceof Date
+          ? row.original.hearingDate
           : null;
         return date && isValid(date)
           ? format(date, 'h:mm a')
           : 'Invalid Date';
       },
-      sortable: false,
     },
     {
+      accessorKey: 'outcome',
       header: 'Outcome',
-      accessor: (item: typeof state.hearings[0]) => 
-        item.outcome || 'Pending',
-      sortable: false,
+      cell: ({ row }) => row.original.outcome || 'Pending',
     },
   ];
 
-  const documentColumns = [
+  const documentColumns: ColumnDef<typeof state.documents[0]>[] = [
     {
+      accessorKey: 'type',
       header: 'Type',
-      accessor: 'type',
-      sortable: true,
     },
     {
+      accessorKey: 'status',
       header: 'Status',
-      accessor: (item: typeof state.documents[0]) => (
+      cell: ({ row }) => (
         <span 
           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-            ${item.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 
-              item.status === 'Served' ? 'bg-green-100 text-green-800' : 
+            ${row.original.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 
+              row.original.status === 'Served' ? 'bg-green-100 text-green-800' : 
                 'bg-red-100 text-red-800'}`
           }
         >
-          {item.status}
+          {row.original.status}
         </span>
       ),
-      sortable: false,
     },
     {
+      accessorKey: 'createdAt',
       header: 'Created',
-      accessor: (item: typeof state.documents[0]) => {
-        const date = typeof item.createdAt === 'string'
-          ? parseISO(item.createdAt)
-          : item.createdAt instanceof Date
-          ? item.createdAt
+      cell: ({ row }) => {
+        const date = typeof row.original.createdAt === 'string'
+          ? parseISO(row.original.createdAt)
+          : row.original.createdAt instanceof Date
+          ? row.original.createdAt
           : null;
         return date && isValid(date)
           ? format(date, 'MMM d, yyyy')
           : 'Invalid Date';
       },
-      sortable: true,
     },
     {
+      id: 'actions',
       header: 'Actions',
-      accessor: (item: typeof state.documents[0]) => (
+      cell: ({ row }) => (
         <Button
           variant="text"
           size="sm"
           icon={<Download size={16} />}
           aria-label="Download document"
+          onClick={() => {
+            if (row.original.fileURL) {
+              window.open(row.original.fileURL, '_blank');
+            }
+          }}
         />
       ),
     }
   ];
 
-  const invoiceColumns = [
+  const invoiceColumns: ColumnDef<any>[] = [
     {
+      accessorKey: 'invoiceId',
       header: 'Invoice #',
-      accessor: (item: any) => item.invoiceId?.slice(0, 8) || 'N/A',
-      sortable: true,
+      cell: ({ row }) => row.original.invoiceId?.slice(0, 8) || 'N/A',
     },
     {
+      accessorKey: 'description',
       header: 'Description',
-      accessor: (item: any) => item.description || 'No description',
-      sortable: false,
+      cell: ({ row }) => row.original.description || 'No description',
     },
     {
+      accessorKey: 'amount',
       header: 'Amount',
-      accessor: (item: any) => 
-        `$${(item.amount || 0).toFixed(2)}`,
-      sortable: true,
+      cell: ({ row }) => `$${(row.original.amount || 0).toFixed(2)}`,
     },
     {
+      accessorKey: 'dueDate',
       header: 'Due Date',
-      accessor: (item: any) => {
-        const date = typeof item.dueDate === 'string'
-          ? parseISO(item.dueDate)
-          : item.dueDate instanceof Date
-          ? item.dueDate
+      cell: ({ row }) => {
+        const date = typeof row.original.dueDate === 'string'
+          ? parseISO(row.original.dueDate)
+          : row.original.dueDate instanceof Date
+          ? row.original.dueDate
           : null;
         return date && isValid(date)
           ? format(date, 'MMM d, yyyy')
           : 'N/A';
       },
-      sortable: true,
     },
     {
+      accessorKey: 'paid',
       header: 'Status',
-      accessor: (item: any) => (
+      cell: ({ row }) => (
         <span 
           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-            ${item.paid ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`
+            ${row.original.paid ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`
           }
         >
-          {item.paid ? 'Paid' : 'Unpaid'}
+          {row.original.paid ? 'Paid' : 'Unpaid'}
         </span>
       ),
-      sortable: false,
     },
   ];
 
-  const activityColumns = [
+  const activityColumns: ColumnDef<typeof state.auditLogs[0]>[] = [
     {
+      accessorKey: 'timestamp',
       header: 'Time',
-      accessor: (item: typeof state.auditLogs[0]) => {
-        const date = typeof item.timestamp === 'string'
-          ? parseISO(item.timestamp)
-          : item.timestamp instanceof Date
-          ? item.timestamp
+      cell: ({ row }) => {
+        const date = typeof row.original.timestamp === 'string'
+          ? parseISO(row.original.timestamp)
+          : row.original.timestamp instanceof Date
+          ? row.original.timestamp
           : null;
         return date && isValid(date)
           ? format(date, 'MMM d, h:mm a')
           : 'Invalid Date';
       },
-      sortable: true,
     },
     {
+      accessorKey: 'action',
       header: 'Activity',
-      accessor: (item: typeof state.auditLogs[0]) => {
+      cell: ({ row }) => {
         const actionColors = {
           'Create': 'text-green-700',
           'Update': 'text-blue-700',
           'Delete': 'text-red-700'
         };
         return (
-          <span className={actionColors[item.action] || ''}>
-            {item.details}
+          <span className={actionColors[row.original.action as keyof typeof actionColors] || ''}>
+            {row.original.details}
           </span>
         );
       },
-      sortable: false,
     },
     {
+      accessorKey: 'entityType',
       header: 'Entity Type',
-      accessor: 'entityType',
-      sortable: true,
     }
   ];
 
@@ -576,15 +578,12 @@ const CaseDetail: React.FC = () => {
                     )}
                   </div>
                   
-                  <Table
+                  <DataTable
                     data={paginatedData}
                     columns={getActiveTabColumns()}
-                    keyField={
-                      activeTab === 'hearings' ? 'hearingId' :
-                      activeTab === 'documents' ? 'docId' :
-                      activeTab === 'invoices' ? 'invoiceId' : 'id'
-                    }
-                    emptyMessage={getEmptyMessage()}
+                    isLoading={false}
+                    error={null}
+                    className="border-0 shadow-none"
                   />
 
                   {activeTabData.length > itemsPerPage && (

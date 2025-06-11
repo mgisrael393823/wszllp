@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/context/ToastContext';
 import Button from '../ui/Button';
-import { Card } from '../ui/shadcn-card';
+import { StatusCard } from '../ui/StatusCard';
+import { FileText, Calendar, User, Users } from 'lucide-react';
 
 interface DraftData {
   id: string;
@@ -80,50 +81,74 @@ const EFileDrafts: React.FC<{ onLoadDraft: (data: any) => void }> = ({ onLoadDra
       </div>
       
       <div className="space-y-3">
-        {drafts.map((draft) => (
-          <Card key={draft.id} className="p-4">
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <div className="text-sm text-neutral-600 mb-1">
-                  Saved on: {new Date(draft.createdAt).toLocaleString()}
-                </div>
-                <div className="text-sm space-y-1">
-                  <p><span className="font-medium">Case Type:</span> {draft.data.caseType || 'Not selected'}</p>
-                  <p><span className="font-medium">Attorney ID:</span> {draft.data.attorneyId || 'Not entered'}</p>
-                  {draft.data.petitioner?.businessName && (
-                    <p><span className="font-medium">Petitioner:</span> {draft.data.petitioner.businessName}</p>
-                  )}
-                  {draft.data.petitioner?.firstName && (
-                    <p><span className="font-medium">Petitioner:</span> {draft.data.petitioner.firstName} {draft.data.petitioner.lastName}</p>
-                  )}
-                  {draft.data.defendants?.length > 0 && (
-                    <p><span className="font-medium">Defendants:</span> {draft.data.defendants.length} defendant(s)</p>
-                  )}
-                  {draft.data.files?.length > 0 && (
-                    <p><span className="font-medium">Files:</span> {draft.data.files.length} file(s) (need to re-upload)</p>
-                  )}
-                </div>
-              </div>
-              <div className="flex gap-2 ml-4">
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={() => handleLoadDraft(draft)}
-                >
-                  Load Draft
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => handleDeleteDraft(draft.id)}
-                  className="text-red-600 hover:text-red-700"
-                >
-                  Delete
-                </Button>
-              </div>
-            </div>
-          </Card>
-        ))}
+        {drafts.map((draft) => {
+          // Prepare metadata for StatusCard
+          const metadata = [
+            {
+              label: 'Saved',
+              value: new Date(draft.createdAt).toLocaleDateString()
+            },
+            {
+              label: 'Case Type',
+              value: draft.data.caseType || 'Not selected'
+            },
+            {
+              label: 'Attorney ID',
+              value: draft.data.attorneyId || 'Not entered'
+            }
+          ];
+
+          // Add petitioner info if available
+          if (draft.data.petitioner?.businessName) {
+            metadata.push({
+              label: 'Petitioner',
+              value: draft.data.petitioner.businessName
+            });
+          } else if (draft.data.petitioner?.firstName) {
+            metadata.push({
+              label: 'Petitioner',
+              value: `${draft.data.petitioner.firstName} ${draft.data.petitioner.lastName}`
+            });
+          }
+
+          // Add defendant count if available
+          if (draft.data.defendants?.length > 0) {
+            metadata.push({
+              label: 'Defendants',
+              value: `${draft.data.defendants.length} defendant(s)`
+            });
+          }
+
+          // Add file count with warning if files need re-upload
+          if (draft.data.files?.length > 0) {
+            metadata.push({
+              label: 'Files',
+              value: `${draft.data.files.length} file(s) (need to re-upload)`
+            });
+          }
+
+          return (
+            <StatusCard
+              key={draft.id}
+              title={`Draft #${draft.id.slice(-8)}`}
+              status="draft"
+              subtitle="E-filing draft ready to load"
+              metadata={metadata}
+              actions={[
+                {
+                  label: 'Load Draft',
+                  variant: 'primary',
+                  onClick: () => handleLoadDraft(draft)
+                },
+                {
+                  label: 'Delete',
+                  variant: 'secondary',
+                  onClick: () => handleDeleteDraft(draft.id)
+                }
+              ]}
+            />
+          );
+        })}
       </div>
     </div>
   );

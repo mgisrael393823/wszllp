@@ -21,7 +21,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
  * Button component that uses Shadcn UI Button internally but maintains the original API
  * This ensures backward compatibility with existing code
  */
-const Button: React.FC<ButtonProps> = ({
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
   variant = 'primary',
   size = 'md',
   elevation = 'none',
@@ -33,7 +33,7 @@ const Button: React.FC<ButtonProps> = ({
   disabled = false,
   asChild = false,
   ...props
-}) => {
+}, ref) => {
   // Map the original variants to Shadcn UI variants
   const variantMap: Record<ButtonVariant, ShadcnButtonProps['variant']> = {
     primary: 'default',
@@ -74,6 +74,7 @@ const Button: React.FC<ButtonProps> = ({
 
   return (
     <ShadcnButton
+      ref={ref}
       variant={variantMap[variant]}
       size={sizeMap[size]}
       className={combinedClassName}
@@ -88,6 +89,8 @@ const Button: React.FC<ButtonProps> = ({
       </>
     </ShadcnButton>
   );
-};
+});
+
+Button.displayName = 'Button';
 
 export default Button;
