@@ -11,7 +11,7 @@ export function DateRangeFilter<TData>({ column }: DateRangeFilterProps<TData>) 
   const columnFilterValue = column.getFilterValue() as [string, string] | undefined;
 
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-2" data-testid={`date-range-filter-${column.id}`}>
       <Input
         type="date"
         value={columnFilterValue?.[0] ?? ''}
@@ -22,6 +22,8 @@ export function DateRangeFilter<TData>({ column }: DateRangeFilterProps<TData>) 
         placeholder="From"
         className="mb-0 flex-1"
         size="sm"
+        data-testid={`date-filter-start-${column.id}`}
+        aria-label={`Start date for ${column.id} filter`}
       />
       <Input
         type="date"
@@ -33,6 +35,8 @@ export function DateRangeFilter<TData>({ column }: DateRangeFilterProps<TData>) 
         placeholder="To"
         className="mb-0 flex-1"
         size="sm"
+        data-testid={`date-filter-end-${column.id}`}
+        aria-label={`End date for ${column.id} filter`}
       />
     </div>
   );

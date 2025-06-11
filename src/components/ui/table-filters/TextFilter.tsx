@@ -22,12 +22,16 @@ export function TextFilter<TData>({ column, placeholder }: TextFilterProps<TData
         <button
           onClick={() => column.setFilterValue('')}
           className="hover:text-neutral-600 transition-colors"
+          data-testid={`clear-filter-${column.id}`}
+          aria-label={`Clear ${column.id} filter`}
         >
           <X className="h-4 w-4" />
         </button>
       )}
       className="mb-0"
       size="sm"
+      data-testid={`text-filter-${column.id}`}
+      aria-label={`Filter ${column.id}`}
     />
   );
 }

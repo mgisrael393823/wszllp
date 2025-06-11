@@ -22,6 +22,8 @@ export function SelectFilter<TData>({ column, options, placeholder }: SelectFilt
       ]}
       className="mb-0"
       size="sm"
+      data-testid={`select-filter-${column.id}`}
+      aria-label={`Filter ${column.id}`}
     />
   );
 }

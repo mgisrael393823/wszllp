@@ -434,11 +434,450 @@ const DocumentList = () => {
    - Memoize column definitions with `useMemo`
    - Enable pagination for large datasets
 
+## Edge Case Migration Examples
+
+### Complex Custom Cell Renderers
+
+#### Multi-Component Cell with Actions
+
+**Before:**
+```tsx
+{
+  accessor: 'document',
+  header: 'Document',
+  render: (value, row) => (
+    <div className="flex items-center justify-between">
+      <div className="flex items-center space-x-3">
+        <div className="flex-shrink-0">
+          <FileIcon type={row.fileType} />
+        </div>
+        <div>
+          <p className="text-sm font-medium">{row.filename}</p>
+          <p className="text-xs text-gray-500">{row.fileSize}</p>
+        </div>
+      </div>
+      <div className="flex space-x-2">
+        <Button size="xs" onClick={() => handleDownload(row.id)}>
+          <Download className="h-3 w-3" />
+        </Button>
+        <Button size="xs" onClick={() => handlePreview(row.id)}>
+          <Eye className="h-3 w-3" />
+        </Button>
+      </div>
+    </div>
+  ),
+}
+```
+
+**After:**
+```tsx
+{
+  id: 'document',
+  header: 'Document',
+  cell: ({ row }) => {
+    const { filename, fileType, fileSize, id } = row.original;
+    return (
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <div className="flex-shrink-0">
+            <FileIcon type={fileType} />
+          </div>
+          <div>
+            <p className="text-sm font-medium">{filename}</p>
+            <p className="text-xs text-gray-500">{fileSize}</p>
+          </div>
+        </div>
+        <div className="flex space-x-2">
+          <Button size="xs" onClick={() => handleDownload(id)}>
+            <Download className="h-3 w-3" />
+          </Button>
+          <Button size="xs" onClick={() => handlePreview(id)}>
+            <Eye className="h-3 w-3" />
+          </Button>
+        </div>
+      </div>
+    );
+  },
+}
+```
+
+#### Conditional Rendering with Complex Logic
+
+**Before:**
+```tsx
+{
+  accessor: 'status',
+  header: 'Status',
+  render: (status, row) => {
+    if (row.isArchived) {
+      return <Badge variant="secondary">Archived</Badge>;
+    }
+    
+    if (row.expiresAt && new Date(row.expiresAt) < new Date()) {
+      return <Badge variant="destructive">Expired</Badge>;
+    }
+    
+    switch (status) {
+      case 'draft':
+        return (
+          <div className="flex items-center space-x-2">
+            <Badge variant="outline">Draft</Badge>
+            {row.autoSave && <Clock className="h-3 w-3 text-gray-400" />}
+          </div>
+        );
+      case 'published':
+        return <Badge variant="success">Published</Badge>;
+      default:
+        return <Badge>{status}</Badge>;
+    }
+  },
+}
+```
+
+**After:**
+```tsx
+{
+  accessorKey: 'status',
+  header: 'Status',
+  cell: ({ row }) => {
+    const { status, isArchived, expiresAt, autoSave } = row.original;
+    
+    if (isArchived) {
+      return <Badge variant="secondary">Archived</Badge>;
+    }
+    
+    if (expiresAt && new Date(expiresAt) < new Date()) {
+      return <Badge variant="destructive">Expired</Badge>;
+    }
+    
+    switch (status) {
+      case 'draft':
+        return (
+          <div className="flex items-center space-x-2">
+            <Badge variant="outline">Draft</Badge>
+            {autoSave && <Clock className="h-3 w-3 text-gray-400" />}
+          </div>
+        );
+      case 'published':
+        return <Badge variant="success">Published</Badge>;
+      default:
+        return <Badge>{status}</Badge>;
+    }
+  },
+}
+```
+
+### Tables with Custom Sorting and Filtering
+
+#### Complex Data Types
+
+**Before:**
+```tsx
+const columns = [
+  {
+    accessor: 'tags',
+    header: 'Tags',
+    render: (tags) => (
+      <div className="flex flex-wrap gap-1">
+        {tags.map(tag => (
+          <Badge key={tag} variant="outline" size="sm">{tag}</Badge>
+        ))}
+      </div>
+    ),
+    // Custom filter was handled externally
+  },
+];
+```
+
+**After:**
+```tsx
+const columns: ColumnDef<DataType>[] = [
+  {
+    accessorKey: 'tags',
+    header: 'Tags',
+    cell: ({ row }) => (
+      <div className="flex flex-wrap gap-1">
+        {row.original.tags.map(tag => (
+          <Badge key={tag} variant="outline" size="sm">{tag}</Badge>
+        ))}
+      </div>
+    ),
+    // Custom filter function for array data
+    filterFn: (row, columnId, filterValue) => {
+      const tags = row.getValue(columnId) as string[];
+      return tags.some(tag => 
+        tag.toLowerCase().includes(filterValue.toLowerCase())
+      );
+    },
+    meta: {
+      filterVariant: 'text',
+    },
+  },
+];
+```
+
+#### Nested Object Access
+
+**Before:**
+```tsx
+{
+  accessor: 'user.profile.name',
+  header: 'User Name',
+  render: (value, row) => (
+    <div className="flex items-center space-x-2">
+      <Avatar src={row.user?.profile?.avatar} size="sm" />
+      <span>{value || 'Unknown User'}</span>
+    </div>
+  ),
+}
+```
+
+**After:**
+```tsx
+{
+  accessorFn: (row) => row.user?.profile?.name,
+  id: 'userName',
+  header: 'User Name',
+  cell: ({ row }) => {
+    const name = row.user?.profile?.name;
+    const avatar = row.user?.profile?.avatar;
+    return (
+      <div className="flex items-center space-x-2">
+        <Avatar src={avatar} size="sm" />
+        <span>{name || 'Unknown User'}</span>
+      </div>
+    );
+  },
+  // Enable sorting for nested data
+  sortingFn: (rowA, rowB) => {
+    const nameA = rowA.original.user?.profile?.name || '';
+    const nameB = rowB.original.user?.profile?.name || '';
+    return nameA.localeCompare(nameB);
+  },
+}
+```
+
+### Tables with External State Management
+
+#### Tables Connected to Redux/Zustand
+
+**Before:**
+```tsx
+const CaseList = () => {
+  const { cases, filters, sorting, pagination } = useSelector(selectCases);
+  const dispatch = useDispatch();
+  
+  const handleSort = (column, direction) => {
+    dispatch(updateSorting({ column, direction }));
+  };
+  
+  const handleFilter = (column, value) => {
+    dispatch(updateFilter({ column, value }));
+  };
+  
+  return (
+    <Table
+      data={cases}
+      columns={columns}
+      onSort={handleSort}
+      onFilter={handleFilter}
+      sortBy={sorting.column}
+      sortDirection={sorting.direction}
+    />
+  );
+};
+```
+
+**After:**
+```tsx
+const CaseList = () => {
+  const { cases, filters, sorting } = useSelector(selectCases);
+  const dispatch = useDispatch();
+  
+  // Convert external state to TanStack Table format
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
+    Object.entries(filters).map(([id, value]) => ({ id, value }))
+  );
+  
+  const [sortingState, setSortingState] = useState<SortingState>(
+    sorting.column ? [{ id: sorting.column, desc: sorting.direction === 'desc' }] : []
+  );
+  
+  // Sync with external state
+  useEffect(() => {
+    const newFilters = columnFilters.reduce((acc, filter) => {
+      acc[filter.id] = filter.value;
+      return acc;
+    }, {} as Record<string, any>);
+    dispatch(updateFilters(newFilters));
+  }, [columnFilters, dispatch]);
+  
+  useEffect(() => {
+    const newSorting = sortingState[0] || null;
+    dispatch(updateSorting({
+      column: newSorting?.id || null,
+      direction: newSorting?.desc ? 'desc' : 'asc'
+    }));
+  }, [sortingState, dispatch]);
+  
+  return (
+    <DataTable
+      data={cases}
+      columns={columns}
+      initialFilters={columnFilters}
+      initialSorting={sortingState}
+      onColumnFiltersChange={setColumnFilters}
+      onSortingChange={setSortingState}
+    />
+  );
+};
+```
+
+### Performance Optimization for Large Tables
+
+#### Virtual Scrolling Migration
+
+**Before:**
+```tsx
+const LargeTable = ({ data }) => {
+  const [visibleData, setVisibleData] = useState([]);
+  const [scrollTop, setScrollTop] = useState(0);
+  
+  // Custom virtualization logic
+  const updateVisibleData = useCallback(() => {
+    const startIndex = Math.floor(scrollTop / ROW_HEIGHT);
+    const endIndex = Math.min(startIndex + VISIBLE_ROWS, data.length);
+    setVisibleData(data.slice(startIndex, endIndex));
+  }, [data, scrollTop]);
+  
+  return (
+    <div onScroll={(e) => setScrollTop(e.target.scrollTop)}>
+      <Table data={visibleData} columns={columns} />
+    </div>
+  );
+};
+```
+
+**After:**
+```tsx
+// Install @tanstack/react-virtual for virtualization
+import { useVirtualizer } from '@tanstack/react-virtual';
+
+const LargeTable = ({ data }) => {
+  const parentRef = useRef<HTMLDivElement>(null);
+  
+  const virtualizer = useVirtualizer({
+    count: data.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 50, // Row height
+    overscan: 10,
+  });
+  
+  const columns = useMemo(() => [
+    // Column definitions
+  ], []);
+  
+  return (
+    <div 
+      ref={parentRef}
+      className="h-96 overflow-auto"
+      style={{ contain: 'strict' }}
+    >
+      <div style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
+        {virtualizer.getVirtualItems().map((virtualRow) => {
+          const row = data[virtualRow.index];
+          return (
+            <div
+              key={virtualRow.key}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: virtualRow.size,
+                transform: `translateY(${virtualRow.start}px)`,
+              }}
+            >
+              {/* Render row content */}
+              <TableRow data={row} columns={columns} />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+```
+
+## Troubleshooting Edge Cases
+
+### 1. **Complex Data Transformations**
+```tsx
+// For data that needs transformation before display
+const columns: ColumnDef<RawData>[] = [
+  {
+    accessorFn: (row) => {
+      // Complex transformation logic
+      return processComplexData(row.rawField);
+    },
+    id: 'processedData',
+    header: 'Processed Data',
+  },
+];
+```
+
+### 2. **Multiple Action Buttons with Conditional Logic**
+```tsx
+{
+  id: 'actions',
+  header: 'Actions',
+  cell: ({ row }) => {
+    const { permissions, status, id } = row.original;
+    
+    return (
+      <div className="flex space-x-1">
+        {permissions.canEdit && (
+          <Button size="xs" onClick={() => handleEdit(id)}>
+            Edit
+          </Button>
+        )}
+        {permissions.canDelete && status !== 'archived' && (
+          <Button size="xs" variant="destructive" onClick={() => handleDelete(id)}>
+            Delete
+          </Button>
+        )}
+        {status === 'draft' && (
+          <Button size="xs" onClick={() => handlePublish(id)}>
+            Publish
+          </Button>
+        )}
+      </div>
+    );
+  },
+}
+```
+
+### 3. **Custom Sorting for Complex Data Types**
+```tsx
+{
+  accessorKey: 'priority',
+  header: 'Priority',
+  sortingFn: (rowA, rowB) => {
+    const priorityOrder = { low: 1, medium: 2, high: 3, urgent: 4 };
+    const aValue = priorityOrder[rowA.original.priority] || 0;
+    const bValue = priorityOrder[rowB.original.priority] || 0;
+    return aValue - bValue;
+  },
+}
+```
+
 ## Getting Help
 
 - Check the [DataTable System Documentation](./DATATABLE_SYSTEM.md)
 - Review working examples in the codebase
 - Look for similar patterns in migrated components
+- For complex migrations, consider breaking them into smaller steps
+- Test each migration thoroughly before moving to the next
 
 ## Next Steps
 
@@ -448,3 +887,5 @@ After migration:
 3. Add loading and error states
 4. Test sorting and filtering functionality
 5. Verify accessibility with keyboard navigation
+6. Performance test with realistic data sizes
+7. Add proper TypeScript types for all data structures

@@ -4,10 +4,11 @@ import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 import { TextFilter } from '@/components/ui/table-filters/TextFilter';
 import { Column } from '@tanstack/react-table';
+import { TEST_IDS, PLACEHOLDERS, TEST_COLUMN_IDS } from './test-constants';
 
 // Mock column
 const createMockColumn = (filterValue = ''): Column<any, unknown> => ({
-  id: 'testColumn',
+  id: TEST_COLUMN_IDS.TEST_COLUMN,
   getFilterValue: () => filterValue,
   setFilterValue: vi.fn(),
   getFacetedUniqueValues: () => new Map(),
@@ -27,15 +28,16 @@ describe('TextFilter', () => {
     const column = createMockColumn();
     render(<TextFilter column={column} />);
     
-    const input = screen.getByPlaceholderText('Search testColumn...');
+    const input = screen.getByTestId(TEST_IDS.textFilter(TEST_COLUMN_IDS.TEST_COLUMN));
     expect(input).toBeInTheDocument();
+    expect(input).toHaveAttribute('placeholder', PLACEHOLDERS.searchColumn(TEST_COLUMN_IDS.TEST_COLUMN));
   });
 
   it('displays current filter value', () => {
     const column = createMockColumn('test value');
     render(<TextFilter column={column} />);
     
-    const input = screen.getByPlaceholderText('Filter Test Column...');
+    const input = screen.getByTestId('text-filter-testColumn');
     expect(input).toHaveValue('test value');
   });
 

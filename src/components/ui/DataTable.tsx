@@ -143,15 +143,18 @@ export function DataTable<TData extends Record<string, any>>({
   }
 
   return (
-    <div className={cn(
-      'bg-white rounded-lg shadow-sm border border-neutral-200',
-      className
-    )}>
+    <div 
+      className={cn(
+        'bg-white rounded-lg shadow-sm border border-neutral-200',
+        className
+      )}
+      data-testid="data-table"
+    >
       {/* Filters section */}
       {table.getAllColumns().some((column) => 
         column.getCanFilter() && column.columnDef.meta?.filterVariant
       ) && (
-        <div className="p-4 bg-neutral-50/50 border-b border-neutral-200">
+        <div className="p-4 bg-neutral-50/50 border-b border-neutral-200" data-testid="table-filters">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-medium text-neutral-700">Filters</h3>
             <DropdownMenu>
@@ -160,6 +163,7 @@ export function DataTable<TData extends Record<string, any>>({
                   variant="outline" 
                   size="sm"
                   title="Show or hide table columns"
+                  data-testid="column-visibility-toggle"
                 >
                   <Columns3 className="mr-2 h-4 w-4" />
                   Columns
@@ -208,7 +212,7 @@ export function DataTable<TData extends Record<string, any>>({
 
       {/* Table section */}
       <div className="overflow-x-auto">
-        <Table>
+        <Table data-testid="table-content">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -292,7 +296,7 @@ export function DataTable<TData extends Record<string, any>>({
 
       {/* Pagination and info section */}
       {enablePagination && table.getPageCount() > 1 && (
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 border-t border-neutral-200 bg-neutral-50/30">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 border-t border-neutral-200 bg-neutral-50/30" data-testid="table-pagination">
           {/* Row selection info */}
           <div className="text-sm text-neutral-500 order-2 sm:order-1">
             {enableRowSelection ? (
@@ -322,6 +326,8 @@ export function DataTable<TData extends Record<string, any>>({
                 disabled={!table.getCanPreviousPage()}
                 className="p-2 rounded-md border border-neutral-300 bg-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-50"
                 title="First page"
+                data-testid="pagination-first"
+                aria-label="Go to first page"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="11,17 6,12 11,7"></polyline>
@@ -334,6 +340,8 @@ export function DataTable<TData extends Record<string, any>>({
                 disabled={!table.getCanPreviousPage()}
                 className="p-2 rounded-md border border-neutral-300 bg-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-50"
                 title="Previous page"
+                data-testid="pagination-previous"
+                aria-label="Go to previous page"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="15,18 9,12 15,6"></polyline>
@@ -343,6 +351,8 @@ export function DataTable<TData extends Record<string, any>>({
               <button
                 onClick={() => table.nextPage()}
                 disabled={!table.getCanNextPage()}
+                data-testid="pagination-next"
+                aria-label="Go to next page"
                 className="p-2 rounded-md border border-neutral-300 bg-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-50"
                 title="Next page"
               >
@@ -356,6 +366,8 @@ export function DataTable<TData extends Record<string, any>>({
                 disabled={!table.getCanNextPage()}
                 className="p-2 rounded-md border border-neutral-300 bg-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-50"
                 title="Last page"
+                data-testid="pagination-last"
+                aria-label="Go to last page"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="13,17 18,12 13,7"></polyline>
