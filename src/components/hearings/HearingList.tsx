@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar } from 'lucide-react';
+import { Calendar, Plus } from 'lucide-react';
 import { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '../ui/DataTable';
+import { EmptyState } from '../ui';
 import { commonColumns } from '../ui/table-columns/common-columns';
 import { useData } from '../../context/DataContext';
 import { supabase } from '../../lib/supabaseClient';
-import { format } from 'date-fns';
+import { format, isAfter, isBefore, startOfDay } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 
 interface HearingDisplay {
@@ -15,9 +16,14 @@ interface HearingDisplay {
   hearingDate: string;
   hearingTime: string;
   outcome: string;
+  rawDate: Date;
 }
 
-const HearingList: React.FC = () => {
+interface HearingListProps {
+  temporalFilter?: 'upcoming' | 'past';
+}
+
+const HearingList: React.FC<HearingListProps> = ({ temporalFilter = 'upcoming' }) => {
   const { state, dispatch } = useData();
   const navigate = useNavigate();
   const [hearings, setHearings] = useState<HearingDisplay[]>([]);
@@ -53,8 +59,10 @@ const HearingList: React.FC = () => {
           
         if (casesError) throw casesError;
         
-        // Map the data to our display format
-        const displayData: HearingDisplay[] = hearingsData.map(hearing => {
+        // Map the data to our display format and apply temporal filtering
+        const now = startOfDay(new Date());
+        
+        const allDisplayData: HearingDisplay[] = hearingsData.map(hearing => {
           // Find the case for this hearing
           const caseItem = casesData.find(c => c.id === hearing.case_id);
           const caseTitle = caseItem 
@@ -69,11 +77,35 @@ const HearingList: React.FC = () => {
             courtName: hearing.court_name || 'Not specified',
             hearingDate: hearingDateTime.toLocaleDateString(),
             hearingTime: hearingDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            outcome: hearing.outcome || 'Pending'
+            outcome: hearing.outcome || 'Pending',
+            rawDate: hearingDateTime
           };
         });
+
+        // Apply temporal filtering
+        const filteredData = allDisplayData.filter(hearing => {
+          const hearingDate = startOfDay(hearing.rawDate);
+          
+          switch (temporalFilter) {
+            case 'upcoming':
+              return isAfter(hearingDate, now) || hearingDate.getTime() === now.getTime();
+            case 'past':
+              return isBefore(hearingDate, now);
+            default:
+              return true;
+          }
+        });
+
+        // Sort by date (upcoming: earliest first, past: latest first)
+        const sortedData = filteredData.sort((a, b) => {
+          if (temporalFilter === 'upcoming') {
+            return a.rawDate.getTime() - b.rawDate.getTime();
+          } else {
+            return b.rawDate.getTime() - a.rawDate.getTime();
+          }
+        });
         
-        setHearings(displayData);
+        setHearings(sortedData);
         
         // Update the global state
         const hearingsForDataContext = hearingsData.map(h => ({
@@ -103,7 +135,7 @@ const HearingList: React.FC = () => {
     };
     
     fetchHearings();
-  }, [dispatch]);
+  }, [dispatch, temporalFilter]);
 
   // Column definitions for TanStack Table
   const columns: ColumnDef<HearingDisplay>[] = [
@@ -176,14 +208,42 @@ const HearingList: React.FC = () => {
     },
   ];
 
-  // Handle empty state
+  // Handle empty state with design system component
   if (!isLoading && hearings.length === 0 && !error) {
+    const getEmptyStateContent = () => {
+      switch (temporalFilter) {
+        case 'upcoming':
+          return {
+            title: "No upcoming hearings",
+            description: "You have no hearings scheduled for the future. Schedule a hearing to get started."
+          };
+        case 'past':
+          return {
+            title: "No past hearings",
+            description: "No completed hearings found. Past hearings will appear here once they've occurred."
+          };
+        default:
+          return {
+            title: "No hearings found",
+            description: "Add a new hearing to get started."
+          };
+      }
+    };
+
+    const { title, description } = getEmptyStateContent();
+
     return (
-      <div className="p-8 text-center bg-white rounded-lg border border-neutral-200">
-        <Calendar size={64} className="mx-auto text-neutral-400 mb-4" />
-        <h3 className="text-lg font-medium text-neutral-900 mb-2">No hearings scheduled</h3>
-        <p className="text-neutral-500">Add a new hearing to get started.</p>
-      </div>
+      <EmptyState
+        icon={<Calendar className="w-16 h-16 text-neutral-400" />}
+        title={title}
+        description={description}
+        action={temporalFilter === 'upcoming' ? {
+          label: "Schedule Hearing",
+          onClick: () => navigate('/hearings/new'),
+          variant: "primary" as const,
+          icon: <Plus size={16} />
+        } : undefined}
+      />
     );
   }
 
