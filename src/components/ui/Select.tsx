@@ -199,20 +199,20 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(({
             {Array.isArray(options) && options.length > 0 ? (
               hasGroups(options) ? (
                 // Render option groups
-                (options as SelectGroup[]).map((group) => (
+                (options as SelectGroup[]).map((group, groupIndex) => (
                   group && group.label ? (
-                    <SelectGroup key={group.label || 'group'}>
+                    <SelectGroup key={group.label || `group-${groupIndex}` }>
                       <SelectLabel>{group.label || 'Options'}</SelectLabel>
                       {Array.isArray(group.options) && group.options.map((option, index) => {
                         // Skip invalid options
                         if (!option || option.value === undefined) return null;
 
-                        const valueKey = option.value || `_empty_group_${index}`;
+                        const valueKey = option.value || `_empty_group_${groupIndex}_${index}`;
 
                         return (
                           <SelectItem
                             key={valueKey}
-                            value={option.value || `_empty_group_${index}`}
+                            value={option.value || `_empty_group_${groupIndex}_${index}`}
                             disabled={option.disabled}
                           >
                             {option.label || option.value}
