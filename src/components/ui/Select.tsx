@@ -139,10 +139,12 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(({
   };
   
   // Handle value change
-  const handleValueChange = (value: string) => {
+  const handleValueChange = (newValue: string) => {
     // Convert "_empty" placeholder value to empty string for backward compatibility
-    const finalValue = value === "_empty" ? "" : value;
-    if (onChange) {
+    const finalValue = newValue === "_empty" ? "" : newValue;
+
+    // Avoid triggering parent state updates if the value hasn't actually changed
+    if (onChange && finalValue !== value) {
       onChange(finalValue);
     }
   };
