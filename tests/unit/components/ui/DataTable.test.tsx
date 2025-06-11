@@ -71,8 +71,9 @@ describe('DataTable', () => {
     it('renders table with data', () => {
       render(<DataTable data={mockData} columns={columns} />);
       
-      expect(screen.getByText('Name')).toBeInTheDocument();
-      expect(screen.getByText('Status')).toBeInTheDocument();
+      // Use role-specific queries to avoid conflicts between header and filter
+      expect(screen.getByRole('columnheader', { name: /^Name$/ })).toBeInTheDocument();
+      expect(screen.getByRole('columnheader', { name: /^Status$/ })).toBeInTheDocument();
       expect(screen.getByText('Item 1')).toBeInTheDocument();
       expect(screen.getByText('$100')).toBeInTheDocument();
     });
@@ -109,7 +110,7 @@ describe('DataTable', () => {
     it('sorts by column when header is clicked', async () => {
       render(<DataTable data={mockData} columns={columns} />);
       
-      const nameHeader = screen.getByText('Name');
+      const nameHeader = screen.getByRole('columnheader', { name: /^Name$/ });
       
       // Get initial order
       const initialRows = screen.getAllByRole('row');
@@ -135,7 +136,7 @@ describe('DataTable', () => {
     it('shows sort indicators', async () => {
       render(<DataTable data={mockData} columns={columns} />);
       
-      const nameHeader = screen.getByText('Name');
+      const nameHeader = screen.getByRole('columnheader', { name: /^Name$/ });
       await userEvent.click(nameHeader);
       
       // Should show ascending indicator
@@ -397,7 +398,7 @@ describe('DataTable', () => {
       });
       
       // Sort while filtered
-      const nameHeader = screen.getByText('Name');
+      const nameHeader = screen.getByRole('columnheader', { name: /^Name$/ });
       await userEvent.click(nameHeader);
       
       // Should maintain filter
