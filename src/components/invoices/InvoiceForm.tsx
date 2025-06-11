@@ -158,6 +158,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({ isOpen, onClose, invoiceId, d
                   onChange={field.onChange}
                   error={errors.caseId?.message}
                   disabled={!!defaultCaseId}
+                  required
                 />
               )}
             />
