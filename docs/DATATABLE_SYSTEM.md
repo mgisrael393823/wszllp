@@ -192,78 +192,84 @@ Import reusable column definitions from `common-columns.tsx`:
 
 ```tsx
 import { 
-  createStatusColumn,
-  createDateColumn,
-  createCurrencyColumn,
-  createBooleanColumn,
-  createActionColumn,
+  commonColumns,
+  statusConfigs 
 } from '@/components/ui/table-columns/common-columns';
 ```
 
 ### Status Column
 
 ```tsx
-const statusColumn = createStatusColumn<DataType>({
-  accessorKey: 'status',
-  header: 'Status',
-  statuses: {
-    active: { label: 'Active', variant: 'success' },
-    inactive: { label: 'Inactive', variant: 'default' },
-    pending: { label: 'Pending', variant: 'warning' },
-  },
-});
+// Basic status column
+const statusColumn = commonColumns.status<DataType>('status');
+
+// Enhanced status with domain-specific configurations  
+const enhancedStatusColumn = commonColumns.enhancedStatus<DataType>('status', 'document', 'Document Status');
 ```
+
+#### Available Status Domains
+- `case`: Active, Intake Scheduled, SPS Not Served, Closed
+- `document`: Pending, Served, Failed
+- `hearing`: Pending, Completed, Continued, Dismissed  
+- `invoice`: Paid, Unpaid, Overdue
+- `service`: Success, Failed, Pending
 
 ### Date Column
 
 ```tsx
-const dateColumn = createDateColumn<DataType>({
-  accessorKey: 'createdAt',
-  header: 'Created',
-  dateFormat: 'MMM d, yyyy', // Optional, defaults to 'MMM d, yyyy'
-  enableFilter: true, // Adds date range filter
-});
+// Basic date column
+const dateColumn = commonColumns.date<DataType>('createdAt', 'Created');
+
+// Date with time display
+const dateTimeColumn = commonColumns.dateTime<DataType>('updatedAt', 'Last Updated', true);
 ```
 
 ### Currency Column
 
 ```tsx
-const amountColumn = createCurrencyColumn<DataType>({
-  accessorKey: 'amount',
-  header: 'Amount',
-  currency: 'USD', // Optional, defaults to 'USD'
-});
+// Basic currency column
+const amountColumn = commonColumns.currency<DataType>('amount', 'Amount');
+
+// Enhanced currency with icon
+const enhancedAmountColumn = commonColumns.enhancedCurrency<DataType>('amount', 'Total', true);
 ```
 
 ### Boolean Column
 
 ```tsx
-const completeColumn = createBooleanColumn<DataType>({
-  accessorKey: 'isComplete',
-  header: 'Complete',
-  trueLabel: 'Yes',
-  falseLabel: 'No',
-});
+const completeColumn = commonColumns.boolean<DataType>('isComplete', 'Complete', 'Yes', 'No');
 ```
 
-### Action Column
+### Case Title Column
 
 ```tsx
-const actionsColumn = createActionColumn<DataType>({
-  actions: [
-    {
-      label: 'Edit',
-      onClick: (row) => handleEdit(row.id),
-      icon: Edit,
-    },
-    {
-      label: 'Delete',
-      onClick: (row) => handleDelete(row.id),
-      icon: Trash,
-      variant: 'destructive',
-    },
-  ],
-});
+// For the common "Plaintiff v. Defendant" pattern
+const caseTitleColumn = commonColumns.caseTitle<DataType>('plaintiff', 'defendant', 'Case');
+```
+
+### Contact Display Column
+
+```tsx
+// Contact with avatar and role
+const contactColumn = commonColumns.contactDisplay<DataType>(
+  'name', 
+  'Contact', 
+  'role',     // optional role field
+  'avatar',   // optional avatar field
+  true        // show avatar
+);
+```
+
+### File Link Column
+
+```tsx
+// File with download link and type
+const fileColumn = commonColumns.fileLink<DataType>(
+  'fileURL', 
+  'filename', 
+  'Document',
+  'fileType'  // optional file type field
+);
 ```
 
 ## Migration Guide
