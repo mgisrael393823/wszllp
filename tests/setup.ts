@@ -1,5 +1,6 @@
 // Test setup file
 import { vi } from 'vitest';
+import '@testing-library/jest-dom';
 
 // Mock Supabase client for unit tests
 vi.mock('@supabase/supabase-js', () => ({
