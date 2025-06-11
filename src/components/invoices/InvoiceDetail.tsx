@@ -5,7 +5,8 @@ import { format, parseISO, isValid } from 'date-fns';
 import { ArrowLeft, Plus } from 'lucide-react';
 import { Card } from '../ui/shadcn-card';
 import Button from '../ui/Button';
-import Table from '../ui/Table';
+import { DataTable } from '../ui/DataTable';
+import { ColumnDef } from '@tanstack/react-table';
 import InvoiceForm from './InvoiceForm';
 import PaymentPlanForm from './PaymentPlanForm';
 import { formatCurrency } from '../../utils/utils';
@@ -38,38 +39,38 @@ const InvoiceDetail: React.FC = () => {
     );
   }
 
-  const paymentPlanColumns = [
+  const paymentPlanColumns: ColumnDef<typeof state.paymentPlans[0]>[] = [
     {
+      accessorKey: 'installmentDate',
       header: 'Due Date',
-      accessor: (item: typeof state.paymentPlans[0]) => {
-        const date = typeof item.installmentDate === 'string'
-          ? parseISO(item.installmentDate)
-          : item.installmentDate instanceof Date
-          ? item.installmentDate
+      cell: ({ row }) => {
+        const date = typeof row.original.installmentDate === 'string'
+          ? parseISO(row.original.installmentDate)
+          : row.original.installmentDate instanceof Date
+          ? row.original.installmentDate
           : null;
         return date && isValid(date)
           ? format(date, 'MMM d, yyyy')
           : 'Invalid Date';
       },
-      sortable: true,
     },
     {
+      accessorKey: 'amount',
       header: 'Amount',
-      accessor: (item: typeof state.paymentPlans[0]) => formatCurrency(item.amount),
-      sortable: true,
+      cell: ({ row }) => formatCurrency(row.original.amount),
     },
     {
+      accessorKey: 'paid',
       header: 'Status',
-      accessor: (item: typeof state.paymentPlans[0]) => (
+      cell: ({ row }) => (
         <span 
           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-            ${item.paid ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`
+            ${row.original.paid ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`
           }
         >
-          {item.paid ? 'Paid' : 'Unpaid'}
+          {row.original.paid ? 'Paid' : 'Unpaid'}
         </span>
       ),
-      sortable: false,
     },
   ];
 
@@ -190,11 +191,12 @@ const InvoiceDetail: React.FC = () => {
           </Button>
         </div>
         
-        <Table
+        <DataTable
           data={paymentPlans}
           columns={paymentPlanColumns}
-          keyField="planId"
-          emptyMessage="No payment plans set up yet."
+          isLoading={false}
+          error={null}
+          className="border-0 shadow-none"
         />
       </Card>
 
