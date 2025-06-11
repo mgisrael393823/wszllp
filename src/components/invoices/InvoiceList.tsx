@@ -1,7 +1,8 @@
 import React from 'react';
-import { DollarSign } from 'lucide-react';
+import { DollarSign, Plus } from 'lucide-react';
 import { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '../ui/DataTable';
+import { EmptyState } from '../ui';
 import { useData } from '../../context/DataContext';
 import { useNavigate } from 'react-router-dom';
 import { format, parseISO, isValid } from 'date-fns';
@@ -24,13 +25,20 @@ interface InvoiceDisplay extends Invoice {
   status: string;
 }
 
-const InvoiceList: React.FC = () => {
+interface InvoiceListProps {
+  onAddInvoice?: () => void;
+  statusFilter?: 'all' | 'unpaid' | 'paid' | 'overdue';
+}
+
+const InvoiceList: React.FC<InvoiceListProps> = ({ onAddInvoice, statusFilter = 'all' }) => {
   const navigate = useNavigate();
   const { state } = useData();
 
-  // Process invoices with case information
+  // Process invoices with case information and apply status filtering
   const processedInvoices: InvoiceDisplay[] = React.useMemo(() => {
-    return state.invoices.map(invoice => {
+    const now = new Date();
+    
+    const allProcessed = state.invoices.map(invoice => {
       const associatedCase = state.cases.find(c => c.caseId === invoice.caseId);
       
       const formatDate = (date: string | Date) => {
@@ -50,15 +58,36 @@ const InvoiceList: React.FC = () => {
         dueDateFormatted: formatDate(invoice.dueDate),
         status: invoice.paid ? 'Paid' : 'Unpaid'
       };
-    }).sort((a, b) => {
-      // Sort by newest first
+    });
+
+    // Apply status filtering
+    const filtered = allProcessed.filter(invoice => {
+      switch (statusFilter) {
+        case 'unpaid':
+          return !invoice.paid;
+        case 'paid':
+          return invoice.paid;
+        case 'overdue':
+          if (invoice.paid) return false;
+          const dueDate = typeof invoice.dueDate === 'string' 
+            ? parseISO(invoice.dueDate) 
+            : invoice.dueDate;
+          return dueDate && isValid(dueDate) && dueDate < now;
+        case 'all':
+        default:
+          return true;
+      }
+    });
+
+    // Sort by newest first
+    return filtered.sort((a, b) => {
       const dateA = typeof a.issueDate === 'string' ? parseISO(a.issueDate) : a.issueDate;
       const dateB = typeof b.issueDate === 'string' ? parseISO(b.issueDate) : b.issueDate;
       const timeA = dateA && isValid(dateA) ? dateA.getTime() : 0;
       const timeB = dateB && isValid(dateB) ? dateB.getTime() : 0;
       return timeB - timeA;
     });
-  }, [state.invoices, state.cases]);
+  }, [state.invoices, state.cases, statusFilter]);
 
   // Column definitions for TanStack Table
   const columns: ColumnDef<InvoiceDisplay>[] = [
@@ -117,14 +146,47 @@ const InvoiceList: React.FC = () => {
     },
   ];
 
-  // Handle empty state
+  // Handle empty state with design system component
   if (processedInvoices.length === 0) {
+    const getEmptyStateContent = () => {
+      switch (statusFilter) {
+        case 'unpaid':
+          return {
+            title: "No unpaid invoices",
+            description: "All invoices have been paid! Great job staying on top of collections."
+          };
+        case 'paid':
+          return {
+            title: "No paid invoices",
+            description: "No payments have been recorded yet. Paid invoices will appear here."
+          };
+        case 'overdue':
+          return {
+            title: "No overdue invoices",
+            description: "Excellent! All invoices are current with no overdue payments."
+          };
+        default:
+          return {
+            title: "No invoices found",
+            description: "Create your first invoice to start tracking billing and payments for your cases."
+          };
+      }
+    };
+
+    const { title, description } = getEmptyStateContent();
+
     return (
-      <div className="p-8 text-center bg-white rounded-lg border border-neutral-200">
-        <DollarSign size={64} className="mx-auto text-neutral-400 mb-4" />
-        <h3 className="text-lg font-medium text-neutral-900 mb-2">No invoices found</h3>
-        <p className="text-neutral-500">Add a new invoice to get started.</p>
-      </div>
+      <EmptyState
+        icon={<DollarSign className="w-16 h-16 text-neutral-400" />}
+        title={title}
+        description={description}
+        action={onAddInvoice && statusFilter === 'all' ? {
+          label: "Add Invoice",
+          onClick: onAddInvoice,
+          variant: "primary" as const,
+          icon: <Plus size={16} />
+        } : undefined}
+      />
     );
   }
 

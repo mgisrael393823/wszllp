@@ -10,7 +10,7 @@ import {
   Filter
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import Card, { type ActivityItem } from '../ui/Card';
+import { EmptyState, LoadingState, ErrorState } from '../ui';
 import dashboardService, { type RecentActivity } from '../../services/dashboardService';
 
 /**
@@ -82,57 +82,45 @@ const ActivityPage: React.FC = () => {
     ? activities.filter(activity => activity.entityType === entityFilter)
     : activities;
 
-  // Convert RecentActivity to ActivityItem for Card component
-  const activityItems: ActivityItem[] = filteredActivities.map(activity => {
-    const timeAgo = new Date(activity.timestamp).toLocaleDateString();
-    
-    const getActivityIcon = (entityType: string) => {
-      switch (entityType) {
-        case 'Case': return <Briefcase size={16} />;
-        case 'Hearing': return <Calendar size={16} />;
-        case 'Document': return <FileText size={16} />;
-        case 'Contact': return <Users size={16} />;
-        default: return <Activity size={16} />;
-      }
-    };
-    
-    const getVariant = (action: string): 'default' | 'success' | 'warning' | 'error' => {
-      switch (action) {
-        case 'Create': return 'success';
-        case 'Update': return 'default';
-        case 'Delete': return 'error';
-        default: return 'default';
-      }
-    };
-    
-    return {
-      id: activity.id,
-      icon: getActivityIcon(activity.entityType),
-      title: activity.title,
-      description: activity.description,
-      timestamp: timeAgo,
-      variant: getVariant(activity.action),
-      onClick: () => {
-        // Navigate to appropriate detail page based on entity type
-        switch (activity.entityType) {
-          case 'Case':
-            navigate(`/cases/${activity.entityId}`);
-            break;
-          case 'Hearing':
-            navigate('/hearings');
-            break;
-          case 'Document':
-            navigate(`/documents/${activity.entityId}`);
-            break;
-          case 'Contact':
-            navigate('/contacts');
-            break;
-          default:
-            navigate('/notifications');
-        }
-      }
-    };
-  });
+  // Helper functions for activity display
+  const getActivityIcon = (entityType: string) => {
+    switch (entityType) {
+      case 'Case': return <Briefcase size={16} />;
+      case 'Hearing': return <Calendar size={16} />;
+      case 'Document': return <FileText size={16} />;
+      case 'Contact': return <Users size={16} />;
+      default: return <Activity size={16} />;
+    }
+  };
+  
+  const getActionColor = (action: string): string => {
+    switch (action) {
+      case 'Create': return 'text-green-600';
+      case 'Update': return 'text-blue-600';
+      case 'Delete': return 'text-red-600';
+      default: return 'text-neutral-600';
+    }
+  };
+
+  const handleActivityClick = (activity: RecentActivity) => {
+    // Navigate to appropriate detail page based on entity type
+    switch (activity.entityType) {
+      case 'Case':
+        navigate(`/cases/${activity.entityId}`);
+        break;
+      case 'Hearing':
+        navigate('/hearings');
+        break;
+      case 'Document':
+        navigate(`/documents/${activity.entityId}`);
+        break;
+      case 'Contact':
+        navigate('/contacts');
+        break;
+      default:
+        navigate('/notifications');
+    }
+  };
 
   const entityTypes = ['Case', 'Hearing', 'Document', 'Contact'];
 
@@ -209,17 +197,91 @@ const ActivityPage: React.FC = () => {
       </div>
 
       {/* Activity Feed */}
-      <div className="grid grid-cols-1 gap-6">
-        <Card 
-          variant="activity-feed"
-          elevation="low"
-          loading={isLoading}
-          title={`Recent Activity (${filteredActivities.length} items)`}
-          subtitle={activityItems.length > 0 ? "Click any item to view details" : "No activities found"}
-          icon={<Clock size={20} />}
-          activities={activityItems}
-          className="min-h-[500px]"
-        />
+      <div className="bg-white rounded-lg border border-neutral-200 shadow-sm">
+        {/* Feed Header */}
+        <div className="px-6 py-4 border-b border-neutral-200">
+          <div className="flex items-center gap-3">
+            <Clock size={20} className="text-neutral-600" />
+            <h2 className="text-lg font-medium text-neutral-900">
+              Recent Activity ({filteredActivities.length} items)
+            </h2>
+          </div>
+          {filteredActivities.length > 0 && (
+            <p className="text-sm text-neutral-500 mt-1">
+              Click any item to view details
+            </p>
+          )}
+        </div>
+
+        {/* Activity List */}
+        <div className="divide-y divide-neutral-100">
+          {isLoading ? (
+            <div className="p-8">
+              <LoadingState message="Loading recent activity..." />
+            </div>
+          ) : error ? (
+            <div className="p-8">
+              <ErrorState 
+                title="Failed to load activity"
+                message={error}
+                action={{
+                  label: "Retry",
+                  onClick: handleRefresh
+                }}
+              />
+            </div>
+          ) : filteredActivities.length === 0 ? (
+            <div className="p-8">
+              <EmptyState
+                icon={<Activity className="w-16 h-16 text-neutral-400" />}
+                title="No activity found"
+                description={entityFilter 
+                  ? `No recent ${entityFilter.toLowerCase()} activities to display.`
+                  : "No recent activities to display. Activity will appear here as you work with cases, hearings, documents, and contacts."
+                }
+              />
+            </div>
+          ) : (
+            filteredActivities.map((activity) => (
+              <div
+                key={activity.id}
+                onClick={() => handleActivityClick(activity)}
+                className="p-4 hover:bg-neutral-50 cursor-pointer transition-colors"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0 mt-0.5">
+                    {getActivityIcon(activity.entityType)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-neutral-900">
+                          {activity.title}
+                        </p>
+                        <p className="text-sm text-neutral-600 mt-1">
+                          {activity.description}
+                        </p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className="text-xs text-neutral-500">
+                            {new Date(activity.timestamp).toLocaleDateString()} at {new Date(activity.timestamp).toLocaleTimeString()}
+                          </span>
+                          <span className="text-xs text-neutral-400">•</span>
+                          <span className={`text-xs font-medium ${getActionColor(activity.action)}`}>
+                            {activity.action}
+                          </span>
+                          <span className="text-xs text-neutral-400">•</span>
+                          <span className="text-xs text-neutral-500">
+                            {activity.entityType}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );

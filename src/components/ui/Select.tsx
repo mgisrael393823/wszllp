@@ -1,4 +1,4 @@
-import React, { forwardRef, useState, useId } from 'react';
+import React, { forwardRef, useState, useId, useEffect } from 'react';
 import { 
   Select as ShadcnSelect,
   SelectTrigger,
@@ -79,6 +79,12 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(({
   const [selectedValue, setSelectedValue] = useState<string>(
     !value || value === "" ? "_empty" : (value as string)
   );
+
+  // Sync internal state with external value prop (only when external value changes)
+  useEffect(() => {
+    const newValue = !value || value === "" ? "_empty" : (value as string);
+    setSelectedValue(newValue);
+  }, [value]);
   
   // Determine the active state (error takes precedence over warning and success)
   const activeState = error ? 'error' : warning ? 'warning' : success ? 'success' : state;
