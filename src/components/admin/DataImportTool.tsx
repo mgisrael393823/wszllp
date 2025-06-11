@@ -9,8 +9,9 @@ import { supabase } from '../../lib/supabaseClient';
 import { Card } from '../ui/shadcn-card';
 import Button from '../ui/Button';
 import Select from '../ui/Select';
+import { MetricCard } from '../ui/MetricCard';
 import ImportFormatGuide from './ImportFormatGuide';
-import { Upload, CheckCircle, AlertCircle, FileText, Database, FileSpreadsheet, HelpCircle } from 'lucide-react';
+import { Upload, CheckCircle, AlertCircle, FileText, Database, FileSpreadsheet, HelpCircle, Users, FileX, DollarSign, Calendar } from 'lucide-react';
 
 // Function to save contacts to Supabase
 const saveContactsToSupabase = async (contacts: any[]) => {
@@ -707,59 +708,72 @@ const DataImportTool: React.FC = () => {
           <div className="space-y-6">
             <h3 className="text-lg font-medium">Import Preview</h3>
             
-            <div className="bg-neutral-50 rounded-md p-4 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2 mb-2">
-                  <h4 className="font-medium text-neutral-700">Data Summary</h4>
-                </div>
-                
-                <div className="flex items-center">
-                  <Database className="w-4 h-4 text-neutral-500 mr-2" />
-                  <span>Cases: {importResult.entities.cases.length}</span>
-                </div>
-                
-                <div className="flex items-center">
-                  <Database className="w-4 h-4 text-neutral-500 mr-2" />
-                  <span>Hearings: {importResult.entities.hearings.length}</span>
-                </div>
-                
-                <div className="flex items-center">
-                  <Database className="w-4 h-4 text-neutral-500 mr-2" />
-                  <span>Documents: {importResult.entities.documents.length}</span>
-                </div>
-                
-                <div className="flex items-center">
-                  <Database className="w-4 h-4 text-neutral-500 mr-2" />
-                  <span>Invoices: {importResult.entities.invoices.length}</span>
-                </div>
-                
-                <div className="flex items-center">
-                  <Database className="w-4 h-4 text-neutral-500 mr-2" />
-                  <span>Service Logs: {importResult.entities.serviceLogs.length}</span>
-                </div>
-                
-                <div className="flex items-center">
-                  <Database className="w-4 h-4 text-neutral-500 mr-2" />
-                  <span>Contacts: {importResult.entities.contacts.length}</span>
-                </div>
-              </div>
+            {/* Enhanced metrics display using MetricCard */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <MetricCard
+                title="Cases"
+                value={importResult.entities.cases.length}
+                icon={FileText}
+                subtitle="eviction cases"
+              />
               
-              {importResult.warnings && importResult.warnings.length > 0 && (
-                <div className="mt-4">
-                  <h4 className="font-medium text-neutral-700 mb-2">Warnings</h4>
-                  <ul className="text-sm text-yellow-700 bg-yellow-50 rounded-md p-2">
-                    {importResult.warnings.slice(0, 5).map((warning: string, i: number) => (
-                      <li key={i} className="ml-4 list-disc">{warning}</li>
-                    ))}
-                    {importResult.warnings.length > 5 && (
-                      <li className="ml-4 list-disc">
-                        {importResult.warnings.length - 5} more warnings...
-                      </li>
-                    )}
-                  </ul>
-                </div>
-              )}
+              <MetricCard
+                title="Hearings"
+                value={importResult.entities.hearings.length}
+                icon={Calendar}
+                subtitle="court hearings"
+              />
+              
+              <MetricCard
+                title="Documents"
+                value={importResult.entities.documents.length}
+                icon={Database}
+                subtitle="legal documents"
+              />
+              
+              <MetricCard
+                title="Contacts"
+                value={importResult.entities.contacts.length}
+                icon={Users}
+                subtitle="contacts & clients"
+              />
+              
+              <MetricCard
+                title="Invoices"
+                value={importResult.entities.invoices.length}
+                icon={DollarSign}
+                subtitle="billing records"
+              />
+              
+              <MetricCard
+                title="Service Logs"
+                value={importResult.entities.serviceLogs.length}
+                icon={FileX}
+                subtitle="service attempts"
+              />
             </div>
+              
+            {importResult.warnings && importResult.warnings.length > 0 && (
+              <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <h4 className="font-medium text-yellow-800 mb-2 flex items-center">
+                  <AlertCircle className="w-4 h-4 mr-2" />
+                  Import Warnings ({importResult.warnings.length})
+                </h4>
+                <ul className="text-sm text-yellow-700 space-y-1">
+                  {importResult.warnings.slice(0, 5).map((warning: string, i: number) => (
+                    <li key={i} className="flex items-start">
+                      <span className="inline-block w-1 h-1 bg-yellow-600 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                      {warning}
+                    </li>
+                  ))}
+                  {importResult.warnings.length > 5 && (
+                    <li className="text-yellow-600 font-medium">
+                      + {importResult.warnings.length - 5} more warnings...
+                    </li>
+                  )}
+                </ul>
+              </div>
+            )}
             
             <div className="flex justify-end space-x-4">
               <Button variant="outline" onClick={handleReset}>

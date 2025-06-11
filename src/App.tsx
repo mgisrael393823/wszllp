@@ -20,7 +20,7 @@ import CasesPage from './components/cases/CasesPage';
 import CaseSkeleton from './components/cases/CaseSkeleton';
 import HearingsPage from './components/hearings/HearingsPage';
 import HearingForm from './components/hearings/HearingForm';
-import DocumentList from './components/documents/DocumentList';
+const DocumentList = React.lazy(() => import('./components/documents/DocumentList'));
 import DocumentManagement from './components/documents/DocumentManagement';
 import DocumentUploadForm from './components/documents/DocumentUploadForm';
 import DocumentDetail from './components/documents/DocumentDetail';
@@ -139,7 +139,11 @@ const AppContent = () => {
         } />
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/documents" element={<DocumentManagement />}>
-          <Route index element={<DocumentList />} />
+          <Route index element={
+            <Suspense fallback={<div className="p-8 text-center">Loading documents...</div>}>
+              <DocumentList />
+            </Suspense>
+          } />
           <Route path="upload" element={<DocumentUploadForm />} />
           <Route path="efile" element={<EFilePage />} />
           <Route path="service-logs" element={<ServiceLogsList />} />

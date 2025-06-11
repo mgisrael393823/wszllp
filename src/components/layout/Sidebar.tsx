@@ -224,6 +224,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         ${isCollapsed ? (isHovering ? 'w-72' : 'w-20') : 'w-64'}
         group
       `}
+      style={{ contain: 'layout style paint' }}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
@@ -255,21 +256,21 @@ const Sidebar: React.FC<SidebarProps> = ({
         {/* Enhanced help section */}
         <div className="mt-8 pt-6 border-t border-neutral-200/60">
           {(!isCollapsed || isHovering) ? (
-            <div className="px-4 py-4 bg-gradient-to-br from-primary-50 to-primary-50/50 rounded-xl border border-primary-100/50 shadow-sm text-left">
-              <div className="flex items-center space-x-2 mb-2">
-                <HelpCircle size={16} className="text-primary-600" />
-                <h3 className="text-sm font-semibold text-primary-800">Need Help?</h3>
+              <div className="px-4 py-4 bg-gradient-to-br from-primary-50 to-primary-50/50 rounded-xl border border-primary-100/50 shadow-sm text-left">
+                <div className="flex items-center space-x-2 mb-2">
+                  <HelpCircle size={16} className="text-primary-600" />
+                  <h3 className="text-sm font-semibold text-primary-800">Need Help?</h3>
+                </div>
+                <p className="text-xs text-primary-600 mb-3 leading-relaxed">
+                  Contact support for assistance with your legal case management system.
+                </p>
+                <a 
+                  href="#" 
+                  className="inline-flex items-center text-xs font-medium text-primary-700 hover:text-primary-800 hover:underline transition-colors duration-200"
+                >
+                  Contact Support →
+                </a>
               </div>
-              <p className="text-xs text-primary-600 mb-3 leading-relaxed">
-                Contact support for assistance with your legal case management system.
-              </p>
-              <a 
-                href="#" 
-                className="inline-flex items-center text-xs font-medium text-primary-700 hover:text-primary-800 hover:underline transition-colors duration-200"
-              >
-                Contact Support →
-              </a>
-            </div>
           ) : (
             <div className="relative group">
               <div 

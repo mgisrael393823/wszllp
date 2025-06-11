@@ -23,12 +23,18 @@
     <meta property="twitter:title" content="WSZ Legal Case Management Platform" />
     <meta property="twitter:description" content="Professional legal case management system for law firms. Manage cases, documents, hearings, and client communications efficiently." />
     <meta property="twitter:image" content="/wszmainlogo.webp" />
-    <!-- Add consistent font loading for development and production -->
+    <!-- Critical resource preloads -->
+    <link rel="preload" href="/wszmainlogo.webp" as="image" type="image/webp">
+    <link rel="preload" href="/src/index.css" as="style">
+    <link rel="preload" href="/src/main.tsx" as="script">
+    
+    <!-- Font preloading -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="prefetch" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" as="style">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="preload" href="/src/index.css" as="style">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"></noscript>
+    
+    <!-- Stylesheets -->
     <link rel="stylesheet" href="/src/index.css">
     <style>
       :root {

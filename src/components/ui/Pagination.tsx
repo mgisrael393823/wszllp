@@ -2,9 +2,10 @@ import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface PaginationProps {
-  totalItems: number;
-  itemsPerPage: number;
+  totalItems?: number;
+  itemsPerPage?: number;
   currentPage: number;
+  totalPages?: number;
   onPageChange: (page: number) => void;
 }
 
@@ -12,9 +13,10 @@ const Pagination: React.FC<PaginationProps> = ({
   totalItems,
   itemsPerPage,
   currentPage,
+  totalPages: providedTotalPages,
   onPageChange,
 }) => {
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const totalPages = providedTotalPages || Math.ceil((totalItems || 0) / (itemsPerPage || 10));
   
   if (totalPages <= 1) return null;
   
@@ -47,11 +49,18 @@ const Pagination: React.FC<PaginationProps> = ({
     <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-neutral-200 sm:px-6">
       <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm text-neutral-700">
-            Showing <span className="font-medium">{Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)}</span> to{' '}
-            <span className="font-medium">{Math.min(currentPage * itemsPerPage, totalItems)}</span> of{' '}
-            <span className="font-medium">{totalItems}</span> results
-          </p>
+          {totalItems && itemsPerPage ? (
+            <p className="text-sm text-neutral-700">
+              Showing <span className="font-medium">{Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)}</span> to{' '}
+              <span className="font-medium">{Math.min(currentPage * itemsPerPage, totalItems)}</span> of{' '}
+              <span className="font-medium">{totalItems}</span> results
+            </p>
+          ) : (
+            <p className="text-sm text-neutral-700">
+              Page <span className="font-medium">{currentPage}</span> of{' '}
+              <span className="font-medium">{totalPages}</span>
+            </p>
+          )}
         </div>
         <div>
           <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
