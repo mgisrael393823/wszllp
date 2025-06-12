@@ -6,10 +6,13 @@ export interface SupabaseContact extends BaseRecord {
   id: string;
   name: string;
   role: 'Attorney' | 'Paralegal' | 'PM' | 'Client' | 'Other';
-  email: string;
+  email?: string;
   phone?: string;
   company?: string;
   address?: string;
+  city?: string;
+  state?: string;
+  zip_code?: string;
   notes?: string;
   created_at: string;
   updated_at: string;
@@ -194,6 +197,9 @@ export const createSupabaseDataProvider = (): DataProvider => ({
       // Remove any fields that don't exist in the database
       delete insertData.createdAt;
       delete insertData.updatedAt;
+      if (!('city' in variables)) delete insertData.city;
+      if (!('state' in variables)) delete insertData.state;
+      if (!('zip_code' in variables)) delete insertData.zip_code;
     }
 
     const { data, error } = await supabase
@@ -223,6 +229,9 @@ export const createSupabaseDataProvider = (): DataProvider => ({
       delete updateData.updatedAt;
       delete updateData.created_at;
       delete updateData.updated_at;
+      delete updateData.city;
+      delete updateData.state;
+      delete updateData.zip_code;
     }
 
     const { data, error } = await supabase

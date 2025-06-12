@@ -288,8 +288,9 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
       // Auto-map contact fields - single pass with early returns
       headers.forEach(h => {
         const lower = h.toLowerCase();
-        
-        if (lower.includes('email')) {
+        const normalized = lower.replace(/[\s_-]/g, '');
+
+        if (normalized.includes('email') || lower.includes('e-mail')) {
           initialMappings[h] = 'email';
           return;
         }
