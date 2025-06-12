@@ -254,7 +254,7 @@ const EnhancedDashboardHome: React.FC = () => {
       icon: FileText,
       title: 'Upload Document',
       subtitle: 'Add to case file',
-      onClick: () => navigate('/documents/new')
+      onClick: () => navigate('/documents/upload')
     },
     {
       id: 'add-contact',

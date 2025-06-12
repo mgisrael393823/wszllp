@@ -7,6 +7,7 @@ import { createDocument } from '../../hooks/useDocuments';
 import Button from '../ui/Button';
 import { Card } from '../ui/shadcn-card';
 import Select from '../ui/Select';
+import Input from '../ui/Input';
 import Typography from '../ui/Typography';
 
 interface DocumentUploadFormProps {
@@ -33,6 +34,9 @@ const DocumentUploadForm: React.FC<DocumentUploadFormProps> = ({
   
   const [selectedCaseId, setSelectedCaseId] = useState(caseId || '');
   const [documentType, setDocumentType] = useState('Other');
+  const [documentStatus, setDocumentStatus] = useState('Pending');
+  const [serviceDate, setServiceDate] = useState('');
+  const [notes, setNotes] = useState('');
   const [files, setFiles] = useState<UploadFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
@@ -80,6 +84,12 @@ const DocumentUploadForm: React.FC<DocumentUploadFormProps> = ({
     { value: 'Motion', label: 'Motion' },
     { value: 'Order', label: 'Order' },
     { value: 'Other', label: 'Other' },
+  ];
+
+  const statusOptions = [
+    { value: 'Pending', label: 'Pending' },
+    { value: 'Served', label: 'Served' },
+    { value: 'Failed', label: 'Failed' },
   ];
 
   const caseOptions = cases.map(c => ({
@@ -250,8 +260,10 @@ const DocumentUploadForm: React.FC<DocumentUploadFormProps> = ({
             caseId: selectedCaseId,
             type: documentType as 'Complaint' | 'Summons' | 'Affidavit' | 'Motion' | 'Order' | 'Other',
             fileURL: fileUrl,
-            status: 'Pending' as 'Pending' | 'Served' | 'Failed',
-            originalFilename: fileObj.file.name
+            status: documentStatus as 'Pending' | 'Served' | 'Failed',
+            originalFilename: fileObj.file.name,
+            serviceDate: serviceDate || undefined,
+            notes: notes || undefined
           };
 
           const result = await createDocument(documentData);
@@ -312,6 +324,9 @@ const DocumentUploadForm: React.FC<DocumentUploadFormProps> = ({
     setFiles([]);
     setSelectedCaseId(caseId || '');
     setDocumentType('Other');
+    setDocumentStatus('Pending');
+    setServiceDate('');
+    setNotes('');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -376,6 +391,38 @@ const DocumentUploadForm: React.FC<DocumentUploadFormProps> = ({
               onChange={(value) => setDocumentType(value)}
               options={documentTypes}
               required
+            />
+          </div>
+          
+          {/* Additional Document Details */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Select
+              label="Status"
+              name="documentStatus"
+              value={documentStatus}
+              onChange={(value) => setDocumentStatus(value)}
+              options={statusOptions}
+            />
+            
+            <Input
+              label="Service Date"
+              type="date"
+              value={serviceDate}
+              onChange={(e) => setServiceDate(e.target.value)}
+            />
+          </div>
+          
+          {/* Notes */}
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-1">
+              Notes
+            </label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={3}
+              className="w-full px-3 py-2 text-sm border border-neutral-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+              placeholder="Additional notes about these documents..."
             />
           </div>
 

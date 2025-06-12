@@ -51,7 +51,7 @@ const DocumentManagement: React.FC = () => {
           <Button 
             variant="primary" 
             icon={<Plus size={16} />}
-            onClick={() => navigate('/documents/new')}
+            onClick={() => navigate('/documents/upload')}
           >
             Add Document
           </Button>
