@@ -44,6 +44,9 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
     { value: "phone", label: "Phone" },
     { value: "company", label: "Company" },
     { value: "contactAddress", label: "Contact Address" },
+    { value: "city", label: "City" },
+    { value: "state", label: "State" },
+    { value: "zipCode", label: "Zip Code" },
     { value: "notes", label: "Notes" },
     
     // Hearing fields (from hearingSchema)
@@ -282,17 +285,53 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
         });
       }
     } else if (fileType === 'contact') {
-      // Auto-map contact fields based on header names
+      // Auto-map contact fields - single pass with early returns
       headers.forEach(h => {
         const lower = h.toLowerCase();
-        if (lower.includes('name') && !lower.includes('company')) initialMappings[h] = 'name';
-        if (lower.includes('email')) initialMappings[h] = 'email';
-        if (lower.includes('phone')) initialMappings[h] = 'phone';
-        if (lower.includes('company') || lower.includes('firm')) initialMappings[h] = 'company';
-        if (lower.includes('role') || lower.includes('title')) initialMappings[h] = 'role';
-        if (lower.includes('address')) initialMappings[h] = 'contactAddress';
-        if (lower.includes('note')) initialMappings[h] = 'notes';
+        
+        if (lower.includes('email')) {
+          initialMappings[h] = 'email';
+          return;
+        }
+        if (lower.includes('phone') || lower.includes('tel')) {
+          initialMappings[h] = 'phone';
+          return;
+        }
+        if (lower.includes('name') && !lower.includes('company') && !lower.includes('first') && !lower.includes('last')) {
+          initialMappings[h] = 'name';
+          return;
+        }
+        if (lower === 'city' || (lower.includes('city') && !lower.includes('address'))) {
+          initialMappings[h] = 'city';
+          return;
+        }
+        if (lower === 'state' || (lower.includes('state') && !lower.includes('address'))) {
+          initialMappings[h] = 'state';
+          return;
+        }
+        if (lower.includes('zip') || lower.includes('postal')) {
+          initialMappings[h] = 'zipCode';
+          return;
+        }
+        if (lower.includes('company') || lower.includes('firm') || lower.includes('organization')) {
+          initialMappings[h] = 'company';
+          return;
+        }
+        if (lower.includes('role') || lower.includes('title') || lower.includes('position')) {
+          initialMappings[h] = 'role';
+          return;
+        }
+        if (lower.includes('note') || lower.includes('comment')) {
+          initialMappings[h] = 'notes';
+          return;
+        }
+        if (lower.includes('address')) {
+          initialMappings[h] = 'contactAddress';
+          return;
+        }
       });
+      
+      console.log('Header mappings:', initialMappings);
     } else if (fileType === 'complaint' || fileType === 'hearing') {
       // Auto-map case/hearing fields
       headers.forEach(h => {
