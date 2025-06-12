@@ -7,7 +7,7 @@ import { AlertTriangle, Check, Info } from 'lucide-react';
 interface CSVDataInspectorProps {
   file: File;
   onClose: () => void;
-  onImport: (mappedData: any) => void;
+  onImport: (mappedData: any, fileType: string) => void;
 }
 
 const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onImport }) => {
@@ -395,7 +395,23 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
     
     console.log(`Mapped ${validMappedData.length} valid rows out of ${mappedData.length} total rows`);
     
-    onImport(validMappedData);
+    // Determine file type based on mappings or filename
+    let fileType = 'auto';
+    const mappedFields = Object.values(fieldMappings);
+    
+    if (mappedFields.includes('email') || mappedFields.includes('name')) {
+      fileType = 'contact';
+    } else if (mappedFields.includes('plaintiff') || mappedFields.includes('defendant')) {
+      fileType = 'case';
+    } else if (mappedFields.includes('hearingDate') || mappedFields.includes('courtName')) {
+      fileType = 'hearing';
+    } else if (mappedFields.includes('invoiceNumber') || mappedFields.includes('amount')) {
+      fileType = 'invoice';
+    } else if (mappedFields.includes('documentTitle') || mappedFields.includes('documentType')) {
+      fileType = 'document';
+    }
+    
+    onImport(validMappedData, fileType);
   };
 
   return (
