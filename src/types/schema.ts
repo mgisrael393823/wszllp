@@ -121,10 +121,13 @@ export const contactSchema = z.object({
   userId: z.string(), // Added for RLS
   name: z.string().min(1).max(100),
   role: z.enum(['Attorney', 'Paralegal', 'PM', 'Client', 'Other']),
-  email: z.string().email(),
+  email: z.string().email().optional(),
   phone: z.string(),
   company: z.string().optional(),
   address: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  zipCode: z.string().optional(),
   notes: z.string().optional(),
   contactType: z.string().optional(), // Added from migrations
   createdAt: z.string(),
