@@ -7,7 +7,7 @@ import { AlertTriangle, Check, Info } from 'lucide-react';
 interface CSVDataInspectorProps {
   file: File;
   onClose: () => void;
-  onImport: (mappedData: any) => void;
+  onImport: (mappedData: any, fileType: string) => void;
 }
 
 const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onImport }) => {
@@ -394,8 +394,9 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
     );
     
     console.log(`Mapped ${validMappedData.length} valid rows out of ${mappedData.length} total rows`);
+    console.log('File type being passed:', fileType);
     
-    onImport(validMappedData);
+    onImport(validMappedData, fileType);
   };
 
   return (

@@ -243,10 +243,19 @@ const DataImportTool: React.FC = () => {
 
     try {
       const effectiveDataType = dataType === 'auto' ? fileType : dataType;
+      
+      console.log('CSV Import Complete - Debug Info:');
+      console.log('- File type detected:', fileType);
+      console.log('- Data type selected:', dataType);
+      console.log('- Effective data type:', effectiveDataType);
+      console.log('- Mapped data length:', mappedData?.length);
+      console.log('- First mapped item:', mappedData?.[0]);
 
       const result = routeImport(effectiveDataType, mappedData);
+      
+      console.log('- Import result:', result);
+      console.log('- Contacts found:', result.entities.contacts.length);
 
-      // 'Using mapped data:', mappedData);
       setImportResult(result);
       
       if (mappedData && mappedData.length > 0) {
