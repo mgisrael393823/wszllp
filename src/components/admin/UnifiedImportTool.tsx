@@ -70,7 +70,7 @@ const UnifiedImportTool: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // State management
-  const [currentStep, setCurrentStep] = useState<ImportStep>('type');
+  const [currentStep, setCurrentStep] = useState<ImportStep>('upload');
   const [dataType, setDataType] = useState<DataType>('auto');
   const [importFormat, setImportFormat] = useState<ImportFormat>('csv');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -139,9 +139,6 @@ const UnifiedImportTool: React.FC = () => {
 
   const goBack = () => {
     switch (currentStep) {
-      case 'upload':
-        goToStep('type');
-        break;
       case 'mapping':
         goToStep('upload');
         setShowCsvInspector(false);
@@ -280,13 +277,13 @@ const UnifiedImportTool: React.FC = () => {
 
   // Reset the import process
   const reset = () => {
-    setCurrentStep('type');
+    setCurrentStep('upload');
     setDataType('auto');
     setImportFormat('csv');
     setSelectedFile(null);
     setMappedData([]);
     setImportResult(null);
-    setProgress({ step: 'type', progress: 0, message: '' });
+    setProgress({ step: 'upload', progress: 0, message: '' });
     setError(null);
     setShowCsvInspector(false);
     
@@ -298,7 +295,6 @@ const UnifiedImportTool: React.FC = () => {
   // Render step indicator
   const renderStepIndicator = () => {
     const steps = [
-      { key: 'type', label: 'Select Type' },
       { key: 'upload', label: 'Upload File' },
       ...(importFormat === 'csv' ? [{ key: 'mapping', label: 'Map Columns' }] : []),
       { key: 'preview', label: 'Preview' },
@@ -338,7 +334,7 @@ const UnifiedImportTool: React.FC = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center">
-            {currentStep !== 'type' && (
+            {currentStep !== 'upload' && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -359,11 +355,9 @@ const UnifiedImportTool: React.FC = () => {
               <HelpCircle className="w-4 h-4 mr-1" />
               Format Guide
             </Button>
-            {currentStep !== 'type' && (
-              <Button variant="outline" onClick={reset} size="sm">
-                Start Over
-              </Button>
-            )}
+            <Button variant="outline" onClick={reset} size="sm">
+              Start Over
+            </Button>
           </div>
         </div>
 
@@ -379,39 +373,6 @@ const UnifiedImportTool: React.FC = () => {
         )}
 
         {/* Step Content */}
-        {currentStep === 'type' && (
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-medium mb-4">What type of data are you importing?</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {Object.entries(dataTypeConfigs).map(([key, config]) => {
-                  const Icon = config.icon;
-                  return (
-                    <button
-                      key={key}
-                      onClick={() => {
-                        setDataType(key as DataType);
-                        goToStep('upload');
-                      }}
-                      className={`
-                        p-4 rounded-lg border-2 text-left transition-all
-                        hover:border-${config.color}-500 hover:bg-${config.color}-50
-                        ${dataType === key ? 
-                          `border-${config.color}-500 bg-${config.color}-50` : 
-                          'border-gray-200 bg-white'}
-                      `}
-                    >
-                      <Icon className={`w-8 h-8 mb-3 text-${config.color}-600`} />
-                      <h4 className="font-medium text-gray-900">{config.label}</h4>
-                      <p className="text-sm text-gray-600 mt-1">{config.description}</p>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        )}
-
         {currentStep === 'upload' && (
           <div className="space-y-6">
             <div>
@@ -442,6 +403,23 @@ const UnifiedImportTool: React.FC = () => {
                   <div className="text-xs mt-1">Multi-sheet support</div>
                 </button>
               </div>
+            </div>
+
+            <div className="mb-6">
+              <Select
+                label="Data Type (optional - will auto-detect if not specified)"
+                value={dataType}
+                onChange={(value) => setDataType(value as DataType)}
+                options={[
+                  { value: 'auto', label: 'Auto-detect from file content' },
+                  { value: 'contact', label: 'Contacts - Client and party information' },
+                  { value: 'case', label: 'Cases - Legal case records' },
+                  { value: 'hearing', label: 'Hearings - Court dates and outcomes' },
+                  { value: 'invoice', label: 'Invoices - Billing and payment records' },
+                  { value: 'document', label: 'Documents - Legal documents and files' },
+                  { value: 'comprehensive', label: 'Comprehensive - Multi-sheet Excel with all data types' }
+                ]}
+              />
             </div>
 
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
