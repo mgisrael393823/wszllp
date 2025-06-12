@@ -3,14 +3,17 @@ import DataImportTool from './DataImportTool';
 import ErrorBoundary from '../ui/ErrorBoundary';
 
 /**
- * Simplified AdminPage for MVP
- * Only includes the core CSV importer feature
+ * Data Import Page
+ * Allows users to import legal data from Excel or CSV files
  */
 const AdminPage: React.FC = () => {
   return (
     <div className="page-container">
       <div className="page-header">
-        <h1 className="page-title">Admin</h1>
+        <div>
+          <h1 className="page-title">Data Import</h1>
+          <p className="page-subtitle">Import cases, contacts, hearings, and invoices from spreadsheets</p>
+        </div>
       </div>
 
       <ErrorBoundary>

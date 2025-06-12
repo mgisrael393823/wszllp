@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   Briefcase, FileText, Users, Settings,
-  LayoutDashboard, HelpCircle, Calendar, Activity, DollarSign
+  LayoutDashboard, HelpCircle, Calendar, Activity, DollarSign, Database
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -66,10 +66,10 @@ const createNavStructure = (): NavItem[] => [
     description: 'Recent actions and activity feed'
   },
   { 
-    label: 'Admin', 
+    label: 'Data Import', 
     value: 'admin', 
-    icon: <Settings size={20} />,
-    description: 'System administration'
+    icon: <Database size={20} />,
+    description: 'Import data from Excel or CSV files'
   }
 ];
 

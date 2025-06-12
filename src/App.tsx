@@ -24,7 +24,6 @@ const DocumentList = React.lazy(() => import('./components/documents/DocumentLis
 import DocumentManagement from './components/documents/DocumentManagement';
 import DocumentUploadForm from './components/documents/DocumentUploadForm';
 import DocumentDetail from './components/documents/DocumentDetail';
-import DocumentUpload from './components/documents/DocumentUpload';
 import InvoicesPage from './components/invoices/InvoicesPage';
 import InvoiceDetail from './components/invoices/InvoiceDetail';
 import ServiceLogsList from './components/service-logs/ServiceLogsList';
@@ -148,7 +147,6 @@ const AppContent = () => {
           <Route path="efile" element={<EFilePage />} />
           <Route path="service-logs" element={<ServiceLogsList />} />
         </Route>
-        <Route path="/documents/new" element={<DocumentUpload />} />
         <Route path="/documents/:id" element={<DocumentDetail />} />
         <Route path="/invoices" element={<InvoicesPage />} />
         <Route path="/invoices/:id" element={<InvoiceDetail />} />
