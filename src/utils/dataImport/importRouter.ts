@@ -1,3 +1,5 @@
+import { validateEmailField, detectFieldType } from './fieldDetector';
+
 export function routeImport(
   dataType: string,
   records: Record<string, string>[]
@@ -11,6 +13,18 @@ export function routeImport(
     contacts: [] as Record<string, string>[],
     serviceLogs: [] as Record<string, string>[],
   };
+
+  console.log('routeImport type:', dataType, 'records:', records.length);
+
+  const warnings: string[] = [];
+
+  if (dataType === 'contact') {
+    const emails = records.map(r => String(r.email || ''));
+    const validation = validateEmailField(emails);
+    if (!validation.isValid) {
+      warnings.push(`${validation.invalidCount} contact emails failed validation`);
+    }
+  }
 
   switch (dataType) {
     case 'case':
@@ -31,15 +45,27 @@ export function routeImport(
       entities.contacts = records;
       break;
     default:
-      // Unknown types are not routed
       break;
+  }
+
+  if (
+    dataType === 'unknown' &&
+    records.length > 0 &&
+    Object.values(entities).every(arr => arr.length === 0)
+  ) {
+    const firstHeader = Object.keys(records[0])[0];
+    const guessed = detectFieldType(firstHeader, [String(records[0][firstHeader])]);
+    if (guessed === 'email' || guessed === 'phone' || guessed === 'address' || guessed === 'name') {
+      entities.contacts = records;
+      warnings.push('Falling back to contact import based on data inspection');
+    }
   }
 
   return {
     success: true,
     entities,
     errors: [],
-    warnings: [],
+    warnings,
     stats: {
       totalFiles: 1,
       processedFiles: 1,
