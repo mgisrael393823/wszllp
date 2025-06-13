@@ -2,6 +2,9 @@ process.env.VITE_EFILE_CLIENT_TOKEN = 'EVICT87';
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
+// Mock import.meta.env
+vi.stubEnv('VITE_EFILE_CLIENT_TOKEN', 'EVICT87');
+
 vi.mock('@/utils/efile/apiClient', () => ({
   apiClient: {
     post: vi.fn(),

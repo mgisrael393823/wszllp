@@ -12,7 +12,7 @@ vi.mock('@supabase/supabase-js', () => ({
 }));
 
 // Import handler after mocking
-const handler = await import('../../../api/documents.js').then(m => m.default);
+import handler from '../../../api/documents.js';
 
 describe('/api/documents endpoint', () => {
   beforeEach(() => {

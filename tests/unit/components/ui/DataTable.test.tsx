@@ -81,7 +81,7 @@ describe('DataTable', () => {
     it('renders empty state when no data', () => {
       render(<DataTable data={[]} columns={columns} />);
       
-      expect(screen.getByText('No results found')).toBeInTheDocument();
+      expect(screen.getByText('No results.')).toBeInTheDocument();
     });
 
     it('renders loading state', () => {
