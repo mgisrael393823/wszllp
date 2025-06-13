@@ -86,8 +86,8 @@ describe('DataTable', () => {
 
     it('renders loading state', () => {
       render(<DataTable data={[]} columns={columns} isLoading />);
-      
-      expect(screen.getByText('Loading...')).toBeInTheDocument();
+
+      expect(screen.getByText('Loading data...')).toBeInTheDocument();
     });
 
     it('renders error state', () => {
@@ -137,15 +137,16 @@ describe('DataTable', () => {
       render(<DataTable data={mockData} columns={columns} />);
       
       const nameHeader = screen.getByRole('columnheader', { name: /^Name$/ });
-      await userEvent.click(nameHeader);
-      
-      // Should show ascending indicator
-      expect(nameHeader.closest('th')).toHaveTextContent('▲');
-      
-      await userEvent.click(nameHeader);
-      
-      // Should show descending indicator
-      expect(nameHeader.closest('th')).toHaveTextContent('▼');
+      const clickable = nameHeader.querySelector('div')!;
+      await userEvent.click(clickable);
+
+      // Should show ascending indicator icon
+      expect(nameHeader.querySelector('svg.lucide-chevron-up')).toBeInTheDocument();
+
+      await userEvent.click(clickable);
+
+      // Should show descending indicator icon
+      expect(nameHeader.querySelector('svg.lucide-chevron-down')).toBeInTheDocument();
     });
   });
 
@@ -153,7 +154,7 @@ describe('DataTable', () => {
     it('filters by text input', async () => {
       render(<DataTable data={mockData} columns={columns} />);
       
-      const textFilter = screen.getByPlaceholderText('Filter Name...');
+      const textFilter = screen.getByPlaceholderText('Search name...');
       
       await userEvent.type(textFilter, 'Test');
       
@@ -181,7 +182,7 @@ describe('DataTable', () => {
     it('clears filters when clear button is clicked', async () => {
       render(<DataTable data={mockData} columns={columns} />);
       
-      const textFilter = screen.getByPlaceholderText('Filter Name...');
+      const textFilter = screen.getByPlaceholderText('Search name...');
       await userEvent.type(textFilter, 'Test');
       
       await waitFor(() => {
@@ -388,7 +389,7 @@ describe('DataTable', () => {
       render(<DataTable data={mockData} columns={columns} />);
       
       // Apply filter
-      const textFilter = screen.getByPlaceholderText('Filter Name...');
+      const textFilter = screen.getByPlaceholderText('Search name...');
       await userEvent.type(textFilter, 'Item');
       
       await waitFor(() => {

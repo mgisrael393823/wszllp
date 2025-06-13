@@ -27,16 +27,16 @@ describe('DateRangeFilter', () => {
     const column = createMockColumn();
     render(<DateRangeFilter column={column} />);
     
-    expect(screen.getByLabelText('Start date')).toBeInTheDocument();
-    expect(screen.getByLabelText('End date')).toBeInTheDocument();
+    expect(screen.getByLabelText('Start date for dateColumn filter')).toBeInTheDocument();
+    expect(screen.getByLabelText('End date for dateColumn filter')).toBeInTheDocument();
   });
 
   it('displays current filter values', () => {
     const column = createMockColumn(['2024-03-01', '2024-03-31']);
     render(<DateRangeFilter column={column} />);
     
-    const startInput = screen.getByLabelText('Start date');
-    const endInput = screen.getByLabelText('End date');
+    const startInput = screen.getByLabelText('Start date for dateColumn filter');
+    const endInput = screen.getByLabelText('End date for dateColumn filter');
     
     expect(startInput).toHaveValue('2024-03-01');
     expect(endInput).toHaveValue('2024-03-31');
@@ -47,7 +47,7 @@ describe('DateRangeFilter', () => {
     const user = userEvent.setup();
     render(<DateRangeFilter column={column} />);
     
-    const startInput = screen.getByLabelText('Start date');
+    const startInput = screen.getByLabelText('Start date for dateColumn filter');
     await user.type(startInput, '2024-05-15');
     
     await waitFor(() => {
@@ -60,7 +60,7 @@ describe('DateRangeFilter', () => {
     const user = userEvent.setup();
     render(<DateRangeFilter column={column} />);
     
-    const endInput = screen.getByLabelText('End date');
+    const endInput = screen.getByLabelText('End date for dateColumn filter');
     await user.type(endInput, '2024-06-30');
     
     await waitFor(() => {
@@ -73,8 +73,8 @@ describe('DateRangeFilter', () => {
     const user = userEvent.setup();
     render(<DateRangeFilter column={column} />);
     
-    const startInput = screen.getByLabelText('Start date');
-    const endInput = screen.getByLabelText('End date');
+    const startInput = screen.getByLabelText('Start date for dateColumn filter');
+    const endInput = screen.getByLabelText('End date for dateColumn filter');
     
     await user.type(startInput, '2024-01-01');
     await user.type(endInput, '2024-12-31');
@@ -89,8 +89,8 @@ describe('DateRangeFilter', () => {
     const user = userEvent.setup();
     render(<DateRangeFilter column={column} />);
     
-    const startInput = screen.getByLabelText('Start date');
-    const endInput = screen.getByLabelText('End date');
+    const startInput = screen.getByLabelText('Start date for dateColumn filter');
+    const endInput = screen.getByLabelText('End date for dateColumn filter');
     
     await user.clear(startInput);
     await user.clear(endInput);
@@ -104,8 +104,8 @@ describe('DateRangeFilter', () => {
     const column = createMockColumn();
     render(<DateRangeFilter column={column} />);
     
-    const startInput = screen.getByLabelText('Start date');
-    const endInput = screen.getByLabelText('End date');
+    const startInput = screen.getByLabelText('Start date for dateColumn filter');
+    const endInput = screen.getByLabelText('End date for dateColumn filter');
     
     expect(startInput).toHaveAttribute('min', '2024-01-01');
     expect(startInput).toHaveAttribute('max', '2024-12-31');
@@ -118,8 +118,8 @@ describe('DateRangeFilter', () => {
     const user = userEvent.setup();
     render(<DateRangeFilter column={column} />);
     
-    const startInput = screen.getByLabelText('Start date');
-    const endInput = screen.getByLabelText('End date');
+    const startInput = screen.getByLabelText('Start date for dateColumn filter');
+    const endInput = screen.getByLabelText('End date for dateColumn filter');
     
     await user.type(startInput, '2024-06-01');
     await user.type(endInput, '2024-05-01');
@@ -133,7 +133,7 @@ describe('DateRangeFilter', () => {
     const user = userEvent.setup();
     render(<DateRangeFilter column={column} />);
     
-    const startInput = screen.getByLabelText('Start date');
+    const startInput = screen.getByLabelText('Start date for dateColumn filter');
     
     // Try to input invalid date
     await user.type(startInput, 'invalid-date');
@@ -147,7 +147,7 @@ describe('DateRangeFilter', () => {
     const user = userEvent.setup();
     render(<DateRangeFilter column={column} />);
     
-    const startInput = screen.getByLabelText('Start date');
+    const startInput = screen.getByLabelText('Start date for dateColumn filter');
     
     // Only set start date
     await user.type(startInput, '2024-07-01');
@@ -162,7 +162,7 @@ describe('DateRangeFilter', () => {
     const user = userEvent.setup();
     render(<DateRangeFilter column={column} />);
     
-    const startInput = screen.getByLabelText('Start date');
+    const startInput = screen.getByLabelText('Start date for dateColumn filter');
     
     // Click to open date picker
     await user.click(startInput);
@@ -182,8 +182,8 @@ describe('DateRangeFilter', () => {
     const column = createMockColumn();
     const { rerender } = render(<DateRangeFilter column={column} />);
     
-    const startInput = screen.getByLabelText('Start date');
-    const endInput = screen.getByLabelText('End date');
+    const startInput = screen.getByLabelText('Start date for dateColumn filter');
+    const endInput = screen.getByLabelText('End date for dateColumn filter');
     
     expect(startInput).toHaveValue('');
     expect(endInput).toHaveValue('');
@@ -201,8 +201,8 @@ describe('DateRangeFilter', () => {
     const user = userEvent.setup();
     render(<DateRangeFilter column={column} />);
     
-    const startInput = screen.getByLabelText('Start date');
-    const endInput = screen.getByLabelText('End date');
+    const startInput = screen.getByLabelText('Start date for dateColumn filter');
+    const endInput = screen.getByLabelText('End date for dateColumn filter');
     
     // Tab between inputs
     await user.click(startInput);
@@ -215,21 +215,21 @@ describe('DateRangeFilter', () => {
     const column = createMockColumn();
     render(<DateRangeFilter column={column} />);
     
-    const startInput = screen.getByLabelText('Start date');
-    const endInput = screen.getByLabelText('End date');
+    const startInput = screen.getByLabelText('Start date for dateColumn filter');
+    const endInput = screen.getByLabelText('End date for dateColumn filter');
     
     expect(startInput).toHaveAttribute('type', 'date');
     expect(endInput).toHaveAttribute('type', 'date');
-    expect(startInput).toHaveAttribute('aria-label', expect.stringContaining('Start date'));
-    expect(endInput).toHaveAttribute('aria-label', expect.stringContaining('End date'));
+    expect(startInput).toHaveAttribute('aria-label', expect.stringContaining('Start date for dateColumn filter'));
+    expect(endInput).toHaveAttribute('aria-label', expect.stringContaining('End date for dateColumn filter'));
   });
 
   it('shows date format placeholder', () => {
     const column = createMockColumn();
     render(<DateRangeFilter column={column} />);
     
-    const startInput = screen.getByLabelText('Start date');
-    const endInput = screen.getByLabelText('End date');
+    const startInput = screen.getByLabelText('Start date for dateColumn filter');
+    const endInput = screen.getByLabelText('End date for dateColumn filter');
     
     // Date inputs should have proper placeholders
     expect(startInput).toHaveAttribute('placeholder', 'yyyy-mm-dd');
@@ -241,7 +241,7 @@ describe('DateRangeFilter', () => {
     const user = userEvent.setup();
     render(<DateRangeFilter column={column} />);
     
-    const startInput = screen.getByLabelText('Start date');
+    const startInput = screen.getByLabelText('Start date for dateColumn filter');
     
     // Input date in ISO format
     await user.type(startInput, '2024-09-15');
@@ -257,8 +257,8 @@ describe('DateRangeFilter', () => {
     
     render(<DateRangeFilter column={column} />);
     
-    const startInput = screen.getByLabelText('Start date');
-    const endInput = screen.getByLabelText('End date');
+    const startInput = screen.getByLabelText('Start date for dateColumn filter');
+    const endInput = screen.getByLabelText('End date for dateColumn filter');
     
     // Should not have min/max when faceted values are undefined
     expect(startInput).not.toHaveAttribute('min');

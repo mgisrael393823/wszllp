@@ -46,7 +46,7 @@ describe('TextFilter', () => {
     const user = userEvent.setup();
     render(<TextFilter column={column} />);
     
-    const input = screen.getByPlaceholderText('Filter Test Column...');
+    const input = screen.getByPlaceholderText('Search testColumn...');
     await user.type(input, 'search term');
     
     // Debounced, so we need to wait
@@ -60,7 +60,7 @@ describe('TextFilter', () => {
     const user = userEvent.setup();
     render(<TextFilter column={column} />);
     
-    const input = screen.getByPlaceholderText('Filter Test Column...');
+    const input = screen.getByPlaceholderText('Search testColumn...');
     
     // Type quickly
     await user.type(input, 'abc');
@@ -80,7 +80,7 @@ describe('TextFilter', () => {
     const user = userEvent.setup();
     render(<TextFilter column={column} />);
     
-    const input = screen.getByPlaceholderText('Filter Test Column...');
+    const input = screen.getByPlaceholderText('Search testColumn...');
     
     // Clear the input
     await user.clear(input);
@@ -108,7 +108,7 @@ describe('TextFilter', () => {
     const user = userEvent.setup();
     render(<TextFilter column={column} />);
     
-    const input = screen.getByPlaceholderText('Filter Test Column...');
+    const input = screen.getByPlaceholderText('Search testColumn...');
     await user.type(input, 'test@example.com');
     
     await waitFor(() => {
@@ -120,7 +120,7 @@ describe('TextFilter', () => {
     const column = createMockColumn('preserved value');
     const { rerender } = render(<TextFilter column={column} />);
     
-    const input = screen.getByPlaceholderText('Filter Test Column...');
+    const input = screen.getByPlaceholderText('Search testColumn...');
     expect(input).toHaveValue('preserved value');
     
     // Re-render with same value
@@ -132,7 +132,7 @@ describe('TextFilter', () => {
     const column = createMockColumn('initial');
     const { rerender } = render(<TextFilter column={column} />);
     
-    const input = screen.getByPlaceholderText('Filter Test Column...');
+    const input = screen.getByPlaceholderText('Search testColumn...');
     expect(input).toHaveValue('initial');
     
     // Update column filter value
@@ -147,7 +147,7 @@ describe('TextFilter', () => {
     const user = userEvent.setup();
     render(<TextFilter column={column} />);
     
-    const input = screen.getByPlaceholderText('Filter Test Column...');
+    const input = screen.getByPlaceholderText('Search testColumn...');
     
     // Simulate paste
     await user.click(input);
@@ -163,7 +163,7 @@ describe('TextFilter', () => {
     const user = userEvent.setup();
     render(<TextFilter column={column} />);
     
-    const input = screen.getByPlaceholderText('Filter Test Column...');
+    const input = screen.getByPlaceholderText('Search testColumn...');
     await user.type(input, '  trimmed  ');
     
     await waitFor(() => {
@@ -182,7 +182,7 @@ describe('TextFilter', () => {
     const column = createMockColumn();
     render(<TextFilter column={column} />);
     
-    const input = screen.getByPlaceholderText('Filter Test Column...');
+    const input = screen.getByPlaceholderText('Search testColumn...');
     expect(input).toHaveAttribute('type', 'text');
     expect(input).toHaveAttribute('aria-label', expect.stringContaining('Filter'));
   });
