@@ -1021,9 +1021,9 @@ const EFileSubmissionForm: React.FC = () => {
             doc_type: TYLER_CONFIG.DOC_TYPE
           };
           
-          // TEMPORARILY REMOVED: optional_services due to Tyler API error
-          // The code '282616' is not valid for filing code '174403'
-          // TODO: Confirm correct optional service code with Tyler support
+          // Cook County requires $5 per defendant at filing time
+          const defendantCount = formData.defendants.length + (formData.includeUnknownOccupants ? 1 : 0);
+          fileDoc.optional_services = [{ quantity: defendantCount.toString(), code: '282616' }];
           
           files.push(fileDoc);
         }
