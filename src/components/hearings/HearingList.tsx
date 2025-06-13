@@ -26,11 +26,65 @@ interface HearingListProps {
 const HearingList: React.FC<HearingListProps> = ({ temporalFilter = 'upcoming' }) => {
   const { state, dispatch } = useData();
   const navigate = useNavigate();
-  const [hearings, setHearings] = useState<HearingDisplay[]>([]);
+  const [apiHearings, setApiHearings] = useState<HearingDisplay[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  // Fetch hearings from Supabase
+  // Check if we have local hearings from DataContext
+  const hasLocalHearings = state.hearings.length > 0;
+
+  // Process local hearings from DataContext
+  const processLocalHearings = (): HearingDisplay[] => {
+    const now = startOfDay(new Date());
+    
+    const allDisplayData: HearingDisplay[] = state.hearings.map(hearing => {
+      // Find the case for this hearing
+      const caseItem = state.cases.find(c => c.caseId === hearing.caseId);
+      const caseTitle = caseItem 
+        ? `${caseItem.plaintiff} v. ${caseItem.defendant}` 
+        : 'Unknown Case';
+      
+      const hearingDateTime = new Date(hearing.hearingDate);
+      
+      return {
+        hearingId: hearing.hearingId,
+        caseTitle,
+        courtName: hearing.courtName || 'Not specified',
+        hearingDate: hearingDateTime.toLocaleDateString(),
+        hearingTime: hearingDateTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        outcome: hearing.outcome || 'Pending',
+        rawDate: hearingDateTime
+      };
+    });
+
+    // Apply temporal filtering
+    const filteredData = allDisplayData.filter(hearing => {
+      const hearingDate = startOfDay(hearing.rawDate);
+      
+      switch (temporalFilter) {
+        case 'upcoming':
+          return isAfter(hearingDate, now) || hearingDate.getTime() === now.getTime();
+        case 'past':
+          return isBefore(hearingDate, now);
+        default:
+          return true;
+      }
+    });
+
+    // Sort by date (upcoming: earliest first, past: latest first)
+    return filteredData.sort((a, b) => {
+      if (temporalFilter === 'upcoming') {
+        return a.rawDate.getTime() - b.rawDate.getTime();
+      } else {
+        return b.rawDate.getTime() - a.rawDate.getTime();
+      }
+    });
+  };
+
+  // Use local hearings first, fallback to API data
+  const hearings = hasLocalHearings ? processLocalHearings() : apiHearings;
+
+  // Fetch hearings from Supabase only if we don't have local data
   useEffect(() => {
     const fetchHearings = async () => {
       setIsLoading(true);
@@ -105,7 +159,7 @@ const HearingList: React.FC<HearingListProps> = ({ temporalFilter = 'upcoming' }
           }
         });
         
-        setHearings(sortedData);
+        setApiHearings(sortedData);
         
         // Update the global state
         const hearingsForDataContext = hearingsData.map(h => ({
@@ -134,8 +188,14 @@ const HearingList: React.FC<HearingListProps> = ({ temporalFilter = 'upcoming' }
       }
     };
     
-    fetchHearings();
-  }, [dispatch, temporalFilter]);
+    // Only fetch from API if we don't have local hearings
+    if (!hasLocalHearings) {
+      fetchHearings();
+    } else {
+      setIsLoading(false);
+      setError(null);
+    }
+  }, [dispatch, temporalFilter, hasLocalHearings]);
 
   // Column definitions for TanStack Table
   const columns: ColumnDef<HearingDisplay>[] = [

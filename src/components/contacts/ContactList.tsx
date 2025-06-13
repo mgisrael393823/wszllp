@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useList, useDelete } from '@refinedev/core';
 import { useNavigate } from 'react-router-dom';
 import { ColumnDef } from '@tanstack/react-table';
@@ -6,6 +6,7 @@ import { Edit, Trash2, Eye, Users, Mail, Phone } from 'lucide-react';
 import { DataTable } from '../ui/DataTable';
 import Button from '../ui/Button';
 import { Contact } from '../../types/schema';
+import { useData } from '../../context/DataContext';
 
 interface ContactListProps {
   searchTerm?: string;
@@ -17,11 +18,39 @@ const ContactList: React.FC<ContactListProps> = ({
   filter = 'all'
 }) => {
   const navigate = useNavigate();
+  const { state } = useData();
   const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
   
-  // Build filters based on search term and filter type
+  // Check if we have contacts in DataContext
+  const hasLocalContacts = state.contacts && state.contacts.length > 0;
+  
+  // Filter local contacts based on search and filter
+  const localContacts = useMemo(() => {
+    if (!hasLocalContacts) return [];
+    
+    let filtered = state.contacts;
+    
+    // Apply search filter
+    if (localSearchTerm) {
+      filtered = filtered.filter(contact => 
+        contact.name.toLowerCase().includes(localSearchTerm.toLowerCase()) ||
+        contact.email?.toLowerCase().includes(localSearchTerm.toLowerCase()) ||
+        contact.phone?.includes(localSearchTerm)
+      );
+    }
+    
+    // Apply role filter
+    if (filter && filter !== 'all') {
+      filtered = filtered.filter(contact => contact.role === filter);
+    }
+    
+    // Sort by name
+    return filtered.sort((a, b) => a.name.localeCompare(b.name));
+  }, [state.contacts, localSearchTerm, filter, hasLocalContacts]);
+  
+  // Build filters for Supabase query
   const filters = [];
   
   if (localSearchTerm) {
@@ -40,7 +69,7 @@ const ContactList: React.FC<ContactListProps> = ({
     });
   }
   
-  // Use Refine's useList hook to get contacts with pagination
+  // Only use Supabase if no local contacts
   const { data, isLoading, isError } = useList<Contact>({
     resource: 'contacts',
     filters,
@@ -49,13 +78,17 @@ const ContactList: React.FC<ContactListProps> = ({
       current: currentPage,
       pageSize: itemsPerPage,
     },
+    queryOptions: {
+      enabled: !hasLocalContacts, // Only query if no local data
+    }
   });
   
   // Set up delete hook
   const { mutate: deleteContact } = useDelete();
   
-  const contacts = data?.data || [];
-  const totalCount = data?.total || 0;
+  // Use local contacts if available, otherwise use Supabase data
+  const contacts = hasLocalContacts ? localContacts : (data?.data || []);
+  const totalCount = hasLocalContacts ? localContacts.length : (data?.total || 0);
   
   // Handle delete contact
   const handleDeleteContact = (id: string, e: React.MouseEvent) => {
@@ -134,21 +167,21 @@ const ContactList: React.FC<ContactListProps> = ({
           <Button
             variant="text"
             size="sm"
-            onClick={() => navigate(`/contacts/${row.original.id}`)}
+            onClick={() => navigate(`/contacts/${row.original.contactId || row.original.id}`)}
             icon={<Eye size={16} />}
             aria-label="View contact"
           />
           <Button
             variant="text"
             size="sm"
-            onClick={() => navigate(`/contacts/${row.original.id}/edit`)}
+            onClick={() => navigate(`/contacts/${row.original.contactId || row.original.id}/edit`)}
             icon={<Edit size={16} />}
             aria-label="Edit contact"
           />
           <Button
             variant="text"
             size="sm"
-            onClick={(e) => handleDeleteContact(row.original.id, e)}
+            onClick={(e) => handleDeleteContact(row.original.contactId || row.original.id, e)}
             icon={<Trash2 size={16} />}
             aria-label="Delete contact"
           />
@@ -198,7 +231,7 @@ const ContactList: React.FC<ContactListProps> = ({
       columns={columns}
       isLoading={isLoading}
       error={isError ? new Error('Failed to load contacts') : null}
-      onRowClick={(row) => navigate(`/contacts/${row.id}`)}
+      onRowClick={(row) => navigate(`/contacts/${row.contactId || row.id}`)}
       enableRowSelection
     />
   );
