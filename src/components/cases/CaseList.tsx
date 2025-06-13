@@ -6,6 +6,7 @@ import { DataTable } from '../ui/DataTable';
 import { commonColumns } from '../ui/table-columns/common-columns';
 import { Plus } from 'lucide-react';
 import Button from '../ui/Button';
+import { useData } from '../../context/DataContext';
 
 interface Case {
   caseId: string;
@@ -20,13 +21,26 @@ interface Case {
 
 const CaseList: React.FC = () => {
   const navigate = useNavigate();
-  const [cases, setCases] = useState<Case[]>([]);
+  const { state } = useData();
+  const [apiCases, setApiCases] = useState<Case[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
+  // Check if we have local cases from DataContext
+  const hasLocalCases = state.cases.length > 0;
+  
+  // Use local cases first, fallback to API data
+  const cases = hasLocalCases ? state.cases : apiCases;
+
   useEffect(() => {
-    fetchCases();
-  }, []);
+    // Only fetch from API if we don't have local cases
+    if (!hasLocalCases) {
+      fetchCases();
+    } else {
+      setIsLoading(false);
+      setError(null);
+    }
+  }, [hasLocalCases]);
 
   const fetchCases = async () => {
     setIsLoading(true);
@@ -201,10 +215,10 @@ const CaseList: React.FC = () => {
           }
         ];
         
-        setCases(sampleCases);
+        setApiCases(sampleCases);
         console.log('📊 Loaded sample data for development (TanStack Table Demo)');
       } else {
-        setCases(mappedCases);
+        setApiCases(mappedCases);
       }
     } catch (err) {
       setError(err as Error);

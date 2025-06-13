@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { FileText } from 'lucide-react';
 import { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '../ui/DataTable';
 import { useDocuments } from '../../hooks/useDocuments';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
+import { useData } from '../../context/DataContext';
 
 interface Document {
   docId: string;
@@ -27,19 +28,28 @@ interface DocumentListProps {
 const DocumentList: React.FC<DocumentListProps> = ({ limit, caseId }) => {
   const navigate = useNavigate();
   const { addToast } = useToast();
+  const { state } = useData();
+
+  // Check if we have local documents from DataContext
+  const hasLocalDocuments = state.documents.length > 0;
 
   // Memoize filters to prevent infinite re-renders
   const filters = React.useMemo(() => ({
     caseId: caseId || undefined
   }), [caseId]);
 
-  // Use the existing useDocuments hook
+  // Use the existing useDocuments hook (will be ignored if we have local data)
   const { 
-    documents, 
-    isLoading, 
-    error, 
+    documents: apiDocuments, 
+    isLoading: apiLoading, 
+    error: apiError, 
     totalCount 
   } = useDocuments(limit, filters, 1, limit || 10);
+
+  // Use local documents first, fallback to API data
+  const documents = hasLocalDocuments ? state.documents : apiDocuments;
+  const isLoading = hasLocalDocuments ? false : apiLoading;
+  const error = hasLocalDocuments ? null : apiError;
 
   // Show error toast if data fetching fails
   React.useEffect(() => {
