@@ -249,22 +249,48 @@ const UnifiedImportTool: React.FC = () => {
       // Update local state
       setProgress({ step: 'importing', progress: 70, message: 'Updating local data...' });
       
-      // Enhanced entities with IDs
-      const enhancedEntities = {
-        cases: importResult.entities.cases.map(c => ({ ...c, id: c.id || uuidv4() })),
-        hearings: importResult.entities.hearings.map(h => ({ ...h, id: h.id || uuidv4() })),
-        documents: importResult.entities.documents.map(d => ({ ...d, id: d.id || uuidv4() })),
-        serviceLogs: importResult.entities.serviceLogs.map(s => ({ ...s, id: s.id || uuidv4() })),
-        invoices: importResult.entities.invoices.map(i => ({ ...i, id: i.id || uuidv4() })),
-        paymentPlans: [],
-        contacts: importResult.entities.contacts.map(c => ({ ...c, id: c.id || uuidv4() })),
-        zoomLinks: []
-      };
+      // Dispatch bulk actions for each entity type
+      if (importResult.entities.cases.length > 0) {
+        const enhancedCases = importResult.entities.cases.map(c => ({ 
+          ...c, 
+          caseId: c.caseId || c.id || uuidv4() 
+        }));
+        dispatch({ type: 'ADD_CASES', payload: enhancedCases });
+      }
 
-      dispatch({
-        type: 'LOAD_DATA',
-        payload: enhancedEntities
-      });
+      if (importResult.entities.contacts.length > 0) {
+        const enhancedContacts = importResult.entities.contacts.map(c => ({ 
+          ...c, 
+          contactId: c.contactId || c.id || uuidv4() 
+        }));
+        dispatch({ type: 'ADD_CONTACTS', payload: enhancedContacts });
+      }
+
+      if (importResult.entities.hearings.length > 0) {
+        const enhancedHearings = importResult.entities.hearings.map(h => ({ 
+          ...h, 
+          hearingId: h.hearingId || h.id || uuidv4() 
+        }));
+        dispatch({ type: 'ADD_HEARINGS', payload: enhancedHearings });
+      }
+
+      if (importResult.entities.documents.length > 0) {
+        const enhancedDocuments = importResult.entities.documents.map(d => ({ 
+          ...d, 
+          docId: d.docId || d.id || uuidv4() 
+        }));
+        dispatch({ type: 'ADD_DOCUMENTS', payload: enhancedDocuments });
+      }
+
+      if (importResult.entities.invoices.length > 0) {
+        const enhancedInvoices = importResult.entities.invoices.map(i => ({ 
+          ...i, 
+          invoiceId: i.invoiceId || i.id || uuidv4() 
+        }));
+        dispatch({ type: 'ADD_INVOICES', payload: enhancedInvoices });
+      }
+
+      // Note: serviceLogs are handled separately as they don't have a bulk action yet
 
       setProgress({ step: 'complete', progress: 100, message: 'Import completed successfully!' });
       goToStep('complete');

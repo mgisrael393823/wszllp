@@ -33,20 +33,25 @@ type Action =
   | { type: 'ADD_CASE'; payload: Case }
   | { type: 'UPDATE_CASE'; payload: Case }
   | { type: 'DELETE_CASE'; payload: string }
+  | { type: 'ADD_CASES'; payload: Case[] }
   | { type: 'ADD_HEARING'; payload: Hearing }
   | { type: 'UPDATE_HEARING'; payload: Hearing }
   | { type: 'DELETE_HEARING'; payload: string }
+  | { type: 'ADD_HEARINGS'; payload: Hearing[] }
   | { type: 'ADD_DOCUMENT'; payload: Document }
   | { type: 'UPDATE_DOCUMENT'; payload: Document }
+  | { type: 'ADD_DOCUMENTS'; payload: Document[] }
   | { type: 'ADD_CONTACT'; payload: Contact }
   | { type: 'UPDATE_CONTACT'; payload: { id: string, contact: Contact } }
   | { type: 'DELETE_CONTACT'; payload: string }
+  | { type: 'ADD_CONTACTS'; payload: Contact[] }
   | { type: 'DELETE_DOCUMENT'; payload: string }
   | { type: 'ADD_SERVICE_LOG'; payload: ServiceLog }
   | { type: 'UPDATE_SERVICE_LOG'; payload: ServiceLog }
   | { type: 'DELETE_SERVICE_LOG'; payload: string }
   | { type: 'ADD_INVOICE'; payload: Invoice }
   | { type: 'UPDATE_INVOICE'; payload: Invoice }
+  | { type: 'ADD_INVOICES'; payload: Invoice[] }
   | { type: 'DELETE_INVOICE'; payload: string }
   | { type: 'ADD_PAYMENT_PLAN'; payload: PaymentPlan }
   | { type: 'UPDATE_PAYMENT_PLAN'; payload: PaymentPlan }
@@ -182,6 +187,23 @@ const dataReducer = (state: AppState, action: Action): AppState => {
       auditLog = createAuditLog('Case', caseId, 'Delete', 'Case deleted with all related records');
       break;
 
+    // Bulk Case actions
+    case 'ADD_CASES':
+      const newCases = action.payload.map(caseItem => ({
+        ...caseItem,
+        createdAt: caseItem.createdAt || now,
+        updatedAt: caseItem.updatedAt || now
+      }));
+      
+      newState = {
+        ...state,
+        cases: [...state.cases, ...newCases],
+      };
+      
+      auditLog = createAuditLog('Case', 'bulk', 'Create', 
+        `Bulk import: ${newCases.length} cases added`);
+      break;
+
     // Hearing actions
     case 'ADD_HEARING':
       newState = {
@@ -207,6 +229,23 @@ const dataReducer = (state: AppState, action: Action): AppState => {
         hearings: state.hearings.filter(h => h.hearingId !== action.payload),
       };
       auditLog = createAuditLog('Hearing', action.payload, 'Delete', 'Hearing deleted');
+      break;
+
+    // Bulk Hearing actions  
+    case 'ADD_HEARINGS':
+      const newHearings = action.payload.map(hearing => ({
+        ...hearing,
+        createdAt: hearing.createdAt || now,
+        updatedAt: hearing.updatedAt || now
+      }));
+      
+      newState = {
+        ...state,
+        hearings: [...state.hearings, ...newHearings],
+      };
+      
+      auditLog = createAuditLog('Hearing', 'bulk', 'Create',
+        `Bulk import: ${newHearings.length} hearings added`);
       break;
 
     // Document actions
@@ -236,6 +275,23 @@ const dataReducer = (state: AppState, action: Action): AppState => {
         serviceLogs: state.serviceLogs.filter(sl => sl.docId !== docId),
       };
       auditLog = createAuditLog('Document', docId, 'Delete', 'Document and related logs deleted');
+      break;
+
+    // Bulk Document actions
+    case 'ADD_DOCUMENTS':
+      const newDocuments = action.payload.map(doc => ({
+        ...doc,
+        createdAt: doc.createdAt || now,
+        updatedAt: doc.updatedAt || now
+      }));
+      
+      newState = {
+        ...state,
+        documents: [...state.documents, ...newDocuments],
+      };
+      
+      auditLog = createAuditLog('Document', 'bulk', 'Create',
+        `Bulk import: ${newDocuments.length} documents added`);
       break;
 
     // Service Log actions  
@@ -294,6 +350,23 @@ const dataReducer = (state: AppState, action: Action): AppState => {
       auditLog = createAuditLog('Invoice', invoiceId, 'Delete', 'Invoice and payment plans deleted');
       break;
 
+    // Bulk Invoice actions
+    case 'ADD_INVOICES':
+      const newInvoices = action.payload.map(invoice => ({
+        ...invoice,
+        createdAt: invoice.createdAt || now,
+        updatedAt: invoice.updatedAt || now
+      }));
+      
+      newState = {
+        ...state,
+        invoices: [...state.invoices, ...newInvoices],
+      };
+      
+      auditLog = createAuditLog('Invoice', 'bulk', 'Create',
+        `Bulk import: ${newInvoices.length} invoices added`);
+      break;
+
     // Payment Plan actions
     case 'ADD_PAYMENT_PLAN':
       newState = {
@@ -334,10 +407,10 @@ const dataReducer = (state: AppState, action: Action): AppState => {
       newState = {
         ...state,
         contacts: state.contacts.map(c => 
-          c.contactId === action.payload.contactId ? { ...action.payload, updatedAt: now } : c
+          c.contactId === action.payload.id ? { ...action.payload.contact, updatedAt: now } : c
         ),
       };
-      auditLog = createAuditLog('Contact', action.payload.contactId, 'Update', 'Contact updated');
+      auditLog = createAuditLog('Contact', action.payload.id, 'Update', 'Contact updated');
       break;
 
     case 'DELETE_CONTACT':
@@ -346,6 +419,23 @@ const dataReducer = (state: AppState, action: Action): AppState => {
         contacts: state.contacts.filter(c => c.contactId !== action.payload),
       };
       auditLog = createAuditLog('Contact', action.payload, 'Delete', 'Contact deleted');
+      break;
+
+    // Bulk Contact actions
+    case 'ADD_CONTACTS':
+      const newContacts = action.payload.map(contact => ({
+        ...contact,
+        createdAt: contact.createdAt || now,
+        updatedAt: contact.updatedAt || now
+      }));
+      
+      newState = {
+        ...state,
+        contacts: [...state.contacts, ...newContacts],
+      };
+      
+      auditLog = createAuditLog('Contact', 'bulk', 'Create',
+        `Bulk import: ${newContacts.length} contacts added`);
       break;
 
     // Zoom Link actions
