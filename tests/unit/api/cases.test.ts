@@ -1,15 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createRequest, createResponse } from 'node-mocks-http';
 
-// Create mock function first
-const mockSupabaseRpc = vi.fn();
+// Declare mock function reference
+var mockSupabaseRpc: ReturnType<typeof vi.fn>;
 
 // Mock Supabase
-vi.mock('@supabase/supabase-js', () => ({
-  createClient: vi.fn(() => ({
-    rpc: mockSupabaseRpc,
-  })),
-}));
+vi.mock('@supabase/supabase-js', () => {
+  // Initialize the mock within the factory to avoid TDZ issues
+  mockSupabaseRpc = vi.fn();
+  return {
+    createClient: vi.fn(() => ({
+      rpc: mockSupabaseRpc,
+    })),
+  };
+});
 
 // Import handler after mocking
 import handler from '../../../api/cases.js';
