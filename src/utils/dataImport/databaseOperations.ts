@@ -1,4 +1,5 @@
 import { supabase } from '../../lib/supabaseClient';
+import { validateEmailField } from './fieldDetector';
 
 // Database operation results interface
 interface SaveResult {
@@ -19,6 +20,9 @@ export const saveContactsToSupabase = async (contacts: any[]): Promise<SaveResul
   const userId = user?.id;
 
   // Transform contacts to match Supabase schema
+  // Remove duplicates by email
+  const seen = new Set<string>();
+
   const supabaseContacts = contacts.map(contact => ({
     name: contact.name || 'Unknown Contact',
     role: contact.role || 'Other',
@@ -33,9 +37,21 @@ export const saveContactsToSupabase = async (contacts: any[]): Promise<SaveResul
     user_id: userId || null
   }));
 
+  const filteredContacts = supabaseContacts.filter(c => {
+    const email = c.email || '';
+    if (seen.has(email)) return false;
+    seen.add(email);
+    return true;
+  });
+
+  const emailCheck = validateEmailField(filteredContacts.map(c => c.email));
+  if (!emailCheck.isValid) {
+    console.warn('Invalid emails detected during saveContacts:', emailCheck.invalidCount);
+  }
+
   const { data, error } = await supabase
     .from('contacts')
-    .upsert(supabaseContacts, { 
+    .upsert(filteredContacts, {
       onConflict: 'email',
       ignoreDuplicates: false
     })
