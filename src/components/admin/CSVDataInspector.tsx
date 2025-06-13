@@ -3,6 +3,15 @@ import Papa from 'papaparse';
 import { Card } from '../ui/shadcn-card';
 import Button from '../ui/Button';
 import { AlertTriangle, Check, Info } from 'lucide-react';
+import {
+  detectFieldType,
+  generateFieldMappingSuggestions,
+  EMAIL_PATTERNS,
+  PHONE_PATTERNS,
+  ADDRESS_PATTERNS,
+  NAME_PATTERNS,
+  scoreFieldMatch,
+} from '../../utils/dataImport/fieldDetector';
 
 interface CSVDataInspectorProps {
   file: File;
@@ -25,6 +34,14 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
     address?: string;
     costs?: string[];
   }>({});
+  const [warnings, setWarnings] = useState<string[]>([]);
+  const [matchScores, setMatchScores] = useState<Record<string, number>>({});
+
+  const getConfidenceColor = (score: number) => {
+    if (score >= 80) return 'bg-green-400';
+    if (score >= 50) return 'bg-yellow-400';
+    return 'bg-red-400';
+  };
 
   // Column mapping options based on expected data
   const fieldOptions = [
@@ -83,6 +100,10 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
   React.useEffect(() => {
     parseCSV();
   }, [file]);
+
+  React.useEffect(() => {
+    setWarnings(validateMappings());
+  }, [fieldMappings]);
 
   const parseCSV = async () => {
     setLoading(true);
@@ -268,109 +289,31 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
     setFileType(fileType);
     setDetectedFields(detectedFields);
     
-    // Set initial mappings
-    const initialMappings: Record<string, string> = {};
-    
+    // Set initial mappings using new field detector
+    const suggestions = generateFieldMappingSuggestions(headers, data.slice(0, 10));
+    const initialMappings: Record<string, string> = { ...suggestions };
+
     if (fileType === 'all_evictions_files') {
-      // Map detected fields
       if (detectedFields.caseId) initialMappings[detectedFields.caseId] = 'caseId';
       if (detectedFields.plaintiff) initialMappings[detectedFields.plaintiff] = 'plaintiff';
       if (detectedFields.defendant) initialMappings[detectedFields.defendant] = 'defendant';
       if (detectedFields.address) initialMappings[detectedFields.address] = 'address';
-      
-      // Map cost fields
       if (detectedFields.costs) {
-        detectedFields.costs.forEach((col: string) => {
-          initialMappings[col] = 'costs';
+        detectedFields.costs.forEach((c: string) => {
+          initialMappings[c] = 'costs';
         });
       }
-    } else if (fileType === 'contact') {
-      // Auto-map contact fields - single pass with early returns
-      headers.forEach(h => {
-        const lower = h.toLowerCase();
-        
-        if (lower.includes('email')) {
-          initialMappings[h] = 'email';
-          return;
-        }
-        if (lower.includes('phone') || lower.includes('tel')) {
-          initialMappings[h] = 'phone';
-          return;
-        }
-        if (lower.includes('name') && !lower.includes('company') && !lower.includes('first') && !lower.includes('last')) {
-          initialMappings[h] = 'name';
-          return;
-        }
-        if (lower === 'city' || (lower.includes('city') && !lower.includes('address'))) {
-          initialMappings[h] = 'city';
-          return;
-        }
-        if (lower === 'state' || (lower.includes('state') && !lower.includes('address'))) {
-          initialMappings[h] = 'state';
-          return;
-        }
-        if (lower.includes('zip') || lower.includes('postal')) {
-          initialMappings[h] = 'zipCode';
-          return;
-        }
-        if (lower.includes('company') || lower.includes('firm') || lower.includes('organization')) {
-          initialMappings[h] = 'company';
-          return;
-        }
-        if (lower.includes('role') || lower.includes('title') || lower.includes('position')) {
-          initialMappings[h] = 'role';
-          return;
-        }
-        if (lower.includes('note') || lower.includes('comment')) {
-          initialMappings[h] = 'notes';
-          return;
-        }
-        if (lower.includes('address')) {
-          initialMappings[h] = 'contactAddress';
-          return;
-        }
-      });
-      
-      console.log('Header mappings:', initialMappings);
-    } else if (fileType === 'complaint' || fileType === 'hearing') {
-      // Auto-map case/hearing fields
-      headers.forEach(h => {
-        const lower = h.toLowerCase();
-        if (lower.includes('case') && lower.includes('id')) initialMappings[h] = 'caseId';
-        if (lower.includes('case') && lower.includes('no')) initialMappings[h] = 'caseId';
-        if (lower.includes('plaintiff')) initialMappings[h] = 'plaintiff';
-        if (lower.includes('defendant')) initialMappings[h] = 'defendant';
-        if (lower.includes('address')) initialMappings[h] = 'address';
-        if (lower.includes('status') || lower.includes('service status')) initialMappings[h] = 'status';
-        if (lower.includes('date') && lower.includes('filed')) initialMappings[h] = 'dateFiled';
-        if (lower.includes('data') && lower.includes('filed')) initialMappings[h] = 'dateFiled';
-        if (lower.includes('court') && lower.includes('name')) initialMappings[h] = 'courtName';
-        if (lower.includes('hearing') && lower.includes('date')) initialMappings[h] = 'hearingDate';
-        if (lower.includes('outcome')) initialMappings[h] = 'outcome';
-      });
-    } else if (fileType === 'invoice') {
-      // Auto-map invoice fields
-      headers.forEach(h => {
-        const lower = h.toLowerCase();
-        if (lower.includes('invoice') && lower.includes('id')) initialMappings[h] = 'invoiceId';
-        if (lower.includes('case') && lower.includes('id')) initialMappings[h] = 'caseId';
-        if (lower.includes('amount')) initialMappings[h] = 'amount';
-        if (lower.includes('issue') && lower.includes('date')) initialMappings[h] = 'issueDate';
-        if (lower.includes('due') && lower.includes('date')) initialMappings[h] = 'dueDate';
-        if (lower.includes('paid')) initialMappings[h] = 'paid';
-      });
-    } else if (fileType === 'document') {
-      // Auto-map document fields
-      headers.forEach(h => {
-        const lower = h.toLowerCase();
-        if (lower.includes('doc') && lower.includes('id')) initialMappings[h] = 'docId';
-        if (lower.includes('case') && lower.includes('id')) initialMappings[h] = 'caseId';
-        if (lower.includes('type')) initialMappings[h] = 'type';
-        if (lower.includes('url') || lower.includes('file')) initialMappings[h] = 'fileURL';
-        if (lower.includes('service') && lower.includes('date')) initialMappings[h] = 'serviceDate';
-      });
     }
-    
+    const scores: Record<string, number> = {};
+    Object.entries(initialMappings).forEach(([header, field]) => {
+      let patterns: string[] = [];
+      if (field === 'email') patterns = EMAIL_PATTERNS;
+      if (field === 'phone') patterns = PHONE_PATTERNS;
+      if (field === 'address') patterns = ADDRESS_PATTERNS;
+      if (field === 'name') patterns = NAME_PATTERNS;
+      scores[header] = Math.max(0, ...patterns.map(p => scoreFieldMatch(header, p)));
+    });
+    setMatchScores(scores);
     setFieldMappings(initialMappings);
   };
   
@@ -379,6 +322,27 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
       ...prev,
       [header]: value
     }));
+  };
+
+  const handleAutoDetect = () => {
+    const suggestions = generateFieldMappingSuggestions(headers, fileData.slice(0, 10));
+    const newMappings = { ...fieldMappings, ...suggestions };
+    setFieldMappings(newMappings);
+  };
+
+  const getColumnValues = (header: string): string[] => {
+    return fileData.slice(0, 10).map(row => String(row[header] ?? ''));
+  };
+
+  const validateMappings = () => {
+    const warnings: string[] = [];
+    Object.entries(fieldMappings).forEach(([header, mapping]) => {
+      const detectedType = detectFieldType(header, getColumnValues(header));
+      if (detectedType !== mapping && detectedType !== 'unknown') {
+        warnings.push(`Column "${header}" appears to contain ${detectedType} data but is mapped to ${mapping}`);
+      }
+    });
+    return warnings;
   };
   
   const handleApplyMapping = () => {
@@ -492,6 +456,22 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
               </div>
             </div>
           )}
+
+          {warnings.length > 0 && (
+            <div className="mb-6 p-4 rounded-md bg-yellow-50 border border-yellow-200">
+              <div className="flex items-start">
+                <AlertTriangle className="w-5 h-5 text-yellow-500 mr-2 mt-0.5" />
+                <div>
+                  <h3 className="font-medium text-yellow-800">Mapping Warnings</h3>
+                  <ul className="mt-1 list-disc list-inside text-sm text-yellow-700">
+                    {warnings.map((w, i) => (
+                      <li key={i}>{w}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
           
           {/* Field Mapping */}
           <div className="mb-6">
@@ -520,6 +500,7 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
                     <tr key={header} className="bg-white">
                       <td className="px-4 py-2 whitespace-nowrap text-sm text-neutral-900">
                         {header}
+                        <span className={`ml-1 inline-block w-2 h-2 rounded-full ${getConfidenceColor(matchScores[header] || 0)}`}></span>
                         {detectedFields.caseId === header && (
                           <span className="ml-2 px-1.5 py-0.5 text-xs bg-green-100 text-green-800 rounded">
                             ID
@@ -615,8 +596,11 @@ const CSVDataInspector: React.FC<CSVDataInspectorProps> = ({ file, onClose, onIm
             <Button variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button 
-              variant="primary" 
+            <Button variant="outline" onClick={handleAutoDetect}>
+              Auto-detect
+            </Button>
+            <Button
+              variant="primary"
               onClick={handleApplyMapping}
               disabled={Object.keys(fieldMappings).length === 0}
             >
