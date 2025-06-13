@@ -38,3 +38,4 @@ cypress/e2e/2-advanced-examples
 */.DS_Store
 **/.DS_Store
 .vercel
+.DS_Store
