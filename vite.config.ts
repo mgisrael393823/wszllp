@@ -92,4 +92,13 @@ export default defineConfig({
   ssr: {
     noExternal: ['papaparse'],
   },
+  build: {
+    rollupOptions: {
+      external: [
+        /^dev-tools\//,
+        'agent.ts',
+        'refactor.ts'
+      ]
+    }
+  },
 });

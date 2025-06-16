@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import * as readline from 'readline';
-import { CodeEditOrchestrator } from './dev-tools/multi-agent';
-import { CodeEditTask } from './dev-tools/multi-agent/types';
+import { CodeEditOrchestrator, CodeEditTask } from './dev-tools/multi-agent/index';
 
 // Interactive agent that accepts custom prompts like Claude
 const rl = readline.createInterface({
