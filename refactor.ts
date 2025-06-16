@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { CodeEditOrchestrator, CodeEditTask } from './dev-tools/multi-agent/index';
+import { CodeEditOrchestrator, CodeEditTask } from './dev-tools/multi-agent/index.js';
 
 // This file lets you run multi-agent refactoring from the project root
 // Usage: npx ts-node refactor.ts <command> [options]

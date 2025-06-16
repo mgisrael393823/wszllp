@@ -1,8 +1,8 @@
-export { CodeEditOrchestrator } from './CodeEditOrchestrator';
-export * from './types';
-export * from './agents/FileAnalysisAgent';
-export * from './agents/RefactorAgent';
-export * from './agents/TestAgent';
-export * from './agents/DocumentationAgent';
-export * from './agents/StyleAgent';
-export * from './agents/ValidationAgent';
+export { CodeEditOrchestrator } from './CodeEditOrchestrator.js';
+export * from './types.js';
+export * from './agents/FileAnalysisAgent.js';
+export * from './agents/RefactorAgent.js';
+export * from './agents/TestAgent.js';
+export * from './agents/DocumentationAgent.js';
+export * from './agents/StyleAgent.js';
+export * from './agents/ValidationAgent.js';
