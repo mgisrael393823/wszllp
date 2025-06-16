@@ -1,6 +1,6 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import glob from 'glob';
+import { glob } from 'glob';
 import { AgentTask, AgentResult, FileEdit } from '../types';
 
 export class FileAnalysisAgent {

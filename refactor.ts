@@ -1,5 +1,7 @@
 #!/usr/bin/env node
+import 'dotenv/config';
 import { CodeEditOrchestrator, type CodeEditTask } from './dev-tools/multi-agent';
+import { AnthropicProvider } from './dev-tools/multi-agent/utils/AnthropicProvider';
 
 // This file lets you run multi-agent refactoring from the project root
 // Usage: npx ts-node refactor.ts <command> [options]
@@ -8,10 +10,20 @@ const args = process.argv.slice(2);
 const command = args[0];
 
 async function main() {
+  // Initialize LLM provider if API key is available
+  let llmProvider;
+  try {
+    llmProvider = new AnthropicProvider();
+  } catch (error) {
+    console.log('⚠️  No Anthropic API key found. Some agents may have limited functionality.');
+    console.log('   Set ANTHROPIC_API_KEY environment variable to enable AI-powered features.\n');
+  }
+
   const orchestrator = new CodeEditOrchestrator({
     maxConcurrentAgents: 10,
     enableDryRun: args.includes('--dry-run'),
     autoValidate: true,
+    llmProvider,
   });
 
   // Progress tracking
@@ -202,6 +214,45 @@ async function main() {
       };
       break;
 
+    case 'analyze-design':
+      task = {
+        id: 'analyze-design',
+        description: 'Analyze current design patterns and create recommendations',
+        scope: ['src/styles', 'src/components', 'src/pages'],
+        constraints: {
+          preserveApi: true,
+          updateTests: false,
+          updateDocs: false,
+        },
+      };
+      break;
+
+    case 'extract-theme':
+      task = {
+        id: 'extract-theme',
+        description: 'Extract design tokens and create theme configuration',
+        scope: ['src/styles', 'src/components'],
+        constraints: {
+          preserveApi: true,
+          updateTests: false,
+          updateDocs: true,
+        },
+      };
+      break;
+
+    case 'modernize-ui':
+      task = {
+        id: 'modernize-ui',
+        description: 'Modernize UI with consistent design system',
+        scope: ['src/styles', 'src/components', 'src/pages'],
+        constraints: {
+          preserveApi: true,
+          updateTests: false,
+          updateDocs: false,
+        },
+      };
+      break;
+
     default:
       console.log(`
 WSZLLP Multi-Agent Refactoring Tool
@@ -230,6 +281,11 @@ FEATURE ENHANCEMENT COMMANDS:
 
 API/SERVICE COMMANDS:
   standardize-api-calls    Standardize API call patterns
+
+DESIGN SYSTEM COMMANDS:
+  analyze-design           Analyze current design patterns and create recommendations
+  extract-theme            Extract design tokens and create theme configuration
+  modernize-ui             Modernize UI with consistent design system
 
 Options:
   --dry-run               Preview changes without applying

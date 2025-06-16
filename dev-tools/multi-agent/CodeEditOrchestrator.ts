@@ -17,6 +17,9 @@ import { TestAgent } from './agents/TestAgent';
 import { DocumentationAgent } from './agents/DocumentationAgent';
 import { StyleAgent } from './agents/StyleAgent';
 import { ValidationAgent } from './agents/ValidationAgent';
+import { DesignAnalysisAgent } from './agents/DesignAnalysisAgent';
+import { ThemeExtractionAgent } from './agents/ThemeExtractionAgent';
+import { DesignReviewAgent } from './agents/DesignReviewAgent';
 import { ChangeTracker } from './utils/ChangeTracker';
 import { DependencyAnalyzer } from './utils/DependencyAnalyzer';
 import { v4 as uuidv4 } from 'uuid';
@@ -28,6 +31,9 @@ export class CodeEditOrchestrator extends EventEmitter {
   private documentationAgent: DocumentationAgent;
   private styleAgent: StyleAgent;
   private validationAgent: ValidationAgent;
+  private designAnalysisAgent: DesignAnalysisAgent;
+  private themeExtractionAgent: ThemeExtractionAgent;
+  private designReviewAgent: DesignReviewAgent;
   private changeTracker: ChangeTracker;
   private dependencyAnalyzer: DependencyAnalyzer;
   private codebaseContext?: CodebaseContext;
@@ -47,6 +53,9 @@ export class CodeEditOrchestrator extends EventEmitter {
     this.documentationAgent = new DocumentationAgent(config?.llmProvider);
     this.styleAgent = new StyleAgent();
     this.validationAgent = new ValidationAgent();
+    this.designAnalysisAgent = new DesignAnalysisAgent();
+    this.themeExtractionAgent = new ThemeExtractionAgent();
+    this.designReviewAgent = new DesignReviewAgent();
     
     // Initialize utilities
     this.changeTracker = new ChangeTracker();
@@ -123,26 +132,34 @@ export class CodeEditOrchestrator extends EventEmitter {
     const agentTasks: AgentTask[] = [];
 
     // Always start with file analysis
+    const fileAnalysisId = uuidv4();
     agentTasks.push({
-      id: uuidv4(),
+      id: fileAnalysisId,
       agentType: 'file-analysis',
       description: `Analyze files for: ${task.description}`,
       files: relevantFiles,
       priority: 'high',
     });
 
-    // Add refactoring tasks
-    const refactorGroups = this.groupFilesByComponent(relevantFiles);
-    for (const [component, files] of refactorGroups.entries()) {
-      agentTasks.push({
-        id: uuidv4(),
-        agentType: 'refactor',
-        description: `Refactor ${component}: ${task.description}`,
-        files,
-        priority: 'high',
-        dependencies: ['file-analysis'],
-        constraints: task.constraints,
-      });
+    // Add refactoring tasks (skip for design analysis tasks)
+    const isDesignTask = task.description.toLowerCase().match(/design|theme|ui|style|css|color|spacing|typography|modern|analyze/);
+    const refactorIds: string[] = [];
+    
+    if (!isDesignTask || task.description.toLowerCase().includes('modernize')) {
+      const refactorGroups = this.groupFilesByComponent(relevantFiles);
+      for (const [component, files] of refactorGroups.entries()) {
+        const refactorId = uuidv4();
+        refactorIds.push(refactorId);
+        agentTasks.push({
+          id: refactorId,
+          agentType: 'refactor',
+          description: `Refactor ${component}: ${task.description}`,
+          files,
+          priority: 'high',
+          dependencies: [fileAnalysisId],
+          constraints: task.constraints,
+        });
+      }
     }
 
     // Add test tasks if needed
@@ -155,7 +172,7 @@ export class CodeEditOrchestrator extends EventEmitter {
           description: `Update tests for: ${task.description}`,
           files: testFiles,
           priority: 'medium',
-          dependencies: refactorGroups.size > 0 ? ['refactor'] : ['file-analysis'],
+          dependencies: refactorIds.length > 0 ? refactorIds : [fileAnalysisId],
         });
       }
     }
@@ -170,6 +187,46 @@ export class CodeEditOrchestrator extends EventEmitter {
         priority: 'low',
         dependencies: ['refactor'],
       });
+    }
+
+    // Add design-related tasks if description mentions design, theme, or UI
+    const isReviewOnly = task.context?.isReviewOnly || task.context?.requestType === 'design-review';
+    
+    if (isDesignTask) {
+      if (isReviewOnly) {
+        // For review-only requests, just add design review task
+        agentTasks.push({
+          id: uuidv4(),
+          agentType: 'design-review',
+          description: `Review and provide recommendations for: ${task.description}`,
+          files: relevantFiles,
+          priority: 'high',
+          dependencies: [fileAnalysisId],
+        });
+      } else {
+        // For implementation requests, add analysis and extraction tasks
+        const designAnalysisId = uuidv4();
+        agentTasks.push({
+          id: designAnalysisId,
+          agentType: 'design-analysis',
+          description: `Analyze design patterns for: ${task.description}`,
+          files: relevantFiles,
+          priority: 'high',
+          dependencies: [fileAnalysisId],
+        });
+
+        // Add theme extraction task
+        if (task.description.toLowerCase().includes('theme') || task.description.toLowerCase().includes('token')) {
+          agentTasks.push({
+            id: uuidv4(),
+            agentType: 'theme-extraction',
+            description: `Extract design tokens for: ${task.description}`,
+            files: relevantFiles,
+            priority: 'high',
+            dependencies: [designAnalysisId],
+          });
+        }
+      }
     }
 
     // Always add style validation
@@ -252,6 +309,15 @@ export class CodeEditOrchestrator extends EventEmitter {
         
         case 'validation':
           return await this.validationAgent.execute(task);
+        
+        case 'design-analysis':
+          return await this.designAnalysisAgent.execute(task);
+        
+        case 'theme-extraction':
+          return await this.themeExtractionAgent.execute(task);
+        
+        case 'design-review':
+          return await this.designReviewAgent.execute(task);
         
         default:
           throw new Error(`Unknown agent type: ${task.agentType}`);
