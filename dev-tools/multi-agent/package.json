@@ -1,0 +1,24 @@
+{
+  "name": "multi-agent-code-editor",
+  "version": "1.0.0",
+  "description": "Multi-agent system for orchestrating complex code edits",
+  "main": "index.ts",
+  "scripts": {
+    "agent": "ts-node run-task.ts",
+    "interactive": "ts-node interactive.ts",
+    "example": "ts-node example-usage.ts",
+    "test": "echo \"No tests yet\"",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "glob": "^8.0.3",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/glob": "^8.0.0",
+    "@types/node": "^18.0.0",
+    "@types/uuid": "^9.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^4.9.0"
+  }
+}

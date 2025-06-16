@@ -3,5 +3,15 @@
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
-  ]
+  ],
+  "functions": {
+    "api/**/*.js": {
+      "excludeFiles": "dev-tools/**"
+    }
+  },
+  "build": {
+    "env": {
+      "NEXT_PUBLIC_EXCLUDE_DEV_TOOLS": "true"
+    }
+  }
 }

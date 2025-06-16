@@ -39,3 +39,8 @@ cypress/e2e/2-advanced-examples
 **/.DS_Store
 .vercel
 .DS_Store
+
+# Multi-agent tool output
+dev-tools/multi-agent/change-history/
+dev-tools/multi-agent/logs/
+dev-tools/multi-agent/*.log
