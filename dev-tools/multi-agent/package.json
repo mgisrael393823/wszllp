@@ -2,6 +2,7 @@
   "name": "multi-agent-code-editor",
   "version": "1.0.0",
   "description": "Multi-agent system for orchestrating complex code edits",
+  "type": "module",
   "main": "index.ts",
   "scripts": {
     "agent": "ts-node run-task.ts",
