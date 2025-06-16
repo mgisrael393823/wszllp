@@ -33,11 +33,26 @@ export type AgentType =
   | 'test'
   | 'documentation'
   | 'style'
-  | 'validation';
+  | 'validation'
+  | 'design-analysis'
+  | 'theme-extraction'
+  | 'design-system'
+  | 'ui-modernization'
+  | 'design-review'
+  | 'design-implementation';
 
 export interface FileEdit {
-  filePath: string;
-  edits: Array<{
+  file: string;
+  additions: Array<{
+    line: number;
+    content: string;
+  }>;
+  deletions: Array<{
+    line: number;
+    count: number;
+  }>;
+  filePath?: string; // For backwards compatibility
+  edits?: Array<{
     oldText: string;
     newText: string;
     description?: string;

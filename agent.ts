@@ -1,6 +1,8 @@
 #!/usr/bin/env node
+import 'dotenv/config';
 import * as readline from 'readline';
 import { CodeEditOrchestrator, type CodeEditTask } from './dev-tools/multi-agent';
+import { AnthropicProvider } from './dev-tools/multi-agent/utils/AnthropicProvider';
 
 // Interactive agent that accepts custom prompts like Claude
 const rl = readline.createInterface({
@@ -25,6 +27,9 @@ Examples:
 - "Add loading states to all components that fetch data"
 - "Refactor the authentication flow to use context instead of props"
 - "Add TypeScript types to the services folder"
+- "Analyze the current design and create a cohesive theme"
+- "Modernize the UI with consistent spacing and colors"
+- "Extract design tokens from the current styles"
 
 Type 'exit' to quit, 'help' for more examples.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -87,6 +92,14 @@ async function parseRequest(input: string): Promise<CodeEditTask | null> {
   let updateTests = false;
   let updateDocs = false;
   let preserveApi = true;
+  let isReviewOnly = false;
+
+  // Check if this is a review-only request
+  if (lower.includes('review') || lower.includes('analyze') || lower.includes('suggest') || 
+      lower.includes('recommendation') || lower.includes('assessment') ||
+      (lower.includes('without') && (lower.includes('changing') || lower.includes('altering')))) {
+    isReviewOnly = true;
+  }
 
   // Scope detection
   if (lower.includes('all') || lower.includes('entire') || lower.includes('whole')) {
@@ -109,6 +122,8 @@ async function parseRequest(input: string): Promise<CodeEditTask | null> {
     scope = ['src/pages'];
   } else if (lower.includes('style') || lower.includes('css')) {
     scope = ['src/styles', 'src/components'];
+  } else if (lower.includes('design') || lower.includes('theme') || lower.includes('ui')) {
+    scope = ['src/styles', 'src/components', 'src/pages'];
   } else {
     // Try to extract specific paths mentioned
     const pathMatches = input.match(/(?:in|to|from)\s+(\S+)/g);
@@ -154,14 +169,28 @@ async function parseRequest(input: string): Promise<CodeEditTask | null> {
       preserveApi,
       allowBreakingChanges: !preserveApi,
     },
+    context: {
+      isReviewOnly,
+      requestType: isReviewOnly ? 'design-review' : 'refactor',
+    },
   };
 }
 
 async function executeTask(task: CodeEditTask, dryRun: boolean) {
+  // Initialize LLM provider if API key is available
+  let llmProvider;
+  try {
+    llmProvider = new AnthropicProvider();
+  } catch (error) {
+    console.log('⚠️  No Anthropic API key found. Some agents may have limited functionality.');
+    console.log('   Set ANTHROPIC_API_KEY environment variable to enable AI-powered features.\n');
+  }
+
   const orchestrator = new CodeEditOrchestrator({
     maxConcurrentAgents: 10,
     enableDryRun: dryRun,
     autoValidate: true,
+    llmProvider,
   });
 
   // Progress tracking
@@ -234,6 +263,14 @@ STYLING:
 - "Convert inline styles to CSS modules"
 - "Update components to use Tailwind classes"
 - "Remove deprecated CSS"
+
+DESIGN SYSTEM:
+- "Analyze current design patterns and create recommendations"
+- "Extract and standardize design tokens"
+- "Create a cohesive color palette"
+- "Modernize UI with consistent spacing and typography"
+- "Generate a theme file from existing styles"
+- "Implement CSS variables for theming"
 
 TIPS:
 - Be specific about which components or folders
