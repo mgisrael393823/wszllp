@@ -103,10 +103,28 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            if (id.includes('react')) return 'vendor-react';
+            // Core React ecosystem
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+              return 'vendor-react';
+            }
+            // Supabase client
             if (id.includes('@supabase')) return 'vendor-supabase';
+            // Heavy libraries
             if (id.includes('xlsx')) return 'vendor-xlsx';
+            // Icons
             if (id.includes('lucide-react')) return 'vendor-icons';
+            // Form libraries
+            if (id.includes('react-hook-form') || id.includes('@hookform')) {
+              return 'vendor-forms';
+            }
+            // UI components
+            if (id.includes('@radix-ui') || id.includes('class-variance-authority')) {
+              return 'vendor-ui';
+            }
+            // Date utilities
+            if (id.includes('date-fns')) return 'vendor-date';
+            // Table utilities
+            if (id.includes('@tanstack/react-table')) return 'vendor-table';
           }
         }
       }

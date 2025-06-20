@@ -42,6 +42,7 @@ const ActivityPage = React.lazy(() => import('./components/activity/ActivityPage
 const ProfilePage = React.lazy(() => import('./components/user/ProfilePage'));
 const SettingsPage = React.lazy(() => import('./components/user/SettingsPage'));
 import ErrorBoundary from './components/ui/ErrorBoundary';
+import LazyBoundary from './components/ui/LazyBoundary';
 import CardTestPage from './components/ui/CardTestPage';
 import CardShowcase from './components/ui/CardShowcase';
 
@@ -139,17 +140,17 @@ const AppContent = () => {
         <Route
           path="/calendar"
           element={
-            <Suspense fallback={<div className="p-8 text-center">Loading calendar...</div>}>
+            <LazyBoundary>
               <CalendarPage />
-            </Suspense>
+            </LazyBoundary>
           }
         />
         <Route
           path="/documents"
           element={
-            <Suspense fallback={<div className="p-8 text-center">Loading documents...</div>}>
+            <LazyBoundary>
               <DocumentManagement />
-            </Suspense>
+            </LazyBoundary>
           }
         >
           <Route index element={
@@ -209,9 +210,9 @@ const AppContent = () => {
         <Route
           path="/workflows"
           element={
-            <Suspense fallback={<div className="p-8 text-center">Loading workflows...</div>}>
+            <LazyBoundary>
               <WorkflowDashboard />
-            </Suspense>
+            </LazyBoundary>
           }
         />
         <Route
@@ -249,9 +250,9 @@ const AppContent = () => {
         <Route
           path="/admin"
           element={
-            <Suspense fallback={<div className="p-8 text-center">Loading admin...</div>}>
+            <LazyBoundary errorMessage="Failed to load admin panel">
               <AdminPage />
-            </Suspense>
+            </LazyBoundary>
           }
         />
         <Route

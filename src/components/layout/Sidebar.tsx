@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Briefcase, FileText, Users, Settings,
   LayoutDashboard, HelpCircle, Calendar, Activity, DollarSign, Database
 } from 'lucide-react';
+import { usePrefetch, prefetchCommonRoutes } from '../../utils/routePrefetch';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -86,6 +87,11 @@ const Sidebar: React.FC<SidebarProps> = ({
   // Navigation structure
   const navStructure = createNavStructure();
   
+  // Prefetch common routes after initial load
+  useEffect(() => {
+    prefetchCommonRoutes();
+  }, []);
+  
   // Helper function to determine if a nav item should be highlighted
   // based on current route (supports child routes)
   const isNavItemActive = (itemValue: string): boolean => {
@@ -101,18 +107,39 @@ const Sidebar: React.FC<SidebarProps> = ({
   };
 
 
+  // Map nav values to actual routes
+  const getRouteForNavItem = (value: string): string => {
+    const routeMap: Record<string, string> = {
+      'dashboard': '/',
+      'cases': '/cases',
+      'hearings': '/hearings',
+      'documents': '/documents',
+      'invoices': '/invoices',
+      'contacts': '/contacts',
+      'activity': '/activity',
+      'admin': '/admin',
+    };
+    return routeMap[value] || `/${value}`;
+  };
+
   // Render a navigation item with enhanced styling and interactions
   const renderNavItem = (item: NavItem) => {
     const isActive = isNavItemActive(item.value);
     const isItemHovered = hoveredItem === item.value;
     const showExpanded = !isCollapsed || isHovering;
+    const route = getRouteForNavItem(item.value);
+    const prefetchHandlers = usePrefetch(route);
     
     return (
       <div key={item.value} className="relative">
         <div
           onClick={() => onSectionChange(item.value)}
-          onMouseEnter={() => setHoveredItem(item.value)}
+          onMouseEnter={(e) => {
+            setHoveredItem(item.value);
+            prefetchHandlers.onMouseEnter();
+          }}
           onMouseLeave={() => setHoveredItem(null)}
+          onFocus={prefetchHandlers.onFocus}
           className={`
             group relative flex items-center w-full text-sm font-medium rounded-lg 
             transition-all duration-200 ease-in-out text-left cursor-pointer
