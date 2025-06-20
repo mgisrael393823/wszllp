@@ -157,6 +157,7 @@ const AcceptInvitationPage: React.FC = () => {
               className="mx-auto h-16 w-auto"
               src="/wszmainlogo.webp"
               alt="WSZ Legal Logo"
+              loading="lazy"
             />
             <h2 className="mt-6 text-3xl font-extrabold text-neutral-900">
               Verifying Invitation
@@ -180,6 +181,7 @@ const AcceptInvitationPage: React.FC = () => {
               className="mx-auto h-16 w-auto"
               src="/wszmainlogo.webp"
               alt="WSZ Legal Logo"
+              loading="lazy"
             />
             <div className="mt-6">
               <AlertCircle className="mx-auto h-12 w-12 text-red-500" />
@@ -213,6 +215,7 @@ const AcceptInvitationPage: React.FC = () => {
               className="mx-auto h-16 w-auto"
               src="/wszmainlogo.webp"
               alt="WSZ Legal Logo"
+              loading="lazy"
             />
             <div className="mt-6">
               <CheckCircle className="mx-auto h-12 w-12 text-green-500" />
@@ -239,6 +242,7 @@ const AcceptInvitationPage: React.FC = () => {
             className="mx-auto h-16 w-auto"
             src="/wszmainlogo.webp"
             alt="WSZ Legal Logo"
+            loading="lazy"
           />
           <h2 className="mt-6 text-center text-3xl font-extrabold text-neutral-900">
             Complete Your Account Setup

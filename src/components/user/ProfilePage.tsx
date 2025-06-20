@@ -174,10 +174,11 @@ const ProfilePage: React.FC = () => {
             <>
               <div className="flex items-center mb-6">
                 {profile.avatar_url ? (
-                  <img 
-                    src={profile.avatar_url} 
-                    alt={profile.full_name || 'User avatar'} 
+                  <img
+                    src={profile.avatar_url}
+                    alt={profile.full_name || 'User avatar'}
                     className="w-20 h-20 rounded-full object-cover mr-4"
+                    loading="lazy"
                   />
                 ) : (
                   <div className="w-20 h-20 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center mr-4">

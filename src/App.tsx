@@ -21,26 +21,26 @@ import CaseSkeleton from './components/cases/CaseSkeleton';
 import HearingsPage from './components/hearings/HearingsPage';
 import HearingForm from './components/hearings/HearingForm';
 const DocumentList = React.lazy(() => import('./components/documents/DocumentList'));
-import DocumentManagement from './components/documents/DocumentManagement';
-import DocumentUploadForm from './components/documents/DocumentUploadForm';
-import DocumentDetail from './components/documents/DocumentDetail';
-import InvoicesPage from './components/invoices/InvoicesPage';
-import InvoiceDetail from './components/invoices/InvoiceDetail';
-import ServiceLogsList from './components/service-logs/ServiceLogsList';
-import EFilePage from './components/efile/EFilePage';
-import AdminPage from './components/admin/AdminPage';
-import WorkflowDashboard from './components/workflows/WorkflowDashboard';
-import WorkflowDetail from './components/workflows/WorkflowDetail';
-import TemplateList from './components/document-templates/TemplateList';
-import TemplateDetail from './components/document-templates/TemplateDetail';
-import DocumentGenerator from './components/document-templates/DocumentGenerator';
-import CalendarPage from './components/calendar/CalendarPage';
-import NotificationsPage from './components/notifications/NotificationsPage';
-import NotificationScheduler from './components/notifications/NotificationScheduler';
-import ContactsPage from './components/contacts/ContactsPage';
-import ActivityPage from './components/activity/ActivityPage';
-import ProfilePage from './components/user/ProfilePage';
-import SettingsPage from './components/user/SettingsPage';
+const DocumentManagement = React.lazy(() => import('./components/documents/DocumentManagement'));
+const DocumentUploadForm = React.lazy(() => import('./components/documents/DocumentUploadForm'));
+const DocumentDetail = React.lazy(() => import('./components/documents/DocumentDetail'));
+const InvoicesPage = React.lazy(() => import('./components/invoices/InvoicesPage'));
+const InvoiceDetail = React.lazy(() => import('./components/invoices/InvoiceDetail'));
+const ServiceLogsList = React.lazy(() => import('./components/service-logs/ServiceLogsList'));
+const EFilePage = React.lazy(() => import('./components/efile/EFilePage'));
+const AdminPage = React.lazy(() => import('./components/admin/AdminPage'));
+const WorkflowDashboard = React.lazy(() => import('./components/workflows/WorkflowDashboard'));
+const WorkflowDetail = React.lazy(() => import('./components/workflows/WorkflowDetail'));
+const TemplateList = React.lazy(() => import('./components/document-templates/TemplateList'));
+const TemplateDetail = React.lazy(() => import('./components/document-templates/TemplateDetail'));
+const DocumentGenerator = React.lazy(() => import('./components/document-templates/DocumentGenerator'));
+const CalendarPage = React.lazy(() => import('./components/calendar/CalendarPage'));
+const NotificationsPage = React.lazy(() => import('./components/notifications/NotificationsPage'));
+const NotificationScheduler = React.lazy(() => import('./components/notifications/NotificationScheduler'));
+const ContactsPage = React.lazy(() => import('./components/contacts/ContactsPage'));
+const ActivityPage = React.lazy(() => import('./components/activity/ActivityPage'));
+const ProfilePage = React.lazy(() => import('./components/user/ProfilePage'));
+const SettingsPage = React.lazy(() => import('./components/user/SettingsPage'));
 import ErrorBoundary from './components/ui/ErrorBoundary';
 import CardTestPage from './components/ui/CardTestPage';
 import CardShowcase from './components/ui/CardShowcase';
@@ -136,31 +136,164 @@ const AppContent = () => {
             />
           </div>
         } />
-        <Route path="/calendar" element={<CalendarPage />} />
-        <Route path="/documents" element={<DocumentManagement />}>
+        <Route
+          path="/calendar"
+          element={
+            <Suspense fallback={<div className="p-8 text-center">Loading calendar...</div>}>
+              <CalendarPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/documents"
+          element={
+            <Suspense fallback={<div className="p-8 text-center">Loading documents...</div>}>
+              <DocumentManagement />
+            </Suspense>
+          }
+        >
           <Route index element={
             <Suspense fallback={<div className="p-8 text-center">Loading documents...</div>}>
               <DocumentList />
             </Suspense>
           } />
-          <Route path="upload" element={<DocumentUploadForm />} />
-          <Route path="efile" element={<EFilePage />} />
-          <Route path="service-logs" element={<ServiceLogsList />} />
+          <Route
+            path="upload"
+            element={
+              <Suspense fallback={<div className="p-4">Loading upload form...</div>}>
+                <DocumentUploadForm />
+              </Suspense>
+            }
+          />
+          <Route
+            path="efile"
+            element={
+              <Suspense fallback={<div className="p-4">Loading e-file...</div>}>
+                <EFilePage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="service-logs"
+            element={
+              <Suspense fallback={<div className="p-4">Loading service logs...</div>}>
+                <ServiceLogsList />
+              </Suspense>
+            }
+          />
         </Route>
-        <Route path="/documents/:id" element={<DocumentDetail />} />
-        <Route path="/invoices" element={<InvoicesPage />} />
-        <Route path="/invoices/:id" element={<InvoiceDetail />} />
-        <Route path="/workflows" element={<WorkflowDashboard />} />
-        <Route path="/workflows/:id" element={<WorkflowDetail />} />
-        <Route path="/templates" element={<TemplateList />} />
-        <Route path="/templates/:id" element={<TemplateDetail />} />
-        <Route path="/document-generator" element={<DocumentGenerator />} />
-        <Route path="/admin" element={<AdminPage />} />
-        <Route path="/notifications" element={<NotificationsPage />} />
-        <Route path="/activity" element={<ActivityPage />} />
-        <Route path="/contacts/*" element={<ContactsPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/settings" element={<SettingsPage />} />
+        <Route
+          path="/documents/:id"
+          element={
+            <Suspense fallback={<div className="p-8 text-center">Loading document...</div>}>
+              <DocumentDetail />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/invoices"
+          element={
+            <Suspense fallback={<div className="p-8 text-center">Loading invoices...</div>}>
+              <InvoicesPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/invoices/:id"
+          element={
+            <Suspense fallback={<div className="p-8 text-center">Loading invoice...</div>}>
+              <InvoiceDetail />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/workflows"
+          element={
+            <Suspense fallback={<div className="p-8 text-center">Loading workflows...</div>}>
+              <WorkflowDashboard />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/workflows/:id"
+          element={
+            <Suspense fallback={<div className="p-8 text-center">Loading workflow...</div>}>
+              <WorkflowDetail />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/templates"
+          element={
+            <Suspense fallback={<div className="p-8 text-center">Loading templates...</div>}>
+              <TemplateList />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/templates/:id"
+          element={
+            <Suspense fallback={<div className="p-8 text-center">Loading template...</div>}>
+              <TemplateDetail />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/document-generator"
+          element={
+            <Suspense fallback={<div className="p-8 text-center">Loading generator...</div>}>
+              <DocumentGenerator />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <Suspense fallback={<div className="p-8 text-center">Loading admin...</div>}>
+              <AdminPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/notifications"
+          element={
+            <Suspense fallback={<div className="p-8 text-center">Loading notifications...</div>}>
+              <NotificationsPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/activity"
+          element={
+            <Suspense fallback={<div className="p-8 text-center">Loading activity...</div>}>
+              <ActivityPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/contacts/*"
+          element={
+            <Suspense fallback={<div className="p-8 text-center">Loading contacts...</div>}>
+              <ContactsPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <Suspense fallback={<div className="p-8 text-center">Loading profile...</div>}>
+              <ProfilePage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <Suspense fallback={<div className="p-8 text-center">Loading settings...</div>}>
+              <SettingsPage />
+            </Suspense>
+          }
+        />
         </Routes>
       </ErrorBoundary>
     </MainLayout>
