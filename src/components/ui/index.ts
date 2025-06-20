@@ -13,7 +13,6 @@ export { default as Typography } from './Typography';
 // Standardized Layout Components
 export { default as PageHeader } from './PageHeader';
 export { default as FilterBar } from './FilterBar';
-export { default as SearchInput } from './SearchInput';
 
 // State Components
 export { 

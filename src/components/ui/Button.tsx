@@ -53,16 +53,24 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
     lg: 'lg',
   };
 
-  // Map the elevation to Tailwind shadow classes
+  // Map the elevation to enhanced shadow classes with hover states
   const shadowClasses: Record<ButtonElevation, string> = {
-    none: '',
-    low: 'shadow-sm',
-    medium: 'shadow-md',
-    high: 'shadow-lg',
+    none: 'hover:shadow-md active:shadow-sm',
+    low: 'shadow-sm hover:shadow-lg active:shadow-md',
+    medium: 'shadow-md hover:shadow-xl active:shadow-lg',
+    high: 'shadow-lg hover:shadow-2xl active:shadow-xl',
   };
 
-  // Combine with full width class if needed
-  const combinedClassName = `${shadowClasses[elevation]} ${fullWidth ? 'w-full' : ''} ${className}`;
+  // Combine with enhanced interaction classes
+  const combinedClassName = `
+    ${shadowClasses[elevation]} 
+    ${fullWidth ? 'w-full' : ''} 
+    transition-all duration-200 ease-out
+    hover:scale-[1.02] hover:-translate-y-0.5
+    active:scale-[0.98] active:translate-y-0
+    disabled:hover:scale-100 disabled:hover:translate-y-0
+    ${className}
+  `;
 
   // Process icon to prevent nested button issues
   const safeIcon = icon && React.isValidElement(icon) 
@@ -84,7 +92,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
       {...props}
     >
       <>
-        {safeIcon && <span className={`${children ? 'mr-2' : ''}`}>{safeIcon}</span>}
+        {safeIcon && <span className={`${children ? 'mr-2' : ''} transition-transform group-hover:scale-110`}>{safeIcon}</span>}
         {children}
       </>
     </ShadcnButton>

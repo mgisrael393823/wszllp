@@ -266,26 +266,28 @@ const EnhancedDashboardHome: React.FC = () => {
   ], [navigate]);
   
   return (
-    <div className="page-container">
+    <div className="page-container space-y-layout-normal">
       {/* Enhanced Header with Improved Refresh Controls */}
-      <div className="page-header mb-8">
+      <div className="page-header">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div className="flex-1">
             <h1 className="page-title flex items-center gap-3">
-              <Scale className="w-8 h-8 text-primary-600" />
-              Executive Dashboard
+              <div className="p-2 bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl shadow-sm">
+                <Scale className="w-8 h-8 text-primary-600" />
+              </div>
+              <span className="bg-gradient-to-r from-neutral-900 to-neutral-700 bg-clip-text text-transparent">Executive Dashboard</span>
             </h1>
-            <p className="page-subtitle">
+            <p className="page-subtitle mt-2 text-neutral-600">
               Comprehensive overview of your legal practice performance and key metrics
             </p>
             {lastRefreshed && (
               <div className="mt-2">
-                <p className="text-xs text-neutral-500">
+                <p className="text-xs text-neutral-600 font-medium">
                   Last updated: {new Date(lastRefreshed).toLocaleString()}
                 </p>
-                <div className="flex items-center gap-1 text-xs text-neutral-500">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span>Auto-refresh: 60s</span>
+                <div className="flex items-center gap-2 text-xs text-neutral-600">
+                  <div className="w-2 h-2 bg-success-500 rounded-full animate-pulse shadow-glow-sm"></div>
+                  <span className="font-medium">Auto-refresh: 60s</span>
                   <button
                     onClick={handleRefresh}
                     disabled={isRefreshing}
@@ -311,7 +313,7 @@ const EnhancedDashboardHome: React.FC = () => {
       </div>
       
       {/* Enhanced KPI Metrics Grid - Using new MetricCard component */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-content-comfortable">
         {isLoading ? (
           // Loading skeletons
           Array.from({ length: 4 }).map((_, index) => (
@@ -346,7 +348,7 @@ const EnhancedDashboardHome: React.FC = () => {
       </div>
 
       {/* Secondary Content Grid - Using new ActionListCard component */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-content-comfortable">
         {/* Quick Actions */}
         <div className="lg:col-span-1">
           <ActionListCard
@@ -378,10 +380,10 @@ const EnhancedDashboardHome: React.FC = () => {
           
           {/* View All Activity Link */}
           {activityItems.length > 0 && (
-            <div className="mt-4 text-center">
+            <div className="mt-content-normal text-center">
               <button
                 onClick={() => navigate('/activity')}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-colors"
+                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-xl transition-all hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
               >
                 <Activity className="w-4 h-4" />
                 View All Activity

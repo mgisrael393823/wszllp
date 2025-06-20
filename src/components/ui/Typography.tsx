@@ -55,21 +55,21 @@ const Typography: React.FC<TypographyProps> = ({
   as,
   ...props
 }) => {
-  // Map variants to appropriate element types and styles
+  // Map variants to appropriate element types and styles with enhanced typography
   const variantMapping: Record<TypographyVariant, { element: React.ElementType; className: string }> = {
-    h1: { element: 'h1', className: 'text-4xl font-extrabold' },
-    h2: { element: 'h2', className: 'text-3xl font-bold' },
-    h3: { element: 'h3', className: 'text-2xl font-semibold' },
-    h4: { element: 'h4', className: 'text-xl font-semibold' },
-    h5: { element: 'h5', className: 'text-lg font-medium' },
-    h6: { element: 'h6', className: 'text-base font-medium' },
-    subtitle1: { element: 'h6', className: 'text-lg font-normal' },
-    subtitle2: { element: 'h6', className: 'text-base font-medium' },
-    body1: { element: 'p', className: 'text-base font-normal' },
-    body2: { element: 'p', className: 'text-sm font-normal' },
-    caption: { element: 'span', className: 'text-xs font-normal' },
-    overline: { element: 'span', className: 'text-xs font-medium uppercase tracking-wider' },
-    legal: { element: 'p', className: 'text-xs font-light' },
+    h1: { element: 'h1', className: 'text-4xl font-extrabold tracking-tight leading-tight' },
+    h2: { element: 'h2', className: 'text-3xl font-bold tracking-tight leading-tight' },
+    h3: { element: 'h3', className: 'text-2xl font-semibold tracking-normal leading-snug' },
+    h4: { element: 'h4', className: 'text-xl font-semibold tracking-normal leading-snug' },
+    h5: { element: 'h5', className: 'text-lg font-medium tracking-normal leading-normal' },
+    h6: { element: 'h6', className: 'text-base font-medium tracking-normal leading-normal' },
+    subtitle1: { element: 'h6', className: 'text-lg font-normal tracking-wide leading-relaxed' },
+    subtitle2: { element: 'h6', className: 'text-base font-medium tracking-wide leading-relaxed' },
+    body1: { element: 'p', className: 'text-base font-normal tracking-normal leading-relaxed' },
+    body2: { element: 'p', className: 'text-sm font-normal tracking-normal leading-relaxed' },
+    caption: { element: 'span', className: 'text-xs font-normal tracking-wide' },
+    overline: { element: 'span', className: 'text-xs font-semibold uppercase tracking-widest letter-spacing-[0.1em]' },
+    legal: { element: 'p', className: 'text-xs font-light tracking-wide leading-relaxed' },
   };
 
   // Text alignment
@@ -80,16 +80,16 @@ const Typography: React.FC<TypographyProps> = ({
     justify: 'text-justify',
   };
 
-  // Text colors
+  // Text colors with improved contrast
   const colorStyles: Record<TypographyColor, string> = {
     default: 'text-neutral-800',
-    primary: 'text-primary-600',
-    secondary: 'text-secondary-600',
-    accent: 'text-accent-500',
-    success: 'text-success-600',
-    error: 'text-error-600',
-    warning: 'text-warning-600',
-    light: 'text-neutral-500',
+    primary: 'text-primary-700',
+    secondary: 'text-secondary-700',
+    accent: 'text-accent-600',
+    success: 'text-success-700',
+    error: 'text-error-700',
+    warning: 'text-warning-700',
+    light: 'text-neutral-600',
     medium: 'text-neutral-700',
     dark: 'text-neutral-900',
   };
