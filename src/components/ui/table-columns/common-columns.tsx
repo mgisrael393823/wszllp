@@ -236,10 +236,11 @@ export const commonColumns = {
           {showAvatar && (
             <div className="flex-shrink-0">
               {avatar ? (
-                <img 
-                  className="h-8 w-8 rounded-full object-cover" 
-                  src={avatar} 
+                <img
+                  className="h-8 w-8 rounded-full object-cover"
+                  src={avatar}
                   alt={name}
+                  loading="lazy"
                 />
               ) : (
                 <div className="h-8 w-8 rounded-full bg-neutral-200 flex items-center justify-center">

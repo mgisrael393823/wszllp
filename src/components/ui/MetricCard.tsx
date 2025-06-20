@@ -34,8 +34,13 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   return (
     <Card 
       className={cn(
-        "p-6",
-        isClickable && "cursor-pointer hover:shadow-md transition-shadow",
+        "p-6 bg-gradient-to-br from-white to-neutral-50/30 border-neutral-200/60",
+        "shadow-sm hover:shadow-xl transition-all duration-300",
+        isClickable && [
+          "cursor-pointer",
+          "hover:scale-[1.02] hover:-translate-y-1",
+          "active:scale-[0.98] active:translate-y-0"
+        ],
         className
       )}
       onClick={onClick}
@@ -43,28 +48,30 @@ export const MetricCard: React.FC<MetricCardProps> = ({
       <CardContent className="p-0">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <p className="text-sm font-medium text-neutral-600">{title}</p>
+            <p className="text-sm font-medium text-neutral-500 tracking-wide">{title}</p>
             <div className="mt-2 flex items-baseline gap-2">
-              <h3 className="text-2xl font-semibold text-neutral-900">
+              <h3 className="text-3xl font-bold text-neutral-900 tracking-tight">
                 {value}
               </h3>
               {trend && (
                 <span className={cn(
-                  "text-sm font-medium",
-                  trend.isPositive ? "text-green-600" : "text-red-600"
+                  "text-sm font-semibold px-2 py-0.5 rounded-full",
+                  trend.isPositive 
+                    ? "text-success-700 bg-success-50 ring-1 ring-success-200/50" 
+                    : "text-error-700 bg-error-50 ring-1 ring-error-200/50"
                 )}>
                   {trend.value}
                 </span>
               )}
             </div>
             {subtitle && (
-              <p className="mt-1 text-sm text-neutral-500">{subtitle}</p>
+              <p className="mt-1.5 text-sm text-neutral-600 font-light">{subtitle}</p>
             )}
           </div>
           {Icon && (
             <div className="flex-shrink-0">
-              <div className="rounded-lg bg-neutral-100 p-3">
-                <Icon className="h-6 w-6 text-neutral-600" />
+              <div className="rounded-xl bg-gradient-to-br from-primary-50 to-primary-100 p-3 shadow-sm">
+                <Icon className="h-6 w-6 text-primary-600" />
               </div>
             </div>
           )}

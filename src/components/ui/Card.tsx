@@ -98,36 +98,36 @@ const Card: React.FC<CardProps> = ({
   const elevationStyles: Record<CardElevation, string> = {
     flat: '',
     low: 'shadow-sm',
-    medium: 'shadow-md',
-    high: 'shadow-lg',
-    extreme: 'shadow-2xl',
+    medium: 'shadow-md hover:shadow-lg',
+    high: 'shadow-lg hover:shadow-xl',
+    extreme: 'shadow-2xl hover:shadow-2xl',
   };
 
-  // Hover elevation effects
+  // Hover elevation effects with modern transitions
   const hoverElevationStyles: Record<CardElevation, string> = {
-    flat: 'hover:shadow-sm',
-    low: 'hover:shadow-md',
-    medium: 'hover:shadow-lg',
-    high: 'hover:shadow-xl',
+    flat: 'hover:shadow-md',
+    low: 'hover:shadow-lg',
+    medium: 'hover:shadow-xl',
+    high: 'hover:shadow-2xl',
     extreme: 'hover:shadow-2xl',
   };
 
   // Enhanced border system with gradients
   const borderStyles: Record<CardBorder, string> = {
     none: 'border-0',
-    light: 'border border-neutral-200/60',
-    normal: 'border border-neutral-300',
-    accent: 'border border-primary-200',
-    gradient: 'border border-transparent bg-gradient-to-r from-primary-200 via-accent-200 to-secondary-200 bg-clip-padding',
+    light: 'border border-neutral-200/50 hover:border-neutral-300/70',
+    normal: 'border border-neutral-300 hover:border-neutral-400',
+    accent: 'border border-primary-200 hover:border-primary-300',
+    gradient: 'border-2 border-transparent bg-gradient-to-r from-primary-200 via-accent-200 to-secondary-200 bg-clip-padding',
   };
 
-  // Simplified variant system
+  // Simplified variant system with subtle gradients
   const variantStyles: Record<CardVariant, string> = {
-    default: 'bg-white',
-    primary: 'bg-primary-50/50 border-primary-200',
-    accent: 'bg-accent-50/50 border-accent-200',
+    default: 'bg-gradient-to-br from-white to-neutral-50/20',
+    primary: 'bg-gradient-to-br from-primary-50/60 to-primary-50/30 border-primary-200',
+    accent: 'bg-gradient-to-br from-accent-50/60 to-accent-50/30 border-accent-200',
     bordered: 'bg-white border-2',
-    elevated: 'bg-white shadow-lg',
+    elevated: 'bg-gradient-to-br from-white to-neutral-50/40 shadow-lg',
   };
 
   // Systematic foundation system
@@ -141,8 +141,9 @@ const Card: React.FC<CardProps> = ({
   const isInteractive = interactive || !!onClick;
   
   const stateStyles = [
-    // Base transition
-    'transition-all duration-300 ease-out',
+    // Base transition with modern easing
+    // eslint-disable-next-line no-useless-escape
+    'transition-all duration-300 ease-\[cubic-bezier\(0.4,0,0.2,1\)\]',
     
     // Loading state
     loading && 'animate-pulse pointer-events-none',
@@ -154,8 +155,8 @@ const Card: React.FC<CardProps> = ({
     isInteractive && !disabled && !loading && [
       'cursor-pointer',
       'hover:-translate-y-1',
-      'hover:scale-[1.02]',
-      'active:scale-[0.98]',
+      'hover:scale-[1.01]',
+      'active:scale-[0.99]',
       'active:translate-y-0',
       hoverElevationStyles[elevation],
     ].filter(Boolean).join(' '),
@@ -163,8 +164,8 @@ const Card: React.FC<CardProps> = ({
     // Focus states for accessibility
     isInteractive && 'focus-within:ring-2 focus-within:ring-primary-500/20 focus-within:ring-offset-2',
     
-    // Glassmorphism effect
-    glassmorphism && 'backdrop-blur-lg bg-white/70 border-white/20',
+    // Glassmorphism effect with modern styling
+    glassmorphism && 'backdrop-blur-xl bg-white/60 border-white/30 shadow-xl',
     
     // Gradient background
     gradient && 'bg-gradient-to-br from-neutral-50/30 via-white to-neutral-50/50',
@@ -316,7 +317,7 @@ const Card: React.FC<CardProps> = ({
       
       {/* Subtle shine effect for interactive cards */}
       {isInteractive && !disabled && (
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full hover:translate-x-full transition-transform duration-700 ease-out pointer-events-none rounded-[inherit] overflow-hidden" />
       )}
       </ShadcnCard>
     </CardProvider>

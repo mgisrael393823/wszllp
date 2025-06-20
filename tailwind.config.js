@@ -2,6 +2,7 @@ const { fontFamily } = require("tailwindcss/defaultTheme")
 
 /** @type {import('tailwindcss').Config} */
 export default {
+  mode: 'jit',
   darkMode: ["class"],
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
@@ -22,6 +23,7 @@ export default {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          25: '#F5F8FF',
           50: '#EFF6FF',
           100: '#DBEAFE',
           200: '#BFDBFE',
@@ -33,10 +35,12 @@ export default {
           800: '#1E40AF',
           900: '#1E3A8A',
           950: '#172554',
+          975: '#0F1C3D',
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
+          25: '#F3FFFE',
           50: '#F0FDFA',
           100: '#CCFBF1',
           200: '#99F6E4',
@@ -48,6 +52,7 @@ export default {
           800: '#115E59',
           900: '#134E4A',
           950: '#042F2E',
+          975: '#021917',
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
@@ -56,6 +61,7 @@ export default {
         success: {
           DEFAULT: "hsl(var(--success))",
           foreground: "hsl(var(--success-foreground))",
+          25: '#F7FEF9',
           50: '#F0FDF4',
           100: '#DCFCE7',
           200: '#BBF7D0',
@@ -67,6 +73,7 @@ export default {
           800: '#166534',
           900: '#14532D',
           950: '#052E16',
+          975: '#02170B',
         },
         muted: {
           DEFAULT: "hsl(var(--muted))",
@@ -75,6 +82,7 @@ export default {
         accent: {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
+          25: '#FFFEF5',
           50: '#FFFBEB',
           100: '#FEF3C7',
           200: '#FDE68A',
@@ -86,6 +94,7 @@ export default {
           800: '#92400E',
           900: '#78350F',
           950: '#451A03',
+          975: '#220D01',
         },
         popover: {
           DEFAULT: "hsl(var(--popover))",
@@ -97,6 +106,7 @@ export default {
         },
         // Original semantic color
         error: {
+          25: '#FFF9F9',
           50: '#FEF2F2',
           100: '#FEE2E2',
           200: '#FECACA',
@@ -108,9 +118,11 @@ export default {
           800: '#991B1B',
           900: '#7F1D1D',
           950: '#450A0A',
+          975: '#220505',
         },
         // Neutral palette - Gray for text and backgrounds
         neutral: {
+          25: '#FCFCFD',
           50: '#F9FAFB',
           100: '#F3F4F6',
           200: '#E5E7EB',
@@ -122,6 +134,7 @@ export default {
           800: '#1F2937',
           900: '#111827',
           950: '#030712',
+          975: '#010306',
         },
         // Preservation of warning for backward compatibility
         warning: {
@@ -167,7 +180,7 @@ export default {
         relaxed: '1.625',
         loose: '2',
       },
-      // Shadow system with elevation
+      // Shadow system with elevation and modern variants
       boxShadow: {
         'xs': '0 1px 2px rgba(0, 0, 0, 0.05)',
         'sm': '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)',
@@ -177,6 +190,13 @@ export default {
         '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
         'inner': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)',
         'none': 'none',
+        // Modern shadow variants with color tints
+        'primary': '0 10px 25px -5px rgba(59, 130, 246, 0.15), 0 4px 6px -2px rgba(59, 130, 246, 0.08)',
+        'secondary': '0 10px 25px -5px rgba(20, 184, 166, 0.15), 0 4px 6px -2px rgba(20, 184, 166, 0.08)',
+        'accent': '0 10px 25px -5px rgba(245, 158, 11, 0.15), 0 4px 6px -2px rgba(245, 158, 11, 0.08)',
+        'glow': '0 0 30px rgba(59, 130, 246, 0.3)',
+        'glow-sm': '0 0 15px rgba(59, 130, 246, 0.2)',
+        'glow-lg': '0 0 50px rgba(59, 130, 246, 0.4)',
       },
       // Z-index layers
       zIndex: {
@@ -287,6 +307,22 @@ export default {
       },
       fontFamily: {
         sans: ["var(--font-sans)", ...fontFamily.sans],
+      },
+      // Modern gradient utilities
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+        // Brand gradients
+        'gradient-primary': 'linear-gradient(135deg, var(--tw-gradient-from) 0%, var(--tw-gradient-to) 100%)',
+        'gradient-secondary': 'linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%)',
+        'gradient-accent': 'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)',
+        'gradient-success': 'linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%)',
+        // Modern mesh gradients
+        'gradient-mesh': 'radial-gradient(at 40% 20%, #EFF6FF 0px, transparent 50%), radial-gradient(at 80% 0%, #F0FDFA 0px, transparent 50%), radial-gradient(at 0% 50%, #FFFBEB 0px, transparent 50%)',
+        'gradient-shine': 'linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.7) 50%, transparent 60%)',
+        // Subtle surface gradients
+        'gradient-surface': 'linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.6) 100%)',
+        'gradient-glass': 'linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
       },
     },
   },
