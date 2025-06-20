@@ -93,12 +93,23 @@ export default defineConfig({
     noExternal: ['papaparse'],
   },
   build: {
+    chunkSizeWarningLimit: 1000,
     rollupOptions: {
       external: [
         /^dev-tools\//,
         'agent.ts',
         'refactor.ts'
-      ]
+      ],
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react')) return 'vendor-react';
+            if (id.includes('@supabase')) return 'vendor-supabase';
+            if (id.includes('xlsx')) return 'vendor-xlsx';
+            if (id.includes('lucide-react')) return 'vendor-icons';
+          }
+        }
+      }
     }
   },
 });

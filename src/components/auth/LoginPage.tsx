@@ -42,6 +42,7 @@ const LoginPage: React.FC = () => {
             className="mx-auto h-16 w-auto"
             src="/wszmainlogo.webp"
             alt="WSZLLP Logo"
+            loading="lazy"
           />
           <Typography 
             variant="h2" 
