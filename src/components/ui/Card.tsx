@@ -142,6 +142,7 @@ const Card: React.FC<CardProps> = ({
   
   const stateStyles = [
     // Base transition with modern easing
+    // eslint-disable-next-line no-useless-escape
     'transition-all duration-300 ease-\[cubic-bezier\(0.4,0,0.2,1\)\]',
     
     // Loading state
